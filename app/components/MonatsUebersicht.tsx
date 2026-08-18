@@ -118,14 +118,14 @@ export default function MonatsUebersicht() {
 
   if (laedt) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="min-h-screen sf-page flex items-center justify-center">
         <span className="text-sm text-stone-400">Lade…</span>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-stone-50">
+    <main className="min-h-screen sf-page">
       <div className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {/* Monatsnavigation */}
         <header className="flex items-center justify-between mb-8">
@@ -220,6 +220,7 @@ export default function MonatsUebersicht() {
               schichten={schichten.filter((s) => s.employerId === aktivId)}
               employer={aktivSumme.employer}
               bundesland={bundesland}
+              onGeloescht={() => setVersion((v) => v + 1)}
             />
 
             <SchnellEingabe
