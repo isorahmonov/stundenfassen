@@ -7,6 +7,7 @@ import { seedDatabase } from "@/lib/storage/seed"
 import { berechneMonatsSumme, type MonatsSumme } from "@/lib/calc/aggregate"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
+import { SchnellEingabe } from "./SchnellEingabe"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -33,6 +34,7 @@ export default function MonatsUebersicht() {
   const [schichten, setSchichten] = useState<Shift[]>([])
   const [bundesland, setBundesland] = useState<Bundesland>("BY")
   const [laedt, setLaedt] = useState(true)
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let abgebrochen = false
@@ -81,7 +83,7 @@ export default function MonatsUebersicht() {
     return () => {
       abgebrochen = true
     }
-  }, [monat, jahr])
+  }, [monat, jahr, version])
 
   function zumVormonat() {
     if (monat === 1) {
@@ -184,6 +186,11 @@ export default function MonatsUebersicht() {
               schichten={schichten.filter((s) => s.employerId === aktivId)}
               employer={aktivSumme.employer}
               bundesland={bundesland}
+            />
+
+            <SchnellEingabe
+              employer={aktivSumme.employer}
+              onSaved={() => setVersion((v) => v + 1)}
             />
           </>
         ) : (
