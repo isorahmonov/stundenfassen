@@ -5,7 +5,7 @@ import type { Abgleich } from "@/lib/types"
 import { vergleicheAbgleich, type MonatsSumme } from "@/lib/calc/aggregate"
 import type { Ampel } from "@/lib/calc/warnings"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
-import { db } from "@/lib/storage/dexie/db"
+import { abgleich as abgleichRepo } from "@/lib/storage"
 
 const AMPEL_DOT: Record<Ampel, string> = {
   gruen: "bg-emerald-500",
@@ -86,16 +86,9 @@ export function AbgleichAnzeige({
       const tatsaechlichAusgezahltCent = betrag ? parseEurInput(betrag) : undefined
 
       if (abgleich) {
-        await db.abgleich.update(abgleich.id, { lautAbrechnungStunden, tatsaechlichAusgezahltCent })
+        await abgleichRepo.update(abgleich.id, { lautAbrechnungStunden, tatsaechlichAusgezahltCent })
       } else {
-        await db.abgleich.add({
-          id: crypto.randomUUID(),
-          employerId,
-          monat,
-          jahr,
-          lautAbrechnungStunden,
-          tatsaechlichAusgezahltCent,
-        })
+        await abgleichRepo.add({ employerId, monat, jahr, lautAbrechnungStunden, tatsaechlichAusgezahltCent })
       }
       setFormOffen(false)
       onGeaendert()

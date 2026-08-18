@@ -15,11 +15,17 @@ export type {
   AbgleichUpdate,
 } from "./interfaces/IAbgleichRepository";
 
-export { StundenDb } from "./dexie/StundenDb";
-export { db } from "./dexie/db";
-export { EmployerRepository } from "./dexie/EmployerRepository";
-export { ShiftRepository } from "./dexie/ShiftRepository";
-export { SettingsRepository } from "./dexie/SettingsRepository";
-export { AbgleichRepository } from "./dexie/AbgleichRepository";
+export { EmployerRepository } from "./supabase/EmployerRepository";
+export { ShiftRepository } from "./supabase/ShiftRepository";
+export { SettingsRepository } from "./supabase/SettingsRepository";
+export { AbgleichRepository } from "./supabase/AbgleichRepository";
 
-export { seedDatabase } from "./seed";
+import { EmployerRepository } from "./supabase/EmployerRepository";
+import { ShiftRepository } from "./supabase/ShiftRepository";
+import { SettingsRepository } from "./supabase/SettingsRepository";
+import { AbgleichRepository } from "./supabase/AbgleichRepository";
+
+export const employers = new EmployerRepository();
+export const shifts = new ShiftRepository();
+export const settings = new SettingsRepository();
+export const abgleich = new AbgleichRepository();

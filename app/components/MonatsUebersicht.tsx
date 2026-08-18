@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
-import { db } from "@/lib/storage/dexie/db"
-import { seedDatabase } from "@/lib/storage/seed"
+import { employers as employersRepo, shifts as shiftsRepo, settings as settingsRepo, abgleich as abgleichRepo } from "@/lib/storage"
 import { berechneMonatsSumme, type MonatsSumme } from "@/lib/calc/aggregate"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
@@ -49,24 +48,21 @@ export default function MonatsUebersicht() {
     async function laden() {
       setLaedt(true)
       try {
-        await seedDatabase(db)
-        const mm = String(monat).padStart(2, "0")
-        const [emps, cfg, schichten, abgleichListe, jahresSch] = await Promise.all([
-          db.employers.toArray(),
-          db.settings.get("default"),
-          db.shifts
-            .where("datum")
-            .between(`${jahr}-${mm}-01`, `${jahr}-${mm}-31`, true, true)
-            .toArray(),
-          db.abgleich.where("[monat+jahr]").equals([monat, jahr]).toArray(),
-          db.shifts.where("datum").between(`${jahr}-01-01`, `${jahr}-12-31`, true, true).toArray(),
+        const [emps, cfg, schichten, abgleichListe, alleSchichten] = await Promise.all([
+          employersRepo.findAlle(),
+          settingsRepo.get(),
+          shiftsRepo.findByMonat(monat, jahr),
+          abgleichRepo.findByMonatJahr(monat, jahr),
+          shiftsRepo.findAlle(),
         ])
+        const jahresSch = alleSchichten.filter((s) => s.datum.startsWith(String(jahr)))
 
         if (abgebrochen) return
 
         const aktiveEmps = emps.filter((e) => !e.archiviert)
         const geladeneSettings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal"> =
           cfg ?? FALLBACK_SETTINGS
+
 
         const ergebnis: EmployerSumme[] = aktiveEmps.map((employer) => ({
           employer,

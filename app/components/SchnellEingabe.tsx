@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import type { Employer, Shift } from "@/lib/types"
-import { db } from "@/lib/storage/dexie/db"
+import type { Employer } from "@/lib/types"
+import { shifts as shiftsRepo } from "@/lib/storage"
 import { formatWochentag } from "@/lib/calc/format"
 
 function heuteISO(): string {
@@ -33,7 +33,7 @@ export function SchnellEingabe({ employer, onSaved }: Props) {
   const kannSpeichern = datum && start && ende && !speichert
 
   async function letztSchichtKopieren() {
-    const alle = await db.shifts.where("employerId").equals(employer.id).toArray()
+    const alle = await shiftsRepo.findByEmployer(employer.id)
     if (alle.length === 0) return
     alle.sort((a, b) => a.datum.localeCompare(b.datum) || a.start.localeCompare(b.start))
     const letzte = alle[alle.length - 1]
@@ -54,15 +54,13 @@ export function SchnellEingabe({ employer, onSaved }: Props) {
 
     setSpeichert(true)
     try {
-      const shift: Shift = {
-        id: crypto.randomUUID(),
+      await shiftsRepo.add({
         employerId: employer.id,
         datum,
         start,
         ende,
         ...(pauseVon && pauseBis ? { pauseVon, pauseBis } : {}),
-      }
-      await db.shifts.add(shift)
+      })
       setStart("")
       setEnde("")
       setPauseVon("")

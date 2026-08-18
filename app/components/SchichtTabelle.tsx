@@ -17,7 +17,7 @@ import {
   formatStundenDezimal,
   formatWochentag,
 } from "@/lib/calc/format"
-import { db } from "@/lib/storage/dexie/db"
+import { shifts as shiftsRepo } from "@/lib/storage"
 
 interface ShiftZeile {
   shift: Shift
@@ -85,13 +85,13 @@ export function SchichtTabelle({
     .map((s) => berechneZeile(s, employer, bundesland))
 
   async function loeschen(id: string) {
-    await db.shifts.delete(id)
+    await shiftsRepo.remove(id)
     setBearbeitenId(null)
     onGeloescht?.()
   }
 
   async function speichern(id: string, daten: Partial<Omit<Shift, "id" | "employerId">>) {
-    await db.shifts.update(id, daten)
+    await shiftsRepo.update(id, daten)
     setBearbeitenId(null)
     onGeloescht?.()
   }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import type { Employer, EmployerArt } from "@/lib/types"
-import { db } from "@/lib/storage/dexie/db"
+import { employers as employersRepo } from "@/lib/storage"
 import { formatEuroCent } from "@/lib/calc/format"
 
 const ART_LABEL: Record<EmployerArt, string> = {
@@ -64,7 +64,7 @@ export default function ArbeitgeberVerwaltung() {
   const [laedt, setLaedt] = useState(true)
 
   async function laden() {
-    const alle = await db.employers.toArray()
+    const alle = await employersRepo.findAlle()
     alle.sort((a, b) => (a.archiviert ? 1 : 0) - (b.archiviert ? 1 : 0) || a.name.localeCompare(b.name))
     setEmployers(alle)
     setLaedt(false)
@@ -73,20 +73,19 @@ export default function ArbeitgeberVerwaltung() {
   useEffect(() => { laden() }, [])
 
   async function speichernNeu(form: FormDaten) {
-    const daten = formZuEmployer(form)
-    await db.employers.add({ ...daten, id: crypto.randomUUID() })
+    await employersRepo.add(formZuEmployer(form))
     setNeuFormOffen(false)
     laden()
   }
 
   async function speichernBearbeiten(id: string, form: FormDaten) {
-    await db.employers.update(id, formZuEmployer(form))
+    await employersRepo.update(id, formZuEmployer(form))
     setBearbeitenId(null)
     laden()
   }
 
   async function archivieren(id: string, archiviert: boolean) {
-    await db.employers.update(id, { archiviert })
+    await employersRepo.update(id, { archiviert })
     laden()
   }
 
