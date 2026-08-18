@@ -10,6 +10,7 @@ import { SchichtTabelle } from "./SchichtTabelle"
 import { SchnellEingabe } from "./SchnellEingabe"
 import { AbgleichAnzeige } from "./AbgleichAnzeige"
 import { WarnungsAnzeige } from "./WarnungsAnzeige"
+import { PDFButton } from "./PDFButton"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -37,6 +38,7 @@ export default function MonatsUebersicht() {
   const [bundesland, setBundesland] = useState<Bundesland>("BY")
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
+  const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
 
@@ -62,7 +64,7 @@ export default function MonatsUebersicht() {
         if (abgebrochen) return
 
         const aktiveEmps = emps.filter((e) => !e.archiviert)
-        const settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal"> =
+        const geladeneSettings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal"> =
           cfg ?? FALLBACK_SETTINGS
 
         const ergebnis: EmployerSumme[] = aktiveEmps.map((employer) => ({
@@ -70,7 +72,7 @@ export default function MonatsUebersicht() {
           summe: berechneMonatsSumme(
             schichten.filter((s) => s.employerId === employer.id),
             employer,
-            settings,
+            geladeneSettings,
           ),
         }))
 
@@ -78,6 +80,7 @@ export default function MonatsUebersicht() {
         setSchichten(schichten)
         setAbgleichMap(new Map(abgleichListe.map((a) => [a.employerId, a])))
         setJahresSchichten(jahresSch)
+        setSettings(geladeneSettings)
         if (cfg?.bundesland) setBundesland(cfg.bundesland)
         setAktivId((prev) =>
           prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
@@ -184,11 +187,22 @@ export default function MonatsUebersicht() {
                 klasse="col-span-2 sm:col-span-1"
               />
             </div>
-            <p className="text-center text-xs text-stone-400">
-              {aktivSumme.summe.anzahlSchichten === 0
-                ? "Keine Schichten in diesem Monat"
-                : `${aktivSumme.summe.anzahlSchichten} Schicht${aktivSumme.summe.anzahlSchichten === 1 ? "" : "en"}`}
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-stone-400">
+                {aktivSumme.summe.anzahlSchichten === 0
+                  ? "Keine Schichten in diesem Monat"
+                  : `${aktivSumme.summe.anzahlSchichten} Schicht${aktivSumme.summe.anzahlSchichten === 1 ? "" : "en"}`}
+              </p>
+              <PDFButton
+                employer={aktivSumme.employer}
+                monat={monat}
+                jahr={jahr}
+                schichten={schichten.filter((s) => s.employerId === aktivId)}
+                settings={settings}
+                bundesland={bundesland}
+                abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
+              />
+            </div>
 
             <AbgleichAnzeige
               monatsSumme={aktivSumme.summe}
