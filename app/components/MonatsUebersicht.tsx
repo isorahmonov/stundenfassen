@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
 import { db } from "@/lib/storage/dexie/db"
 import { seedDatabase } from "@/lib/storage/seed"
@@ -133,7 +134,20 @@ export default function MonatsUebersicht() {
           <h1 className="text-base font-semibold tracking-tight text-stone-900 select-none">
             {MONATE[monat - 1]} {jahr}
           </h1>
-          <NavButton onClick={zumNaechstenMonat} label="Nächster Monat">›</NavButton>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/arbeitgeber"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 hover:text-stone-700 active:scale-90 transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+              aria-label="Arbeitgeber verwalten"
+              title="Arbeitgeber"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="8" cy="5" r="2.5"/>
+                <path d="M2.5 14c0-2.76 2.46-5 5.5-5s5.5 2.24 5.5 5"/>
+              </svg>
+            </Link>
+            <NavButton onClick={zumNaechstenMonat} label="Nächster Monat">›</NavButton>
+          </div>
         </header>
 
         {/* Arbeitgeber-Tabs */}

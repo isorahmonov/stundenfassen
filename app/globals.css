@@ -44,16 +44,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dark-Mode-Overrides für Tailwind stone-* */
-@media (prefers-color-scheme: dark) {
-  .sf-page   { background: var(--sf-page) !important; }
-  .sf-card   { background: var(--sf-card) !important; }
-  .sf-text   { color: var(--sf-text)   !important; }
-  .sf-text-2 { color: var(--sf-text-2) !important; }
-  .sf-text-3 { color: var(--sf-text-3) !important; }
-  .sf-border { border-color: var(--sf-border) !important; }
-  .sf-input  { background: var(--sf-input) !important; }
-}
+/* Design-System-Utilities — reagieren automatisch auf prefers-color-scheme */
+.sf-page   { background: var(--sf-page); }
+.sf-card   { background: var(--sf-card); }
+.sf-text   { color: var(--sf-text); }
+.sf-text-2 { color: var(--sf-text-2); }
+.sf-text-3 { color: var(--sf-text-3); }
+.sf-border { border-color: var(--sf-border); }
+.sf-input  { background: var(--sf-input); }
 
 /* Tabellarische Ziffern für Geldbeträge und Stunden */
 .nums {
