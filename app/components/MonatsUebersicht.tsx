@@ -9,6 +9,7 @@ import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
 import { SchnellEingabe } from "./SchnellEingabe"
 import { AbgleichAnzeige } from "./AbgleichAnzeige"
+import { WarnungsAnzeige } from "./WarnungsAnzeige"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -35,6 +36,7 @@ export default function MonatsUebersicht() {
   const [schichten, setSchichten] = useState<Shift[]>([])
   const [bundesland, setBundesland] = useState<Bundesland>("BY")
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
+  const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
 
@@ -46,7 +48,7 @@ export default function MonatsUebersicht() {
       try {
         await seedDatabase(db)
         const mm = String(monat).padStart(2, "0")
-        const [emps, cfg, schichten, abgleichListe] = await Promise.all([
+        const [emps, cfg, schichten, abgleichListe, jahresSch] = await Promise.all([
           db.employers.toArray(),
           db.settings.get("default"),
           db.shifts
@@ -54,6 +56,7 @@ export default function MonatsUebersicht() {
             .between(`${jahr}-${mm}-01`, `${jahr}-${mm}-31`, true, true)
             .toArray(),
           db.abgleich.where("[monat+jahr]").equals([monat, jahr]).toArray(),
+          db.shifts.where("datum").between(`${jahr}-01-01`, `${jahr}-12-31`, true, true).toArray(),
         ])
 
         if (abgebrochen) return
@@ -74,6 +77,7 @@ export default function MonatsUebersicht() {
         setSummen(ergebnis)
         setSchichten(schichten)
         setAbgleichMap(new Map(abgleichListe.map((a) => [a.employerId, a])))
+        setJahresSchichten(jahresSch)
         if (cfg?.bundesland) setBundesland(cfg.bundesland)
         setAktivId((prev) =>
           prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
@@ -189,6 +193,13 @@ export default function MonatsUebersicht() {
             <AbgleichAnzeige
               monatsSumme={aktivSumme.summe}
               abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
+            />
+
+            <WarnungsAnzeige
+              jahresSchichten={jahresSchichten}
+              employers={summen.map((es) => es.employer)}
+              aktiverEmployer={aktivSumme.employer}
+              jahr={jahr}
             />
 
             <SchichtTabelle
