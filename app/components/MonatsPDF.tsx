@@ -9,11 +9,9 @@ import { feiertagName, istSonntag } from "@/lib/calc/holidays"
 import { parseISO } from "date-fns"
 import {
   formatDatum,
-  formatEuroCent,
   formatStundenDezimal,
   formatWochentag,
 } from "@/lib/calc/format"
-import { NETTO_HINWEIS_TEXT } from "@/config/lohn"
 import type { Bundesland } from "@/lib/types"
 
 const MONATE = [
@@ -81,7 +79,7 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
   const zeilen = [...schichten].sort((a, b) => a.datum.localeCompare(b.datum)).map((shift) => {
     const datum = parseISO(shift.datum)
     const intervall = schichtIntervall(shift)
-    const { nettoMinuten, bruttoCent } = berechneSchicht(shift, employer)
+    const { nettoMinuten } = berechneSchicht(shift, employer)
     const brutto = calcBrutto(intervall)
     const pause = calcPause(intervall)
     const { ausreichend } = pruefePause(brutto, pause)
@@ -90,7 +88,7 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
       feiertag: feiertagName(datum, bundesland),
       sonntag: istSonntag(datum),
       zuKurzePause: !ausreichend,
-      nettoMinuten, bruttoCent,
+      nettoMinuten,
     }
   })
 
@@ -123,14 +121,6 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
               {formatStundenDezimal(monatsSumme.nettoMinuten)}
             </Text>
           </View>
-          <View style={s.summaryBox}>
-            <Text style={s.summaryLabel}>Brutto</Text>
-            <Text style={s.summaryValue}>{formatEuroCent(monatsSumme.bruttoCent)}</Text>
-          </View>
-          <View style={s.summaryBox}>
-            <Text style={s.summaryLabel}>Netto (gesch.)</Text>
-            <Text style={s.summaryValue}>{formatEuroCent(monatsSumme.nettoGeschaetztCent)}</Text>
-          </View>
         </View>
 
         {/* Schichttabelle */}
@@ -145,7 +135,6 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
               <Text style={s.thTime}>P.bis</Text>
               <Text style={s.thTime}>Ende</Text>
               <Text style={s.thRight}>Std</Text>
-              <Text style={s.thRight}>Brutto</Text>
             </View>
             {zeilen.map((z) => (
               <View
@@ -162,7 +151,6 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
                 <Text style={s.tdTime}>{z.shift.pauseBis ?? "—"}</Text>
                 <Text style={s.tdTime}>{z.shift.ende}</Text>
                 <Text style={s.tdRight}>{formatStundenDezimal(z.nettoMinuten)}</Text>
-                <Text style={s.tdRight}>{formatEuroCent(z.bruttoCent)}</Text>
               </View>
             ))}
           </View>
@@ -182,23 +170,9 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
                 </Text>
               </View>
             )}
-            {abgleichErgebnis.differenzCent !== null && (
-              <View style={s.abgleichRow}>
-                <Text style={s.abgleichLabel}>
-                  Betrag: {formatEuroCent(abgleich.tatsaechlichAusgezahltCent!)} ausgez. · {formatEuroCent(monatsSumme.nettoGeschaetztCent)} gesch.
-                </Text>
-                <Text style={ampelStyle(abgleichErgebnis.ampelBetrag)}>
-                  {abgleichErgebnis.differenzCent >= 0 ? "+" : "−"}{formatEuroCent(Math.abs(abgleichErgebnis.differenzCent))}
-                </Text>
-              </View>
-            )}
           </View>
         )}
 
-        {/* Footer */}
-        <View style={s.footer}>
-          <Text style={s.footerText}>{NETTO_HINWEIS_TEXT}</Text>
-        </View>
       </Page>
     </Document>
   )
