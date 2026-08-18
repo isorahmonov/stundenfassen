@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
+import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
 import { db } from "@/lib/storage/dexie/db"
 import { seedDatabase } from "@/lib/storage/seed"
 import { berechneMonatsSumme, type MonatsSumme } from "@/lib/calc/aggregate"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
 import { SchnellEingabe } from "./SchnellEingabe"
+import { AbgleichAnzeige } from "./AbgleichAnzeige"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -33,6 +34,7 @@ export default function MonatsUebersicht() {
   const [summen, setSummen] = useState<EmployerSumme[]>([])
   const [schichten, setSchichten] = useState<Shift[]>([])
   const [bundesland, setBundesland] = useState<Bundesland>("BY")
+  const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
 
@@ -44,13 +46,14 @@ export default function MonatsUebersicht() {
       try {
         await seedDatabase(db)
         const mm = String(monat).padStart(2, "0")
-        const [emps, cfg, schichten] = await Promise.all([
+        const [emps, cfg, schichten, abgleichListe] = await Promise.all([
           db.employers.toArray(),
           db.settings.get("default"),
           db.shifts
             .where("datum")
             .between(`${jahr}-${mm}-01`, `${jahr}-${mm}-31`, true, true)
             .toArray(),
+          db.abgleich.where("[monat+jahr]").equals([monat, jahr]).toArray(),
         ])
 
         if (abgebrochen) return
@@ -70,6 +73,7 @@ export default function MonatsUebersicht() {
 
         setSummen(ergebnis)
         setSchichten(schichten)
+        setAbgleichMap(new Map(abgleichListe.map((a) => [a.employerId, a])))
         if (cfg?.bundesland) setBundesland(cfg.bundesland)
         setAktivId((prev) =>
           prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
@@ -181,6 +185,11 @@ export default function MonatsUebersicht() {
                 ? "Keine Schichten in diesem Monat"
                 : `${aktivSumme.summe.anzahlSchichten} Schicht${aktivSumme.summe.anzahlSchichten === 1 ? "" : "en"}`}
             </p>
+
+            <AbgleichAnzeige
+              monatsSumme={aktivSumme.summe}
+              abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
+            />
 
             <SchichtTabelle
               schichten={schichten.filter((s) => s.employerId === aktivId)}
