@@ -15,15 +15,15 @@ export type {
   AbgleichUpdate,
 } from "./interfaces/IAbgleichRepository";
 
-export { EmployerRepository } from "./supabase/EmployerRepository";
-export { ShiftRepository } from "./supabase/ShiftRepository";
-export { SettingsRepository } from "./supabase/SettingsRepository";
-export { AbgleichRepository } from "./supabase/AbgleichRepository";
+export { EmployerRepository } from "./firestore/EmployerRepository";
+export { ShiftRepository } from "./firestore/ShiftRepository";
+export { SettingsRepository } from "./firestore/SettingsRepository";
+export { AbgleichRepository } from "./firestore/AbgleichRepository";
 
-import { EmployerRepository } from "./supabase/EmployerRepository";
-import { ShiftRepository } from "./supabase/ShiftRepository";
-import { SettingsRepository } from "./supabase/SettingsRepository";
-import { AbgleichRepository } from "./supabase/AbgleichRepository";
+import { EmployerRepository } from "./firestore/EmployerRepository";
+import { ShiftRepository } from "./firestore/ShiftRepository";
+import { SettingsRepository } from "./firestore/SettingsRepository";
+import { AbgleichRepository } from "./firestore/AbgleichRepository";
 
 export const employers = new EmployerRepository();
 export const shifts = new ShiftRepository();
