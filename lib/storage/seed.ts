@@ -132,10 +132,11 @@ export async function seedDatabase(db: StundenDb): Promise<void> {
   const existing = await db.employers.bulkGet([TECHCORP_ID, CAFE_BRAUN_ID]);
   if (existing.some((e) => e !== undefined)) return;
 
+  // bulkPut ist idempotent – kein BulkError bei doppeltem Aufruf (React StrictMode).
   await db.transaction("rw", [db.employers, db.shifts, db.settings, db.abgleich], async () => {
-    await db.employers.bulkAdd(SEED_EMPLOYERS);
+    await db.employers.bulkPut(SEED_EMPLOYERS);
     await db.settings.put(SEED_SETTINGS);
-    await db.shifts.bulkAdd(SEED_SHIFTS);
-    await db.abgleich.bulkAdd(SEED_ABGLEICH);
+    await db.shifts.bulkPut(SEED_SHIFTS);
+    await db.abgleich.bulkPut(SEED_ABGLEICH);
   });
 }
