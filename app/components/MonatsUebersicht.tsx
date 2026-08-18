@@ -221,6 +221,10 @@ export default function MonatsUebersicht() {
             <AbgleichAnzeige
               monatsSumme={aktivSumme.summe}
               abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
+              employerId={aktivId ?? ""}
+              monat={monat}
+              jahr={jahr}
+              onGeaendert={() => setVersion((v) => v + 1)}
             />
 
             <WarnungsAnzeige
