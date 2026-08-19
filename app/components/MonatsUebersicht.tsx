@@ -127,7 +127,7 @@ export default function MonatsUebersicht() {
         {/* Monatsnavigation */}
         <header className="flex items-center justify-between mb-8">
           <NavButton onClick={zumVormonat} label="Vormonat">‹</NavButton>
-          <h1 className="text-base font-semibold tracking-tight text-stone-900 select-none">
+          <h1 className="text-base font-semibold tracking-tight text-stone-900 dark:text-neutral-100 select-none">
             {MONATE[monat - 1]} {jahr}
           </h1>
           <div className="flex items-center gap-1">
