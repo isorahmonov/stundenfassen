@@ -1,8 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // firebase-admin und ical.js dürfen nicht vom Next.js-Bundler verarbeitet werden
-  serverExternalPackages: ["firebase-admin", "ical.js"],
+  // firebase-admin (und Subpfad-Exporte) sowie ical.js dürfen nicht gebundelt werden.
+  // Next.js 16 prüft mit exaktem .includes() — jeder importierte Subpfad muss einzeln stehen.
+  serverExternalPackages: [
+    "firebase-admin",
+    "firebase-admin/app",
+    "firebase-admin/auth",
+    "firebase-admin/firestore",
+    "ical.js",
+  ],
   async headers() {
     return [
       {

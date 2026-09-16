@@ -1,3 +1,6 @@
+// firebase-admin benötigt Node.js-APIs (crypto, fs) — nicht Edge-kompatibel
+export const runtime = "nodejs"
+
 import { type NextRequest } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase/admin"
 import { parseIcal } from "@/lib/verfuegbarkeit/icalParser"
