@@ -36,17 +36,6 @@ const TABS = [
       </svg>
     ),
   },
-  {
-    href: "/statistik",
-    label: "Statistik",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <rect x="3" y="12" width="4" height="7" rx="1" fill="currentColor" stroke="none"/>
-        <rect x="9" y="7" width="4" height="12" rx="1" fill="currentColor" stroke="none"/>
-        <rect x="15" y="4" width="4" height="15" rx="1" fill="currentColor" stroke="none"/>
-      </svg>
-    ),
-  },
 ] as const
 
 export function TabBar() {

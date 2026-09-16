@@ -14,6 +14,7 @@ import { SchnellEingabe } from "./SchnellEingabe"
 import { AbgleichAnzeige } from "./AbgleichAnzeige"
 import { WarnungsAnzeige } from "./WarnungsAnzeige"
 import { PDFButton } from "./PDFButton"
+import { HeatmapAbschnitt } from "./HeatmapAbschnitt"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -295,6 +296,8 @@ export default function MonatsUebersicht() {
             <p className="text-sm text-stone-400">Keine Arbeitgeber vorhanden.</p>
           </div>
         )}
+
+        <HeatmapAbschnitt />
       </div>
     </main>
   )
