@@ -1,7 +1,7 @@
 import { auth } from "@/lib/firebase/client"
 import { collection, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
-import type { Employer, Shift, Settings, Abgleich } from "@/lib/types"
+import type { Employer, Shift, Settings, Abgleich, GeplanteSchicht } from "@/lib/types"
 
 export function uid(): string {
   const user = auth.currentUser
@@ -77,6 +77,25 @@ export const toSettings = (d: SettingsDoc): Settings => ({
   id: "default",
   bundesland: d.bundesland, steuerklasse: d.steuerklasse,
   kirchensteuer: d.kirchensteuer, kurzfristigPauschal: d.kurzfristigPauschal,
+})
+
+// ── GeplanteSchicht ──────────────────────────────────────────────────────────
+
+export type GeplanteSchichtDoc = {
+  employerId: string; datum: string; start: string; ende: string
+  uebernommen: boolean; uebernommenShiftId: string | null
+}
+
+export const toGeplanteSchicht = (id: string, d: GeplanteSchichtDoc): GeplanteSchicht => ({
+  id, employerId: d.employerId, datum: d.datum, start: d.start, ende: d.ende,
+  uebernommen: d.uebernommen,
+  ...(d.uebernommenShiftId ? { uebernommenShiftId: d.uebernommenShiftId } : {}),
+})
+
+export const fromGeplanteSchicht = (s: Omit<GeplanteSchicht, "id">): GeplanteSchichtDoc => ({
+  employerId: s.employerId, datum: s.datum, start: s.start, ende: s.ende,
+  uebernommen: s.uebernommen,
+  uebernommenShiftId: s.uebernommenShiftId ?? null,
 })
 
 // ── Abgleich ─────────────────────────────────────────────────────────────────

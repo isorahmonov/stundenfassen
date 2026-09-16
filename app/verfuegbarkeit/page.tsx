@@ -13,7 +13,7 @@ import {
 import { aktuellerSonntagStr, snapZuSonntag, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import Link from "next/link"
 import { PDFVerfuegbarkeitButton } from "@/app/components/PDFVerfuegbarkeitButton"
-import type { Bundesland } from "@/lib/types"
+import type { Bundesland, GeplanteSchicht } from "@/lib/types"
 import { feiertagName, istFeiertag } from "@/lib/calc/holidays"
 import {
   type TerminRoh,
@@ -23,6 +23,7 @@ import {
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
+import { employers, geplanteSchichten as geplanteRepo } from "@/lib/storage"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,21 @@ const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
  * Erzeugt ganztägige LOCKED-Termine für jeden gesetzlichen Feiertag im Zeitraum.
  * Feiertag = LOCKED-Termin, kein Sonderfall im Berechnungscode.
  */
+/** Geplante Schichten als LOCKED-Termine — blockieren Verfügbarkeit wie Kalendertermine. */
+function geplanteTermine(schichten: GeplanteSchicht[], alleTage: string[]): TerminMitStatus[] {
+  const tageSet = new Set(alleTage)
+  return schichten
+    .filter((s) => tageSet.has(s.datum))
+    .map((s) => ({
+      uid: `geplant-${s.id}`,
+      titel: "Schicht",
+      beginn: new Date(`${s.datum}T${s.start}:00`),  // lokale Zeit (Berlin)
+      ende:   new Date(`${s.datum}T${s.ende}:00`),
+      ganztaegig: false,
+      status: "LOCKED" as const,
+    }))
+}
+
 /** Freitags 12:00–14:00 Uhr (Europe/Berlin) immer LOCKED — Jumia-Zeit. */
 function jumiaTermine(tage: string[]): TerminMitStatus[] {
   return tage.flatMap((datum) => {
@@ -173,17 +189,18 @@ export default function VerfuegbarkeitPage() {
   // Archiv
   const [archivListe, setArchivListe] = useState<ArchivEintrag[]>([])
 
-  // Kalender + Arbeitgeber-Bundesland beim Start laden
+  // Geplante Schichten (blockieren Verfügbarkeit wie LOCKED-Termine)
+  const [geplanteSchichtenListe, setGeplanteSchichtenListe] = useState<GeplanteSchicht[]>([])
+
+  // Kalender + Arbeitgeber-Bundesland + geplante Schichten beim Start laden
   useEffect(() => {
     apiGet("/api/ical")
       .then((d) => setKalender((d as { kalender: KalenderInfo[] }).kalender))
       .catch((e) => setFehler(String(e)))
-    // Bundesland vom ersten aktiven Arbeitgeber als Default übernehmen
-    import("@/lib/storage").then(({ employers }) =>
-      employers.findAktive().then((emps) => {
-        if (emps[0]?.bundesland) setBundesland(emps[0].bundesland)
-      }),
-    ).catch(() => { /* Fallback bleibt HH */ })
+    employers.findAktive().then((emps) => {
+      if (emps[0]?.bundesland) setBundesland(emps[0].bundesland)
+    }).catch(() => { /* Fallback bleibt HH */ })
+    geplanteRepo.findAlle().then(setGeplanteSchichtenListe).catch(() => {})
   }, [])
 
   // Archiv beim Start laden
@@ -238,7 +255,8 @@ export default function VerfuegbarkeitPage() {
       }
       const feiertage = feiertagsTermine(alleTage, bundesland)
       const jumia = jumiaTermine(alleTage)
-      const mitFeiertagen = [...alleTermine, ...feiertage, ...jumia]
+      const geplant = geplanteTermine(geplanteSchichtenListe, alleTage)
+      const mitFeiertagen = [...alleTermine, ...feiertage, ...jumia, ...geplant]
       setTermine(mitFeiertagen)
       setVerfBlöcke(berechneVerfuegbarkeit(mitFeiertagen, moSaTage, VERF_EINSTELLUNGEN))
     }
@@ -279,7 +297,7 @@ export default function VerfuegbarkeitPage() {
     } finally {
       setLaden(false)
     }
-  }, [kalender, startSonntagStr, anzahlWochen, bundesland])
+  }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe])
 
   useEffect(() => {
     berechneFetch()

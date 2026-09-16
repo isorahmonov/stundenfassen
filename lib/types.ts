@@ -66,6 +66,16 @@ export interface Settings {
   kurzfristigPauschal: boolean;
 }
 
+export interface GeplanteSchicht {
+  id: string
+  employerId: string
+  datum: string      // "YYYY-MM-DD"
+  start: string      // "HH:mm"
+  ende: string       // "HH:mm"
+  uebernommen: boolean
+  uebernommenShiftId?: string  // ID in shifts-Collection nach Übernahme
+}
+
 /**
  * Soll-Ist-Abgleich: pro Monat und Arbeitgeber die laut Abrechnung
  * gemeldeten Werte, zum Vergleich mit der eigenen Erfassung.

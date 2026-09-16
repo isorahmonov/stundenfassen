@@ -14,18 +14,26 @@ export type {
   AbgleichInput,
   AbgleichUpdate,
 } from "./interfaces/IAbgleichRepository";
+export type {
+  IGeplanteSchichtRepository,
+  GeplanteSchichtInput,
+  GeplanteSchichtUpdate,
+} from "./interfaces/IGeplanteSchichtRepository";
 
 export { EmployerRepository } from "./firestore/EmployerRepository";
 export { ShiftRepository } from "./firestore/ShiftRepository";
 export { SettingsRepository } from "./firestore/SettingsRepository";
 export { AbgleichRepository } from "./firestore/AbgleichRepository";
+export { GeplanteSchichtRepository } from "./firestore/GeplanteSchichtRepository";
 
 import { EmployerRepository } from "./firestore/EmployerRepository";
 import { ShiftRepository } from "./firestore/ShiftRepository";
 import { SettingsRepository } from "./firestore/SettingsRepository";
 import { AbgleichRepository } from "./firestore/AbgleichRepository";
+import { GeplanteSchichtRepository } from "./firestore/GeplanteSchichtRepository";
 
 export const employers = new EmployerRepository();
 export const shifts = new ShiftRepository();
 export const settings = new SettingsRepository();
 export const abgleich = new AbgleichRepository();
+export const geplanteSchichten = new GeplanteSchichtRepository();
