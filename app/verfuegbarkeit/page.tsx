@@ -69,6 +69,23 @@ const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
  * Erzeugt ganztägige LOCKED-Termine für jeden gesetzlichen Feiertag im Zeitraum.
  * Feiertag = LOCKED-Termin, kein Sonderfall im Berechnungscode.
  */
+/** Freitags 12:00–14:00 Uhr (Europe/Berlin) immer LOCKED — Jumia-Zeit. */
+function jumiaTermine(tage: string[]): TerminMitStatus[] {
+  return tage.flatMap((datum) => {
+    // Ohne "Z" → lokale Zeit; der Client läuft in Europe/Berlin.
+    const beginn = new Date(`${datum}T12:00:00`)
+    if (beginn.getDay() !== 5) return []  // 5 = Freitag
+    return [{
+      uid: `jumia-${datum}`,
+      titel: "Jumia",
+      beginn,
+      ende: new Date(`${datum}T14:00:00`),
+      ganztaegig: false,
+      status: "LOCKED" as const,
+    }]
+  })
+}
+
 function feiertagsTermine(tage: string[], bundesland: Bundesland): TerminMitStatus[] {
   return tage.flatMap((datum) => {
     const date = new Date(datum + "T12:00:00")
@@ -220,7 +237,8 @@ export default function VerfuegbarkeitPage() {
         }
       }
       const feiertage = feiertagsTermine(alleTage, bundesland)
-      const mitFeiertagen = [...alleTermine, ...feiertage]
+      const jumia = jumiaTermine(alleTage)
+      const mitFeiertagen = [...alleTermine, ...feiertage, ...jumia]
       setTermine(mitFeiertagen)
       setVerfBlöcke(berechneVerfuegbarkeit(mitFeiertagen, moSaTage, VERF_EINSTELLUNGEN))
     }
