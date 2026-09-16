@@ -17,8 +17,12 @@ async function ermittleUid(request: NextRequest): Promise<string> {
   const auth = request.headers.get("authorization") ?? ""
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null
   if (!token) throw new AuthFehler("Kein Token")
-  const decoded = await adminAuth.verifyIdToken(token)
-  return decoded.uid
+  try {
+    const decoded = await adminAuth.verifyIdToken(token)
+    return decoded.uid
+  } catch {
+    throw new AuthFehler("Ungültiges Token")
+  }
 }
 
 class AuthFehler extends Error {}
