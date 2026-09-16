@@ -13,6 +13,8 @@ export interface Employer {
   farbe: string;
   stundenlohnCent: number;
   art: EmployerArt;
+  /** Bundesland für Feiertagsberechnung — gilt für diesen Arbeitgeber */
+  bundesland: Bundesland;
   /** Prozentsatz, z.B. 50 für 50% */
   zuschlagSonntagProzent: number;
   zuschlagFeiertagProzent: number;

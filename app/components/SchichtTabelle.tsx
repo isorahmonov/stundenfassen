@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import { parseISO } from "date-fns"
 import type { Bundesland, Employer, Shift } from "@/lib/types"
 import { feiertagName, istSonntag } from "@/lib/calc/holidays"
@@ -138,9 +138,8 @@ export function SchichtTabelle({
           </thead>
           <tbody>
             {zeilen.map((z) => (
-              <>
+              <Fragment key={z.shift.id}>
                 <TabellenZeile
-                  key={z.shift.id}
                   zeile={z}
                   bearbeitet={bearbeitenId === z.shift.id}
                   onLoeschen={() => loeschen(z.shift.id)}
@@ -160,7 +159,7 @@ export function SchichtTabelle({
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>

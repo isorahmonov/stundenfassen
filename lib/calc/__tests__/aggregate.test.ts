@@ -8,6 +8,7 @@ const employer: Employer = {
   farbe: "#16a34a",
   stundenlohnCent: 1500,
   art: "werkstudent",
+  bundesland: "HH",
   zuschlagSonntagProzent: 0,
   zuschlagFeiertagProzent: 0,
   zuschlagNachtProzent: 0,

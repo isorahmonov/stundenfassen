@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import type { User } from "firebase/auth"
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
+import { TabBar } from "./TabBar"
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -68,7 +69,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     )
   }
 
-  return <>{children}</>
+  return (
+    <>
+      {/* Abstand für die fixe Tab-Leiste unten */}
+      <div className="pb-20">{children}</div>
+      <TabBar />
+    </>
+  )
 }
 
 function GoogleIcon() {

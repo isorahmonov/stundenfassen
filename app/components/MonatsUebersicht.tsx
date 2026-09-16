@@ -35,7 +35,7 @@ export default function MonatsUebersicht() {
   const [aktivId, setAktivId] = useState<string | null>(null)
   const [summen, setSummen] = useState<EmployerSumme[]>([])
   const [schichten, setSchichten] = useState<Shift[]>([])
-  const [bundesland, setBundesland] = useState<Bundesland>("BY")
+  const [settingsBundesland, setSettingsBundesland] = useState<Bundesland>("HH")
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
   const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
@@ -78,7 +78,7 @@ export default function MonatsUebersicht() {
         setAbgleichMap(new Map(abgleichListe.map((a) => [a.employerId, a])))
         setJahresSchichten(jahresSch)
         setSettings(geladeneSettings)
-        if (cfg?.bundesland) setBundesland(cfg.bundesland)
+        if (cfg?.bundesland) setSettingsBundesland(cfg.bundesland)
         setAktivId((prev) =>
           prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
         )
@@ -112,6 +112,8 @@ export default function MonatsUebersicht() {
   }
 
   const aktivSumme = summen.find((es) => es.employer.id === aktivId)
+  // Bundesland: Arbeitgeber hat Vorrang, Settings dienen als Fallback für ältere Datensätze
+  const bundesland: Bundesland = aktivSumme?.employer.bundesland ?? settingsBundesland
 
   if (laedt) {
     return (

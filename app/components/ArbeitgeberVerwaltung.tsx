@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import type { Employer, EmployerArt } from "@/lib/types"
+import type { Bundesland, Employer, EmployerArt } from "@/lib/types"
 import { employers as employersRepo } from "@/lib/storage"
 import { formatEuroCent } from "@/lib/calc/format"
 
@@ -13,10 +13,30 @@ const ART_LABEL: Record<EmployerArt, string> = {
   sonstiges: "Sonstiges",
 }
 
+const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
+  { value: "BB", label: "Brandenburg" },
+  { value: "BE", label: "Berlin" },
+  { value: "BW", label: "Baden-Württemberg" },
+  { value: "BY", label: "Bayern" },
+  { value: "HB", label: "Bremen" },
+  { value: "HE", label: "Hessen" },
+  { value: "HH", label: "Hamburg" },
+  { value: "MV", label: "Mecklenburg-Vorpommern" },
+  { value: "NI", label: "Niedersachsen" },
+  { value: "NW", label: "Nordrhein-Westfalen" },
+  { value: "RP", label: "Rheinland-Pfalz" },
+  { value: "SH", label: "Schleswig-Holstein" },
+  { value: "SL", label: "Saarland" },
+  { value: "SN", label: "Sachsen" },
+  { value: "ST", label: "Sachsen-Anhalt" },
+  { value: "TH", label: "Thüringen" },
+]
+
 interface FormDaten {
   name: string
   farbe: string
   art: EmployerArt
+  bundesland: Bundesland
   stundenlohnEur: string
   zuschlagSonntag: string
   zuschlagFeiertag: string
@@ -27,6 +47,7 @@ const LEER_FORM: FormDaten = {
   name: "",
   farbe: "#2563eb",
   art: "werkstudent",
+  bundesland: "HH",
   stundenlohnEur: "",
   zuschlagSonntag: "50",
   zuschlagFeiertag: "100",
@@ -38,6 +59,7 @@ function formZuEmployer(f: FormDaten): Omit<Employer, "id"> {
     name: f.name.trim(),
     farbe: f.farbe,
     art: f.art,
+    bundesland: f.bundesland,
     stundenlohnCent: Math.round(parseFloat(f.stundenlohnEur.replace(",", ".")) * 100),
     zuschlagSonntagProzent: parseFloat(f.zuschlagSonntag) || 0,
     zuschlagFeiertagProzent: parseFloat(f.zuschlagFeiertag) || 0,
@@ -50,6 +72,7 @@ function employerZuForm(e: Employer): FormDaten {
     name: e.name,
     farbe: e.farbe,
     art: e.art,
+    bundesland: e.bundesland ?? "HH",
     stundenlohnEur: (e.stundenlohnCent / 100).toFixed(2).replace(".", ","),
     zuschlagSonntag: String(e.zuschlagSonntagProzent),
     zuschlagFeiertag: String(e.zuschlagFeiertagProzent),
@@ -218,6 +241,8 @@ function ArbeitgeberKarte({
           <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
             {ART_LABEL[e.art]}
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
+            {e.bundesland}
+            <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
             So {e.zuschlagSonntagProzent}%
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
             FT {e.zuschlagFeiertagProzent}%
@@ -322,6 +347,20 @@ function ArbeitgeberForm({
             className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 placeholder:text-stone-300 dark:placeholder:text-neutral-600 nums outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
           />
         </div>
+      </div>
+
+      {/* Bundesland */}
+      <div className="mb-4">
+        <FormLabel>Bundesland (für Feiertage)</FormLabel>
+        <select
+          value={form.bundesland}
+          onChange={(e) => set("bundesland", e.target.value as Bundesland)}
+          className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
+        >
+          {BUNDESLAENDER.map((bl) => (
+            <option key={bl.value} value={bl.value}>{bl.label} ({bl.value})</option>
+          ))}
+        </select>
       </div>
 
       {/* Zuschläge */}

@@ -21,6 +21,7 @@ export function userDoc(colName: string, id: string) {
 
 export type EmployerDoc = {
   name: string; farbe: string; art: Employer["art"]
+  bundesland: string
   stundenlohnCent: number
   zuschlagSonntagProzent: number; zuschlagFeiertagProzent: number; zuschlagNachtProzent: number
   archiviert: boolean
@@ -28,6 +29,7 @@ export type EmployerDoc = {
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   id, name: d.name, farbe: d.farbe, art: d.art,
+  bundesland: (d.bundesland ?? "HH") as Employer["bundesland"],
   stundenlohnCent: d.stundenlohnCent,
   zuschlagSonntagProzent: d.zuschlagSonntagProzent,
   zuschlagFeiertagProzent: d.zuschlagFeiertagProzent,
@@ -37,6 +39,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   name: e.name, farbe: e.farbe, art: e.art,
+  bundesland: e.bundesland,
   stundenlohnCent: e.stundenlohnCent,
   zuschlagSonntagProzent: e.zuschlagSonntagProzent,
   zuschlagFeiertagProzent: e.zuschlagFeiertagProzent,
