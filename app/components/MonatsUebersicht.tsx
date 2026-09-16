@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
 import { employers as employersRepo, shifts as shiftsRepo, settings as settingsRepo, abgleich as abgleichRepo } from "@/lib/storage"
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore"
+import { db } from "@/lib/firebase/client"
+import { uid } from "@/lib/storage/firestore/shared"
 import { berechneMonatsSumme, type MonatsSumme } from "@/lib/calc/aggregate"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
@@ -41,6 +44,35 @@ export default function MonatsUebersicht() {
   const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
+  const [verfHinweis, setVerfHinweis] = useState<string | null>(null)
+
+  // Archiv-Check: Hinweis wenn Verfügbarkeit in < 3 Wochen ausläuft
+  useEffect(() => {
+    async function pruefeArchiv() {
+      try {
+        const snap = await getDocs(
+          query(
+            collection(db, "users", uid(), "verfuegbarkeit_archiv"),
+            orderBy("erstelltAm", "desc"),
+            limit(1),
+          ),
+        )
+        if (snap.empty) return
+        const datumBis = snap.docs[0].data().datumBis as string
+        const bisDate = new Date(datumBis + "T00:00:00")
+        const heute = new Date()
+        heute.setHours(0, 0, 0, 0)
+        const restTage = Math.round((bisDate.getTime() - heute.getTime()) / 86_400_000)
+        if (restTage < 21) {
+          const formatted = bisDate.toLocaleDateString("de-DE", {
+            day: "2-digit", month: "long", year: "numeric",
+          })
+          setVerfHinweis(formatted)
+        }
+      } catch { /* still keine Anzeige */ }
+    }
+    pruefeArchiv()
+  }, [])
 
   useEffect(() => {
     let abgebrochen = false
@@ -147,6 +179,20 @@ export default function MonatsUebersicht() {
             <NavButton onClick={zumNaechstenMonat} label="Nächster Monat">›</NavButton>
           </div>
         </header>
+
+        {/* Verfügbarkeits-Erinnerung */}
+        {verfHinweis && (
+          <Link
+            href="/verfuegbarkeit"
+            className="flex items-start gap-3 mb-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 px-4 py-3 hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+          >
+            <span className="text-amber-500 mt-px flex-shrink-0" aria-hidden>⏳</span>
+            <p className="text-sm text-amber-800 dark:text-amber-300 leading-snug">
+              Deine letzte Verfügbarkeit deckt nur noch bis{" "}
+              <span className="font-semibold">{verfHinweis}</span> ab — Zeit für die nächste Runde.
+            </p>
+          </Link>
+        )}
 
         {/* Arbeitgeber-Tabs */}
         {summen.length > 0 && (
