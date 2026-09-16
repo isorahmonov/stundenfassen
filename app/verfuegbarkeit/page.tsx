@@ -11,6 +11,7 @@ import {
   type VerfuegbarkeitsEinstellungen,
 } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { aktuellerSonntagStr, snapZuSonntag, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
+import Link from "next/link"
 import { PDFVerfuegbarkeitButton } from "@/app/components/PDFVerfuegbarkeitButton"
 import type { Bundesland } from "@/lib/types"
 import { feiertagName, istFeiertag } from "@/lib/calc/holidays"
@@ -21,6 +22,7 @@ import {
   loadSavedSelection,
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
+import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -49,7 +51,6 @@ const VERF_EINSTELLUNGEN: VerfuegbarkeitsEinstellungen = {
   pufferFallbackMin: 30,
 }
 
-const LOCKED_KEYWORDS = ["praktikum", "labor", "übung", "uebung", "klausur", "prüfung", "pruefung"]
 const KW_ANKER_DEFAULT = "2026-02-01"
 const BERLIN = "Europe/Berlin"
 
@@ -101,10 +102,6 @@ function formatTagKopf(datum: string): string {
   })
 }
 
-function resolveStatus(t: TerminRoh, defaultStatus: "LOCKED" | "FLEXIBLE"): TerminMitStatus["status"] {
-  if (LOCKED_KEYWORDS.some((k) => t.titel.toLowerCase().includes(k))) return "LOCKED"
-  return defaultStatus
-}
 
 function blockKey(b: VerfuegbarkeitsBlock): string {
   return `${b.datum}|${b.start}|${b.ende}`
@@ -218,7 +215,7 @@ export default function VerfuegbarkeitPage() {
             uid: t.uid, titel: t.titel,
             beginn: new Date(t.beginn), ende: new Date(t.ende),
             ganztaegig: t.ganztaegig, ort: t.ort,
-            status: resolveStatus(t, k.defaultStatus),
+            status: resolveStatus(t.titel, k.defaultStatus),
           })
         }
       }
@@ -328,7 +325,17 @@ export default function VerfuegbarkeitPage() {
 
         {/* ── Zeitraum-Steuerung ──────────────────────────────────────── */}
         <header className="mb-6">
-          <h1 className="text-base font-semibold sf-text mb-4">Verfügbarkeit</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-base font-semibold sf-text">Verfügbarkeit</h1>
+            <Link href="/einstellungen"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
+              aria-label="Kalender verwalten">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="8" cy="8" r="2.5"/>
+                <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.54 11.54l1.41 1.41M3.05 12.95l1.42-1.42M11.54 4.46l1.41-1.41"/>
+              </svg>
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-3 items-end">
             <div>
               <label className="block text-xs sf-text-2 mb-1">Ab (wird auf Sonntag eingerastet)</label>
