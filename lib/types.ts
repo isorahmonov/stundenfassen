@@ -66,6 +66,14 @@ export interface Settings {
   kurzfristigPauschal: boolean;
 }
 
+export interface MinusEintrag {
+  id: string
+  employerId: string
+  datum: string      // "YYYY-MM-DD"
+  minuten: number    // positiv gespeichert, wird als Abzug verrechnet
+  notiz?: string
+}
+
 export interface GeplanteSchicht {
   id: string
   employerId: string

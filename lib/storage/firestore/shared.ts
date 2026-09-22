@@ -1,7 +1,7 @@
 import { auth } from "@/lib/firebase/client"
 import { collection, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
-import type { Employer, Shift, Settings, Abgleich, GeplanteSchicht } from "@/lib/types"
+import type { Employer, Shift, Settings, Abgleich, GeplanteSchicht, MinusEintrag } from "@/lib/types"
 
 export function uid(): string {
   const user = auth.currentUser
@@ -77,6 +77,22 @@ export const toSettings = (d: SettingsDoc): Settings => ({
   id: "default",
   bundesland: d.bundesland, steuerklasse: d.steuerklasse,
   kirchensteuer: d.kirchensteuer, kurzfristigPauschal: d.kurzfristigPauschal,
+})
+
+// ── MinusEintrag ─────────────────────────────────────────────────────────────
+
+export type MinusEintragDoc = {
+  employerId: string; datum: string; minuten: number; notiz: string | null
+}
+
+export const toMinusEintrag = (id: string, d: MinusEintragDoc): MinusEintrag => ({
+  id, employerId: d.employerId, datum: d.datum, minuten: d.minuten,
+  ...(d.notiz ? { notiz: d.notiz } : {}),
+})
+
+export const fromMinusEintrag = (e: Omit<MinusEintrag, "id">): MinusEintragDoc => ({
+  employerId: e.employerId, datum: e.datum, minuten: e.minuten,
+  notiz: e.notiz ?? null,
 })
 
 // ── GeplanteSchicht ──────────────────────────────────────────────────────────

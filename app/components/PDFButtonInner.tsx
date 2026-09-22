@@ -2,7 +2,7 @@
 
 // Direkter Import — diese Datei wird nur client-seitig geladen (via dynamic in PDFButton)
 import { PDFDownloadLink } from "@react-pdf/renderer"
-import type { Abgleich, Employer, Settings, Shift } from "@/lib/types"
+import type { Abgleich, Employer, MinusEintrag, Settings, Shift } from "@/lib/types"
 import type { Bundesland } from "@/lib/types"
 import { MonatsPDF } from "./MonatsPDF"
 
@@ -19,6 +19,7 @@ export interface PDFButtonProps {
   settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">
   bundesland: Bundesland
   abgleich: Abgleich | null
+  minusEintraege?: MinusEintrag[]
 }
 
 export default function PDFButtonInner(props: PDFButtonProps) {
