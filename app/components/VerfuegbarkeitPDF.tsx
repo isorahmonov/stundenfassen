@@ -178,9 +178,7 @@ export function VerfuegbarkeitPDF({
 
         {/* Fußzeile */}
         <View style={s.footer} fixed>
-          <Text style={s.footerText}>
-            Verfügbarkeit, keine Zusage — Einteilung nach Absprache.
-          </Text>
+          <Text style={s.footerText}>Stundenfassen</Text>
         </View>
       </Page>
     </Document>

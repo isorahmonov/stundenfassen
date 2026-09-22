@@ -5,6 +5,7 @@ import { pdf } from "@react-pdf/renderer"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland } from "@/lib/types"
+import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 
 export interface PDFVerfuegbarkeitProps {
   startSonntagStr: string
@@ -38,10 +39,18 @@ export default function PDFVerfuegbarkeitButtonInner({
         />,
       ).toBlob()
 
+      const kwVon = tkWoche(startSonntagStr, kwAnker)
+      const letzterSo = new Date(startSonntagStr + "T00:00:00Z")
+      letzterSo.setUTCDate(letzterSo.getUTCDate() + (anzahlWochen - 1) * 7)
+      const kwBis = tkWoche(letzterSo.toISOString().slice(0, 10), kwAnker)
+      const dateiname = anzahlWochen === 1
+        ? `Verfuegbarkeit_KW${kwVon}.pdf`
+        : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
+
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `Verfuegbarkeit_${startSonntagStr}.pdf`
+      a.download = dateiname
       a.click()
       URL.revokeObjectURL(url)
 
