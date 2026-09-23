@@ -57,6 +57,7 @@ const BUNDESLAENDER = [
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
 export default function EinstellungenSeite() {
+  const [aktTab, setAktTab] = useState<"kalender" | "minus">("kalender")
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
   const [minus, setMinus] = useState<MinusEintrag[]>([])
   const [fehler, setFehler] = useState("")
@@ -111,8 +112,27 @@ export default function EinstellungenSeite() {
           </div>
         )}
 
+        {/* ── Tab-Switcher ─────────────────────────────────────────────── */}
+        <div className="flex sf-card rounded-2xl shadow-sm overflow-hidden mb-6">
+          {([["kalender", "Kalender"], ["minus", "Minusstunden"]] as const).map(([tab, label]) => (
+            <button
+              key={tab}
+              onClick={() => setAktTab(tab)}
+              className={`flex-1 py-3 text-xs font-semibold tracking-wide uppercase transition-colors ${
+                aktTab === tab
+                  ? tab === "minus"
+                    ? "text-red-600 dark:text-red-400 border-b-2 border-red-500"
+                    : "sf-text border-b-2 border-stone-800 dark:border-neutral-100"
+                  : "text-stone-400 dark:text-neutral-500"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* ── Kalender verwalten ───────────────────────────────────────── */}
-        <section>
+        <section className={aktTab === "kalender" ? "" : "hidden"}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold sf-text">Kalender verwalten</h2>
             <button
@@ -159,7 +179,7 @@ export default function EinstellungenSeite() {
         </section>
 
         {/* ── Minusstunden ─────────────────────────────────────────────── */}
-        <section className="mt-8">
+        <section className={aktTab === "minus" ? "" : "hidden"}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold sf-text">Minusstunden</h2>
             <button
