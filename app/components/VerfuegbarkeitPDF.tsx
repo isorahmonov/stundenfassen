@@ -1,7 +1,7 @@
 // React-PDF-Dokument für den Verfügbarkeitsnachweis.
 // Wird nur client-seitig gerendert (via PDFVerfuegbarkeitButton).
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import type { Bundesland } from "@/lib/types"
+import type { Bundesland, MinusEintrag } from "@/lib/types"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { feiertagName } from "@/lib/calc/holidays"
@@ -39,9 +39,14 @@ function blockKey(b: VerfuegbarkeitsBlock): string {
 
 const s = StyleSheet.create({
   page: { padding: 40, fontFamily: "Helvetica", fontSize: 9, color: "#1c1917" },
-  header: { marginBottom: 16 },
+  header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
+  headerLeft: { flex: 1 },
   headerTitle: { fontSize: 14, fontFamily: "Helvetica-Bold", marginBottom: 4 },
   headerMeta: { fontSize: 9, color: "#57534e" },
+  minusBox: { alignItems: "flex-end" as const },
+  minusLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#dc2626", textTransform: "uppercase" as const, marginBottom: 3 },
+  minusZeile: { fontSize: 7, color: "#dc2626", marginBottom: 1 },
+  minusGesamt: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#dc2626", marginTop: 3 },
   accentBar: { height: 2, backgroundColor: "#2563eb", borderRadius: 1, marginBottom: 20 },
   wocheContainer: { marginBottom: 20 },
   wocheKopf: {
@@ -82,6 +87,7 @@ interface Props {
   ausgewaehlt: VerfuegbarkeitsBlock[]
   bundesland: Bundesland
   kwAnker: string
+  minusEintraege?: MinusEintrag[]
 }
 
 export function VerfuegbarkeitPDF({
@@ -90,6 +96,7 @@ export function VerfuegbarkeitPDF({
   ausgewaehlt,
   bundesland,
   kwAnker,
+  minusEintraege = [],
 }: Props) {
   const ausgewaehlteKeys = new Set(ausgewaehlt.map(blockKey))
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
@@ -99,9 +106,19 @@ export function VerfuegbarkeitPDF({
       <Page size="A4" style={s.page}>
         {/* Kopf */}
         <View style={s.header}>
-          <Text style={s.headerTitle}>Verfügbarkeit</Text>
-          <Text style={s.headerMeta}>Mitarbeiter: {MITARBEITER}</Text>
-          <Text style={s.headerMeta}>Personalnummer: {PERSONALNUMMER}</Text>
+          <View style={s.headerLeft}>
+            <Text style={s.headerTitle}>Verfügbarkeit</Text>
+            <Text style={s.headerMeta}>Mitarbeiter: {MITARBEITER}</Text>
+            <Text style={s.headerMeta}>Personalnummer: {PERSONALNUMMER}</Text>
+          </View>
+          {minusEintraege.length > 0 && (
+            <View style={s.minusBox}>
+              <Text style={s.minusLabel}>Minus-Konto</Text>
+              <Text style={s.minusGesamt}>
+                {"−"}{(minusEintraege.reduce((s, e) => s + e.minuten, 0) / 60).toFixed(1).replace(".", ",")} Std.
+              </Text>
+            </View>
+          )}
         </View>
         <View style={s.accentBar} />
 

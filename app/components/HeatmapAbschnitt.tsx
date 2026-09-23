@@ -209,7 +209,7 @@ export function HeatmapAbschnitt() {
           {/* Zellen */}
           <div className="grid grid-cols-7 gap-1">
             {tage.map((datum, i) => {
-              if (!datum) return <div key={`leer-${i}`} className="aspect-square" />
+              if (!datum) return <div key={`leer-${i}`} style={{ aspectRatio: "1 / 1" }} />
               const min = tagesMapMonat.get(datum) ?? 0
               const stufe = berechneStufe(min, breaks)
               const istHeute = datum === heute_iso
@@ -219,8 +219,9 @@ export function HeatmapAbschnitt() {
                 <button
                   key={datum}
                   onClick={() => setSelectedDatum((d) => (d === datum ? null : datum))}
-                  className="aspect-square rounded-[5px] flex items-start justify-start p-1 transition-all active:scale-[0.88]"
+                  className="w-full rounded-[5px] flex items-start justify-start p-1 transition-all active:scale-[0.88]"
                   style={{
+                    aspectRatio: "1 / 1",
                     backgroundColor: FARBEN[stufe],
                     outline: istGewaehlt ? "2px solid #58a6ff" : istHeute ? "1px solid #444c56" : "none",
                     outlineOffset: "1px",

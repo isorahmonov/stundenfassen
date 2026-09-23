@@ -1,6 +1,6 @@
 // React PDF Document — kein "use client" nötig, läuft nur client-side via PDFButton
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import type { Abgleich, Employer, MinusEintrag, Settings, Shift } from "@/lib/types"
+import type { Abgleich, Employer, Settings, Shift } from "@/lib/types"
 import { berechneMonatsSumme, vergleicheAbgleich, type MonatsSumme } from "@/lib/calc/aggregate"
 import { berechneSchicht } from "@/lib/calc/lohn"
 import { schichtIntervall, bruttoMinuten as calcBrutto, pauseMinuten as calcPause } from "@/lib/calc/time"
@@ -44,9 +44,6 @@ const s = StyleSheet.create({
   tableRowSonntag: { backgroundColor: "#f5f5f4" },
   tableRowFeiertag: { backgroundColor: "#fef2f2" },
   tableRowPause: { backgroundColor: "#fffbeb" },
-  tableRowMinus: { backgroundColor: "#fff1f2" },
-  tdMinus: { flex: 1, fontSize: 8, color: "#dc2626" },
-  tdMinusStd: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#dc2626", textAlign: "right" as const },
   thDatum: { width: 65, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
   thWochentag: { width: 60, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
   thTime: { width: 38, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
@@ -73,11 +70,10 @@ interface Props {
   settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">
   bundesland: Bundesland
   abgleich: Abgleich | null
-  minusEintraege?: MinusEintrag[]
 }
 
-export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesland, abgleich, minusEintraege = [] }: Props) {
-  const monatsSumme: MonatsSumme = berechneMonatsSumme(schichten, employer, settings, minusEintraege)
+export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesland, abgleich }: Props) {
+  const monatsSumme: MonatsSumme = berechneMonatsSumme(schichten, employer, settings)
   const abgleichErgebnis = abgleich ? vergleicheAbgleich(monatsSumme, abgleich) : null
 
   const zeilen = [...schichten].sort((a, b) => a.datum.localeCompare(b.datum)).map((shift) => {
@@ -155,15 +151,6 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
                 <Text style={s.tdTime}>{z.shift.pauseBis ?? "—"}</Text>
                 <Text style={s.tdTime}>{z.shift.ende}</Text>
                 <Text style={s.tdRight}>{formatStundenDezimal(z.nettoMinuten)}</Text>
-              </View>
-            ))}
-            {[...minusEintraege].sort((a, b) => a.datum.localeCompare(b.datum)).map((e) => (
-              <View key={e.id} style={[s.tableRow, s.tableRowMinus]}>
-                <Text style={s.tdDatum}>{formatDatum(e.datum)}</Text>
-                <Text style={s.tdMinus}>
-                  {"Minusstunden" + (e.notiz ? ` · ${e.notiz}` : "")}
-                </Text>
-                <Text style={s.tdMinusStd}>{"−" + formatStundenDezimal(e.minuten)}</Text>
               </View>
             ))}
           </View>

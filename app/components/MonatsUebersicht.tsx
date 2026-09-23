@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import type { Abgleich, Bundesland, Employer, MinusEintrag, Settings, Shift, Steuerklasse } from "@/lib/types"
+import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
 import { employers as employersRepo, shifts as shiftsRepo, settings as settingsRepo, abgleich as abgleichRepo, minusEintraege as minusRepo } from "@/lib/storage"
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
@@ -43,10 +43,17 @@ export default function MonatsUebersicht() {
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
   const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
-  const [monatsMinus, setMonatsMinus] = useState<MinusEintrag[]>([])
+  const [minusGesamtMin, setMinusGesamtMin] = useState<number | null>(null)
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
   const [verfHinweis, setVerfHinweis] = useState<string | null>(null)
+
+  // Minus-Konto: Gesamtsumme aller Einträge (zeitlos, einmalig beim Start)
+  useEffect(() => {
+    minusRepo.findAlle()
+      .then((alle) => setMinusGesamtMin(alle.reduce((s, e) => s + e.minuten, 0)))
+      .catch(() => {})
+  }, [])
 
   // Archiv-Check: Hinweis wenn Verfügbarkeit in < 3 Wochen ausläuft
   useEffect(() => {
@@ -82,13 +89,12 @@ export default function MonatsUebersicht() {
     async function laden() {
       setLaedt(true)
       try {
-        const [emps, cfg, schichten, abgleichListe, alleSchichten, minus] = await Promise.all([
+        const [emps, cfg, schichten, abgleichListe, alleSchichten] = await Promise.all([
           employersRepo.findAlle(),
           settingsRepo.get(),
           shiftsRepo.findByMonat(monat, jahr),
           abgleichRepo.findByMonatJahr(monat, jahr),
           shiftsRepo.findAlle(),
-          minusRepo.findByMonat(monat, jahr),
         ])
         const jahresSch = alleSchichten.filter((s) => s.datum.startsWith(String(jahr)))
 
@@ -105,13 +111,11 @@ export default function MonatsUebersicht() {
             schichten.filter((s) => s.employerId === employer.id),
             employer,
             geladeneSettings,
-            minus.filter((e) => e.employerId === employer.id),
           ),
         }))
 
         setSummen(ergebnis)
         setSchichten(schichten)
-        setMonatsMinus(minus)
         setAbgleichMap(new Map(abgleichListe.map((a) => [a.employerId, a])))
         setJahresSchichten(jahresSch)
         setSettings(geladeneSettings)
@@ -234,7 +238,7 @@ export default function MonatsUebersicht() {
         {/* Summen-Kacheln */}
         {aktivSumme ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <Kachel
                 label="Stunden"
                 wert={formatStundenDezimal(aktivSumme.summe.nettoMinuten)}
@@ -247,8 +251,14 @@ export default function MonatsUebersicht() {
               <Kachel
                 label="Netto geschätzt"
                 wert={formatEuroCent(aktivSumme.summe.nettoGeschaetztCent)}
-                klasse="col-span-2 sm:col-span-1"
               />
+              {minusGesamtMin !== null && minusGesamtMin > 0 && (
+                <Kachel
+                  label="Minus-Konto"
+                  wert={"−" + formatStundenDezimal(minusGesamtMin)}
+                  akzent="#dc2626"
+                />
+              )}
             </div>
             <div className="flex items-center justify-between mt-1">
               <p className="text-xs text-stone-400">
@@ -264,7 +274,6 @@ export default function MonatsUebersicht() {
                 settings={settings}
                 bundesland={bundesland}
                 abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
-                minusEintraege={monatsMinus.filter((e) => e.employerId === aktivId)}
               />
             </div>
 

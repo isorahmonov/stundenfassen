@@ -68,9 +68,8 @@ export interface Settings {
 
 export interface MinusEintrag {
   id: string
-  employerId: string
   datum: string      // "YYYY-MM-DD"
-  minuten: number    // positiv gespeichert, wird als Abzug verrechnet
+  minuten: number    // positiv gespeichert
   notiz?: string
 }
 

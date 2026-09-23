@@ -82,17 +82,16 @@ export const toSettings = (d: SettingsDoc): Settings => ({
 // ── MinusEintrag ─────────────────────────────────────────────────────────────
 
 export type MinusEintragDoc = {
-  employerId: string; datum: string; minuten: number; notiz: string | null
+  datum: string; minuten: number; notiz: string | null
 }
 
 export const toMinusEintrag = (id: string, d: MinusEintragDoc): MinusEintrag => ({
-  id, employerId: d.employerId, datum: d.datum, minuten: d.minuten,
+  id, datum: d.datum, minuten: d.minuten,
   ...(d.notiz ? { notiz: d.notiz } : {}),
 })
 
 export const fromMinusEintrag = (e: Omit<MinusEintrag, "id">): MinusEintragDoc => ({
-  employerId: e.employerId, datum: e.datum, minuten: e.minuten,
-  notiz: e.notiz ?? null,
+  datum: e.datum, minuten: e.minuten, notiz: e.notiz ?? null,
 })
 
 // ── GeplanteSchicht ──────────────────────────────────────────────────────────

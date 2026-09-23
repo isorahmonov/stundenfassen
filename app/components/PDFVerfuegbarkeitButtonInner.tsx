@@ -6,6 +6,7 @@ import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland } from "@/lib/types"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
+import { minusEintraege as minusRepo } from "@/lib/storage"
 
 export interface PDFVerfuegbarkeitProps {
   startSonntagStr: string
@@ -29,6 +30,8 @@ export default function PDFVerfuegbarkeitButtonInner({
   async function handleClick() {
     setLaden(true)
     try {
+      const alleMinus = await minusRepo.findAlle()
+
       const blob = await pdf(
         <VerfuegbarkeitPDF
           startSonntagStr={startSonntagStr}
@@ -36,6 +39,7 @@ export default function PDFVerfuegbarkeitButtonInner({
           ausgewaehlt={ausgewaehlt}
           bundesland={bundesland}
           kwAnker={kwAnker}
+          minusEintraege={alleMinus}
         />,
       ).toBlob()
 

@@ -1,7 +1,7 @@
 // Monatsaggregation je Arbeitgeber sowie Soll-Ist-Abgleich.
 
-import type { Abgleich, Employer, MinusEintrag, Settings, Shift } from "@/lib/types";
-import { berechneSchicht, centsFuerMinuten } from "@/lib/calc/lohn";
+import type { Abgleich, Employer, Settings, Shift } from "@/lib/types";
+import { berechneSchicht } from "@/lib/calc/lohn";
 import { schaetzeNetto } from "@/config/lohn";
 import type { Ampel } from "@/lib/calc/warnings";
 
@@ -22,14 +22,12 @@ export interface MonatsSumme {
   feiertagMinuten: number;
   nachtMinuten: number;
   anzahlSchichten: number;
-  minusMinuten: number;  // Summe der Minusstunden-Abzüge (positiver Wert)
 }
 
 export function berechneMonatsSumme(
   shifts: Shift[],
   employer: Employer,
   settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">,
-  minusEintraegeParam: MinusEintrag[] = [],
 ): MonatsSumme {
   let nettoMinuten = 0;
   let bruttoCent = 0;
@@ -46,20 +44,16 @@ export function berechneMonatsSumme(
     nachtMinuten += berechnung.zuschlagsminuten.nachtMinuten;
   }
 
-  const minusMinuten = minusEintraegeParam.reduce((s, e) => s + e.minuten, 0);
-  const minusBruttoCent = centsFuerMinuten(employer.stundenlohnCent, minusMinuten);
-
-  const { nettoCent } = schaetzeNetto(bruttoCent - minusBruttoCent, employer.art, settings);
+  const { nettoCent } = schaetzeNetto(bruttoCent, employer.art, settings);
 
   return {
-    nettoMinuten: nettoMinuten - minusMinuten,
-    bruttoCent: bruttoCent - minusBruttoCent,
+    nettoMinuten,
+    bruttoCent,
     nettoGeschaetztCent: nettoCent,
     sonntagMinuten,
     feiertagMinuten,
     nachtMinuten,
     anzahlSchichten: shifts.length,
-    minusMinuten,
   };
 }
 

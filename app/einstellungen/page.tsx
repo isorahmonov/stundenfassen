@@ -5,6 +5,8 @@ import Link from "next/link"
 import { auth } from "@/lib/firebase/client"
 import { LOCKED_KEYWORDS, resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
+import type { MinusEintrag } from "@/lib/types"
+import { minusEintraege as minusRepo } from "@/lib/storage"
 
 const BERLIN = "Europe/Berlin"
 
@@ -56,10 +58,14 @@ const BUNDESLAENDER = [
 
 export default function EinstellungenSeite() {
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
+  const [minus, setMinus] = useState<MinusEintrag[]>([])
   const [fehler, setFehler] = useState("")
   const [neuOffen, setNeuOffen] = useState(false)
+  const [minusOffen, setMinusOffen] = useState(false)
+  const [minusVersion, setMinusVersion] = useState(0)
 
   useEffect(() => { ladeKalender() }, [])
+  useEffect(() => { minusRepo.findAlle().then(setMinus).catch(() => {}) }, [minusVersion])
 
   async function ladeKalender() {
     try {
@@ -148,6 +154,72 @@ export default function EinstellungenSeite() {
                     loeschen(k.id).catch((e) => setFehler(String(e)))
                 }}
               />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Minusstunden ─────────────────────────────────────────────── */}
+        <section className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold sf-text">Minusstunden</h2>
+            <button
+              onClick={() => setMinusOffen((o) => !o)}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-white text-lg font-light active:scale-90 transition-all"
+              style={{ backgroundColor: "#dc2626" }}
+              aria-label="Minusstunden eintragen"
+            >+</button>
+          </div>
+
+          <div className="space-y-3">
+            {minusOffen && (
+              <MinusFormular
+                onSpeichern={async (d) => {
+                  try {
+                    await minusRepo.add(d)
+                    setMinusOffen(false)
+                    setMinusVersion((v) => v + 1)
+                  } catch (e) { setFehler(String(e)) }
+                }}
+                onAbbrechen={() => setMinusOffen(false)}
+              />
+            )}
+
+            {minus.length === 0 && !minusOffen && (
+              <div className="sf-card rounded-2xl p-8 text-center shadow-sm">
+                <p className="text-sm sf-text-2 mb-1">Keine Minusstunden eingetragen.</p>
+                <button onClick={() => setMinusOffen(true)}
+                  className="text-sm font-medium text-red-600 dark:text-red-400 hover:underline">
+                  Ersten eintragen →
+                </button>
+              </div>
+            )}
+
+            {minus.map((e) => (
+              <div key={e.id} className="sf-card rounded-2xl p-4 shadow-sm flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium sf-text">
+                    {new Date(e.datum + "T12:00:00").toLocaleDateString("de-DE", {
+                      weekday: "short", day: "2-digit", month: "2-digit", year: "numeric",
+                    })}
+                    {"  "}
+                    <span className="font-semibold text-red-600 dark:text-red-400 nums">
+                      −{(e.minuten / 60).toFixed(1).replace(".", ",")} Std.
+                    </span>
+                  </p>
+                  {e.notiz && <p className="text-xs sf-text-2 truncate mt-0.5">{e.notiz}</p>}
+                </div>
+                <button
+                  onClick={() => {
+                    if (confirm("Eintrag löschen?"))
+                      minusRepo.remove(e.id)
+                        .then(() => setMinusVersion((v) => v + 1))
+                        .catch((err) => setFehler(String(err)))
+                  }}
+                  className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
+                >
+                  Löschen
+                </button>
+              </div>
             ))}
           </div>
         </section>
@@ -395,5 +467,59 @@ function TerminPruefer({
         <p className="text-xs sf-text-3">Noch keine Termine geladen.</p>
       )}
     </div>
+  )
+}
+
+// ─── MinusFormular ────────────────────────────────────────────────────────────
+
+function MinusFormular({
+  onSpeichern,
+  onAbbrechen,
+}: {
+  onSpeichern: (d: { datum: string; minuten: number; notiz?: string }) => void
+  onAbbrechen: () => void
+}) {
+  const [datum, setDatum] = useState(new Date().toLocaleDateString("sv", { timeZone: BERLIN }))
+  const [stunden, setStunden] = useState("")
+  const [notiz, setNotiz] = useState("")
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    const zahl = parseFloat(stunden.replace(",", "."))
+    if (!datum || isNaN(zahl) || zahl <= 0) return
+    onSpeichern({ datum, minuten: Math.round(zahl * 60), ...(notiz.trim() ? { notiz: notiz.trim() } : {}) })
+  }
+
+  const inputKlasse = "w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
+
+  return (
+    <form onSubmit={submit} className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-xs sf-text-2 mb-1">Datum</p>
+          <input type="date" required value={datum} onChange={(e) => setDatum(e.target.value)} className={inputKlasse} />
+        </div>
+        <div>
+          <p className="text-xs sf-text-2 mb-1">Stunden</p>
+          <input type="number" required min="0.25" step="0.25" placeholder="z.B. 2" value={stunden}
+            onChange={(e) => setStunden(e.target.value)} className={`${inputKlasse} nums`} />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs sf-text-2 mb-1">Grund <span className="text-stone-400 font-normal">optional</span></p>
+        <input type="text" value={notiz} onChange={(e) => setNotiz(e.target.value)}
+          placeholder="z.B. Krankmeldung, Korrektur" className={inputKlasse} />
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={onAbbrechen}
+          className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
+          Abbrechen
+        </button>
+        <button type="submit"
+          className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-red-500 active:scale-95 transition-all">
+          Speichern
+        </button>
+      </div>
+    </form>
   )
 }
