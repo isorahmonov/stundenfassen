@@ -18,7 +18,7 @@ export function feiertagName(date: Date, bundesland: Bundesland = "BY"): string 
   const result = hd.isHoliday(date);
   if (!result) return null;
   const eintraege = Array.isArray(result) ? result : [result];
-  const gesetzlich = eintraege.find((e) => e.type === "public") ?? eintraege[0];
+  const gesetzlich = eintraege.find((e) => e.type === "public");
   return gesetzlich ? gesetzlich.name : null;
 }
 
