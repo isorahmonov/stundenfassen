@@ -27,6 +27,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Gmail-Zugangsdaten des Users aus /secrets/{uid} lesen (nur Admin SDK)
+    const secretsSnap = await adminDb.collection("secrets").doc(uid).get()
+    const secrets = secretsSnap.data()
+    const gmailUser = secrets?.gmailUser as string | null | undefined
+    const gmailAppPassword = secrets?.gmailAppPassword as string | null | undefined
+
+    if (!gmailUser || !gmailAppPassword) {
+      return NextResponse.json({ fehler: "KEIN_EMAIL_KONTO" }, { status: 422 })
+    }
+
     const body = await req.json() as {
       to?: string
       cc?: string
@@ -42,11 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ fehler: "Fehlende Pflichtfelder (to, betreff, pdfBase64, dateiname)" }, { status: 400 })
     }
 
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      return NextResponse.json({ fehler: "E-Mail nicht konfiguriert — GMAIL_USER und GMAIL_APP_PASSWORD in .env.local eintragen" }, { status: 500 })
-    }
-
-    await sendEmail({ to, cc, betreff, text: text ?? "", pdfBase64, dateiname })
+    await sendEmail({ gmailUser, gmailAppPassword, to, cc, betreff, text: text ?? "", pdfBase64, dateiname })
 
     await adminDb
       .collection("users")

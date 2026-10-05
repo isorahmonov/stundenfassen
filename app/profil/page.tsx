@@ -45,7 +45,7 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
@@ -66,12 +66,18 @@ export default function ProfilSeite() {
   const [neuVorlageOffen, setNeuVorlageOffen] = useState(false)
   const [bearbeitenVorlageId, setBearbeitenVorlageId] = useState<string | null>(null)
 
+  const [emailKonfiguriert, setEmailKonfiguriert] = useState(false)
+  const [emailGmailUser, setEmailGmailUser] = useState("")
+  const [emailFormOffen, setEmailFormOffen] = useState(false)
+  const [emailLaden, setEmailLaden] = useState(false)
+
   const [fehler, setFehler] = useState("")
 
   useEffect(() => { ladeKalender() }, [])
   useEffect(() => { minusRepo.findAlle().then(setMinus).catch(() => {}) }, [minusVersion])
   useEffect(() => { ladeArbeitgeber() }, [])
   useEffect(() => { ladeVorlagen() }, [])
+  useEffect(() => { ladeEmailConfig() }, [])
 
   async function ladeArbeitgeber() {
     try {
@@ -86,6 +92,39 @@ export default function ProfilSeite() {
       const vl = await emailVorlageRepo.findAlle()
       setVorlagen(vl)
     } catch { /* ignorieren */ }
+  }
+
+  async function ladeEmailConfig() {
+    try {
+      const d = await api("/api/email-config") as { konfiguriert: boolean; gmailUser?: string }
+      setEmailKonfiguriert(d.konfiguriert)
+      setEmailGmailUser(d.gmailUser ?? "")
+      if (!d.konfiguriert) setEmailFormOffen(true)
+    } catch { /* ignorieren */ }
+  }
+
+  async function speichernEmailConfig(gmailUser: string, gmailAppPassword: string) {
+    setEmailLaden(true)
+    try {
+      await api("/api/email-config", {
+        method: "POST",
+        body: JSON.stringify({ gmailUser, gmailAppPassword }),
+      })
+      await ladeEmailConfig()
+      setEmailFormOffen(false)
+    } catch (e) { setFehler(String(e)) }
+    finally { setEmailLaden(false) }
+  }
+
+  async function entfernenEmailConfig() {
+    if (!confirm("E-Mail-Konto wirklich entfernen?")) return
+    setEmailLaden(true)
+    try {
+      await api("/api/email-config", { method: "DELETE" })
+      await ladeEmailConfig()
+      setEmailFormOffen(true)
+    } catch (e) { setFehler(String(e)) }
+    finally { setEmailLaden(false) }
   }
 
   async function toggleMinusImPDF(emp: Employer) {
@@ -424,6 +463,64 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── E-Mail-Versand (Konto) ──────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel="E-Mail-Versand"
+            symbol={<EmailKontoIcon />}
+            badge={emailKonfiguriert ? "✓" : undefined}
+            offen={offen.has("emailKonto")}
+            onToggle={() => toggle("emailKonto")}
+          >
+            <div className="pt-3 space-y-3">
+              <p className="text-xs sf-text-3 leading-relaxed">
+                Verfügbarkeiten werden über dein eigenes Gmail-Konto versendet.
+                Du benötigst ein{" "}
+                <a
+                  href="https://myaccount.google.com/apppasswords"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 underline"
+                >
+                  App-Passwort
+                </a>
+                {" "}(2FA aktivieren → myaccount.google.com/apppasswords).
+              </p>
+
+              {emailKonfiguriert && !emailFormOffen ? (
+                <div className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
+                  <div>
+                    <p className="text-xs sf-text-2 mb-0.5">Gmail-Adresse</p>
+                    <p className="text-sm font-medium sf-text">{emailGmailUser}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs sf-text-2 mb-0.5">App-Passwort</p>
+                    <p className="text-sm sf-text font-mono tracking-widest">••••••••••••••••</p>
+                  </div>
+                  <div className="flex gap-3 pt-1 border-t border-stone-100 dark:border-white/5">
+                    <button
+                      onClick={() => setEmailFormOffen(true)}
+                      className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors"
+                    >Ändern</button>
+                    <span className="text-stone-200 dark:text-neutral-700">·</span>
+                    <button
+                      onClick={entfernenEmailConfig}
+                      disabled={emailLaden}
+                      className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors disabled:opacity-40"
+                    >Entfernen</button>
+                  </div>
+                </div>
+              ) : (
+                <EmailKontoFormular
+                  initialGmailUser={emailGmailUser}
+                  istBearbeitung={emailKonfiguriert}
+                  laden={emailLaden}
+                  onSpeichern={speichernEmailConfig}
+                  onAbbrechen={emailKonfiguriert ? () => setEmailFormOffen(false) : undefined}
+                />
+              )}
+            </div>
+          </AkkordeonAbschnitt>
+
         </div>
       </div>
     </main>
@@ -510,6 +607,15 @@ function MailIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="2" y="4" width="12" height="9" rx="1.5"/>
       <path d="M2 5l6 4.5L14 5"/>
+    </svg>
+  )
+}
+
+function EmailKontoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="7.5" cy="7.5" r="2.5"/>
+      <path d="M10 7.5a2.5 2.5 0 1 0-2.5 2.5c1 0 1.5-.4 1.5-1V7.5M13 7.5a5.5 5.5 0 1 0-1.5 3.8"/>
     </svg>
   )
 }
@@ -912,6 +1018,83 @@ function VorlageFormular({
         <button type="submit"
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 active:scale-95 transition-all">
           {istBearbeitung ? "Speichern" : "Anlegen"}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// ─── EmailKontoFormular ────────────────────────────────────────────────────────
+
+function EmailKontoFormular({
+  initialGmailUser,
+  istBearbeitung,
+  laden,
+  onSpeichern,
+  onAbbrechen,
+}: {
+  initialGmailUser?: string
+  istBearbeitung?: boolean
+  laden?: boolean
+  onSpeichern: (gmailUser: string, gmailAppPassword: string) => void
+  onAbbrechen?: () => void
+}) {
+  const [gmailUser, setGmailUser] = useState(initialGmailUser ?? "")
+  const [gmailAppPassword, setGmailAppPassword] = useState("")
+
+  const inputKlasse = "w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!gmailUser.trim() || !gmailAppPassword.trim()) return
+    onSpeichern(gmailUser.trim(), gmailAppPassword.trim())
+  }
+
+  return (
+    <form onSubmit={submit} className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
+      <div>
+        <p className="text-xs sf-text-2 mb-1">Gmail-Adresse</p>
+        <input
+          type="email"
+          required
+          value={gmailUser}
+          onChange={(e) => setGmailUser(e.target.value)}
+          placeholder="deine@gmail.com"
+          className={inputKlasse}
+        />
+      </div>
+      <div>
+        <p className="text-xs sf-text-2 mb-1">
+          App-Passwort{" "}
+          {istBearbeitung && <span className="text-stone-400 font-normal">neu eingeben</span>}
+        </p>
+        <input
+          type="password"
+          required
+          value={gmailAppPassword}
+          onChange={(e) => setGmailAppPassword(e.target.value)}
+          placeholder="xxxx xxxx xxxx xxxx"
+          autoComplete="new-password"
+          className={`${inputKlasse} font-mono tracking-widest`}
+        />
+      </div>
+      <div className="flex gap-2">
+        {onAbbrechen && (
+          <button
+            type="button"
+            onClick={onAbbrechen}
+            disabled={laden}
+            className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
+          >
+            Abbrechen
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={laden || !gmailUser.trim() || !gmailAppPassword.trim()}
+          className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
+        >
+          {laden ? "Speichert…" : istBearbeitung ? "Aktualisieren" : "Speichern"}
         </button>
       </div>
     </form>

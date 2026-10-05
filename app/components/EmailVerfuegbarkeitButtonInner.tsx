@@ -329,11 +329,19 @@ export default function EmailVerfuegbarkeitButtonInner({
                   </div>
                 )}
 
-                {fehler && (
+                {fehler === "KEIN_EMAIL_KONTO" ? (
+                  <div className="text-xs bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl px-3 py-2.5">
+                    <p className="text-amber-800 dark:text-amber-300 font-medium mb-0.5">Kein E-Mail-Konto hinterlegt</p>
+                    <p className="text-amber-700 dark:text-amber-400">
+                      Bitte zuerst eigenes Gmail-Konto im{" "}
+                      <a href="/profil" className="underline font-medium">Profil-Tab einrichten →</a>
+                    </p>
+                  </div>
+                ) : fehler ? (
                   <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-xl px-3 py-2">
                     {fehler}
                   </p>
-                )}
+                ) : null}
 
                 <div className="flex gap-2">
                   <button

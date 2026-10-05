@@ -1,14 +1,8 @@
 import nodemailer from "nodemailer"
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
-
 export async function sendEmail({
+  gmailUser,
+  gmailAppPassword,
   to,
   cc,
   betreff,
@@ -16,6 +10,8 @@ export async function sendEmail({
   pdfBase64,
   dateiname,
 }: {
+  gmailUser: string
+  gmailAppPassword: string
   to: string
   cc?: string
   betreff: string
@@ -23,8 +19,12 @@ export async function sendEmail({
   pdfBase64: string
   dateiname: string
 }): Promise<void> {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: gmailUser, pass: gmailAppPassword },
+  })
   await transporter.sendMail({
-    from: process.env.GMAIL_USER,
+    from: gmailUser,
     to,
     ...(cc ? { cc } : {}),
     subject: betreff,
