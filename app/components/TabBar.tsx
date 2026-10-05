@@ -36,6 +36,16 @@ const TABS = [
       </svg>
     ),
   },
+  {
+    href: "/profil",
+    label: "Profil",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="11" cy="8" r="4"/>
+        <path d="M3 21c0-4.418 3.582-8 8-8s8 3.582 8 8"/>
+      </svg>
+    ),
+  },
 ] as const
 
 export function TabBar() {

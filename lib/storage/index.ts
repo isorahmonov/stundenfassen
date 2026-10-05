@@ -24,6 +24,11 @@ export type {
   MinusEintragInput,
   MinusEintragUpdate,
 } from "./interfaces/IMinusEintragRepository";
+export type {
+  IEmailVorlageRepository,
+  EmailVorlageInput,
+  EmailVorlageUpdate,
+} from "./interfaces/IEmailVorlageRepository";
 
 export { EmployerRepository } from "./firestore/EmployerRepository";
 export { ShiftRepository } from "./firestore/ShiftRepository";
@@ -31,6 +36,7 @@ export { SettingsRepository } from "./firestore/SettingsRepository";
 export { AbgleichRepository } from "./firestore/AbgleichRepository";
 export { GeplanteSchichtRepository } from "./firestore/GeplanteSchichtRepository";
 export { MinusEintragRepository } from "./firestore/MinusEintragRepository";
+export { EmailVorlageRepository } from "./firestore/EmailVorlageRepository";
 
 import { EmployerRepository } from "./firestore/EmployerRepository";
 import { ShiftRepository } from "./firestore/ShiftRepository";
@@ -38,6 +44,7 @@ import { SettingsRepository } from "./firestore/SettingsRepository";
 import { AbgleichRepository } from "./firestore/AbgleichRepository";
 import { GeplanteSchichtRepository } from "./firestore/GeplanteSchichtRepository";
 import { MinusEintragRepository } from "./firestore/MinusEintragRepository";
+import { EmailVorlageRepository } from "./firestore/EmailVorlageRepository";
 
 export const employers = new EmployerRepository();
 export const shifts = new ShiftRepository();
@@ -45,3 +52,4 @@ export const settings = new SettingsRepository();
 export const abgleich = new AbgleichRepository();
 export const geplanteSchichten = new GeplanteSchichtRepository();
 export const minusEintraege = new MinusEintragRepository();
+export const emailVorlagen = new EmailVorlageRepository();

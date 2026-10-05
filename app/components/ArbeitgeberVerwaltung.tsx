@@ -80,7 +80,7 @@ function employerZuForm(e: Employer): FormDaten {
   }
 }
 
-export default function ArbeitgeberVerwaltung() {
+export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: string }) {
   const [employers, setEmployers] = useState<Employer[]>([])
   const [bearbeitenId, setBearbeitenId] = useState<string | null>(null)
   const [neuFormOffen, setNeuFormOffen] = useState(false)
@@ -121,7 +121,7 @@ export default function ArbeitgeberVerwaltung() {
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
           <Link
-            href="/"
+            href={backHref}
             className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 hover:text-stone-700 dark:hover:bg-white/10 dark:hover:text-neutral-200 active:scale-90 transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
             aria-label="Zurück"
           >

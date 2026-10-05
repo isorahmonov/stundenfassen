@@ -43,17 +43,20 @@ export default function MonatsUebersicht() {
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
   const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
-  const [minusGesamtMin, setMinusGesamtMin] = useState<number | null>(null)
+  const [minusMinutenAktiv, setMinusMinutenAktiv] = useState<number | null>(null)
   const [laedt, setLaedt] = useState(true)
   const [version, setVersion] = useState(0)
   const [verfHinweis, setVerfHinweis] = useState<string | null>(null)
 
-  // Minus-Konto: Gesamtsumme aller Einträge (zeitlos, einmalig beim Start)
+  // Minus-Konto: Summe für den aktiven Arbeitgeber, neu laden wenn dieser wechselt
   useEffect(() => {
-    minusRepo.findAlle()
-      .then((alle) => setMinusGesamtMin(alle.reduce((s, e) => s + e.minuten, 0)))
-      .catch(() => {})
-  }, [])
+    if (!aktivId) { setMinusMinutenAktiv(null); return }
+    minusRepo.findByEmployer(aktivId)
+      .then((eintraege) => {
+        setMinusMinutenAktiv(eintraege.length > 0 ? eintraege.reduce((s, e) => s + e.minuten, 0) : null)
+      })
+      .catch(() => setMinusMinutenAktiv(null))
+  }, [aktivId, version])
 
   // Archiv-Check: Hinweis wenn Verfügbarkeit in < 3 Wochen ausläuft
   useEffect(() => {
@@ -175,7 +178,7 @@ export default function MonatsUebersicht() {
           </h1>
           <div className="flex items-center gap-1">
             <Link
-              href="/arbeitgeber"
+              href="/profil/arbeitgeber"
               className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 hover:text-stone-700 active:scale-90 transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
               aria-label="Arbeitgeber verwalten"
               title="Arbeitgeber"
@@ -252,10 +255,10 @@ export default function MonatsUebersicht() {
                 label="Netto geschätzt"
                 wert={formatEuroCent(aktivSumme.summe.nettoGeschaetztCent)}
               />
-              {minusGesamtMin !== null && minusGesamtMin > 0 && (
+              {minusMinutenAktiv !== null && (
                 <Kachel
                   label="Minus-Konto"
-                  wert={"−" + formatStundenDezimal(minusGesamtMin)}
+                  wert={"−" + formatStundenDezimal(minusMinutenAktiv)}
                   akzent="#dc2626"
                 />
               )}
@@ -274,6 +277,7 @@ export default function MonatsUebersicht() {
                 settings={settings}
                 bundesland={bundesland}
                 abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
+                minusMinuten={minusMinutenAktiv ?? undefined}
               />
             </div>
 

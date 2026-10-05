@@ -14,6 +14,11 @@ export class MinusEintragRepository implements IMinusEintragRepository {
     return snap.docs.map((d) => toMinusEintrag(d.id, d.data() as MinusEintragDoc))
   }
 
+  async findByEmployer(employerId: string): Promise<MinusEintrag[]> {
+    const alle = await this.findAlle()
+    return alle.filter((e) => e.employerId === employerId)
+  }
+
   async add(input: MinusEintragInput): Promise<MinusEintrag> {
     const id = crypto.randomUUID()
     await setDoc(userDoc("minus_eintraege", id), fromMinusEintrag(input))

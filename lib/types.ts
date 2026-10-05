@@ -21,6 +21,8 @@ export interface Employer {
   zuschlagNachtProzent: number;
   /** Bei Kündigung/Beendigung gesetzt, sonst nicht vorhanden -> weiterhin aktiv */
   archiviert?: boolean;
+  /** Minusstunden-Block im Monats-PDF anzeigen; Default true wenn undefined */
+  minusImPDFAnzeigen?: boolean;
 }
 
 export interface Shift {
@@ -71,6 +73,18 @@ export interface MinusEintrag {
   datum: string      // "YYYY-MM-DD"
   minuten: number    // positiv gespeichert
   notiz?: string
+  employerId?: string  // optional für Rückwärtskompatibilität; neue Einträge haben immer einen Wert
+}
+
+export interface EmailVorlage {
+  id: string
+  name: string
+  betreff: string
+  text: string
+  /** Feste Empfänger-Adressen (kommagetrennt), optional */
+  empfaenger?: string
+  /** Feste CC-Adressen (kommagetrennt), optional */
+  cc?: string
 }
 
 export interface GeplanteSchicht {

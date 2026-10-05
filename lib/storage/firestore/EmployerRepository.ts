@@ -37,6 +37,7 @@ export class EmployerRepository implements IEmployerRepository {
     if (changes.zuschlagFeiertagProzent !== undefined) row.zuschlagFeiertagProzent = changes.zuschlagFeiertagProzent
     if (changes.zuschlagNachtProzent !== undefined) row.zuschlagNachtProzent = changes.zuschlagNachtProzent
     if (changes.archiviert !== undefined) row.archiviert = changes.archiviert ?? false
+    if (changes.minusImPDFAnzeigen !== undefined) row.minusImPDFAnzeigen = changes.minusImPDFAnzeigen
     await updateDoc(ref, row as Record<string, unknown>)
     return this.findById(id)
   }

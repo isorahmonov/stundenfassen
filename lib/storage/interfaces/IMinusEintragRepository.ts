@@ -6,6 +6,7 @@ export type MinusEintragUpdate = Partial<MinusEintragInput>
 export interface IMinusEintragRepository {
   findById(id: string): Promise<MinusEintrag | undefined>
   findAlle(): Promise<MinusEintrag[]>
+  findByEmployer(employerId: string): Promise<MinusEintrag[]>
   add(input: MinusEintragInput): Promise<MinusEintrag>
   update(id: string, changes: MinusEintragUpdate): Promise<MinusEintrag | undefined>
   remove(id: string): Promise<void>

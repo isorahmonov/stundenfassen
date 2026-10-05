@@ -11,8 +11,8 @@ import {
   type VerfuegbarkeitsEinstellungen,
 } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { aktuellerSonntagStr, snapZuSonntag, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
-import Link from "next/link"
 import { PDFVerfuegbarkeitButton } from "@/app/components/PDFVerfuegbarkeitButton"
+import { EmailVerfuegbarkeitButton } from "@/app/components/EmailVerfuegbarkeitButton"
 import type { Bundesland, GeplanteSchicht } from "@/lib/types"
 import { feiertagName, istFeiertag } from "@/lib/calc/holidays"
 import {
@@ -363,14 +363,6 @@ export default function VerfuegbarkeitPage() {
         <header className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-base font-semibold sf-text">Verfügbarkeit</h1>
-            <Link href="/einstellungen"
-              className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
-              aria-label="Kalender verwalten">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="8" cy="8" r="2.5"/>
-                <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.54 11.54l1.41 1.41M3.05 12.95l1.42-1.42M11.54 4.46l1.41-1.41"/>
-              </svg>
-            </Link>
           </div>
           <div className="flex flex-wrap gap-3 items-end">
             <div>
@@ -438,14 +430,24 @@ export default function VerfuegbarkeitPage() {
                 {formatDauerMin(gesamtMin)}
               </p>
             </div>
-            <PDFVerfuegbarkeitButton
-              startSonntagStr={startSonntagStr}
-              anzahlWochen={anzahlWochen}
-              ausgewaehlt={ausgewaehlteBlöcke}
-              bundesland={bundesland}
-              kwAnker={kwAnker}
-              onNachExport={nachExport}
-            />
+            <div className="flex items-center gap-2">
+              <PDFVerfuegbarkeitButton
+                startSonntagStr={startSonntagStr}
+                anzahlWochen={anzahlWochen}
+                ausgewaehlt={ausgewaehlteBlöcke}
+                bundesland={bundesland}
+                kwAnker={kwAnker}
+                onNachExport={nachExport}
+              />
+              <EmailVerfuegbarkeitButton
+                startSonntagStr={startSonntagStr}
+                anzahlWochen={anzahlWochen}
+                ausgewaehlt={ausgewaehlteBlöcke}
+                bundesland={bundesland}
+                kwAnker={kwAnker}
+                onNachExport={nachExport}
+              />
+            </div>
           </div>
         )}
 

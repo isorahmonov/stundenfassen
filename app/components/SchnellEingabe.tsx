@@ -51,7 +51,7 @@ export function SchnellEingabe({ employer, onSaved }: Props) {
         {typ === "arbeitszeit" ? (
           <ArbeitszeitFormular employer={employer} onSaved={onSaved} />
         ) : (
-          <MinusFormular onSaved={onSaved} />
+          <MinusFormular employer={employer} onSaved={onSaved} />
         )}
       </div>
     </div>
@@ -146,7 +146,7 @@ function ArbeitszeitFormular({ employer, onSaved }: Props) {
 
 // ─── MinusFormular ────────────────────────────────────────────────────────────
 
-function MinusFormular({ onSaved }: { onSaved: () => void }) {
+function MinusFormular({ employer, onSaved }: { employer: Employer; onSaved: () => void }) {
   const [datum, setDatum] = useState(heuteISO)
   const [stunden, setStunden] = useState("")
   const [notiz, setNotiz] = useState("")
@@ -164,7 +164,7 @@ function MinusFormular({ onSaved }: { onSaved: () => void }) {
     setSpeichert(true)
     try {
       await minusRepo.add({
-        datum, minuten,
+        datum, minuten, employerId: employer.id,
         ...(notiz.trim() ? { notiz: notiz.trim() } : {}),
       })
       setStunden(""); setNotiz(""); setDatum(heuteISO())

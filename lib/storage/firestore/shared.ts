@@ -1,7 +1,7 @@
 import { auth } from "@/lib/firebase/client"
 import { collection, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
-import type { Employer, Shift, Settings, Abgleich, GeplanteSchicht, MinusEintrag } from "@/lib/types"
+import type { Employer, Shift, Settings, Abgleich, GeplanteSchicht, MinusEintrag, EmailVorlage } from "@/lib/types"
 
 export function uid(): string {
   const user = auth.currentUser
@@ -25,6 +25,7 @@ export type EmployerDoc = {
   stundenlohnCent: number
   zuschlagSonntagProzent: number; zuschlagFeiertagProzent: number; zuschlagNachtProzent: number
   archiviert: boolean
+  minusImPDFAnzeigen?: boolean
 }
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
@@ -35,6 +36,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   zuschlagFeiertagProzent: d.zuschlagFeiertagProzent,
   zuschlagNachtProzent: d.zuschlagNachtProzent,
   ...(d.archiviert ? { archiviert: true } : {}),
+  ...(d.minusImPDFAnzeigen === false ? { minusImPDFAnzeigen: false } : {}),
 })
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
@@ -45,6 +47,7 @@ export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   zuschlagFeiertagProzent: e.zuschlagFeiertagProzent,
   zuschlagNachtProzent: e.zuschlagNachtProzent,
   archiviert: e.archiviert ?? false,
+  minusImPDFAnzeigen: e.minusImPDFAnzeigen ?? true,
 })
 
 // ── Shift ────────────────────────────────────────────────────────────────────
@@ -82,16 +85,17 @@ export const toSettings = (d: SettingsDoc): Settings => ({
 // ── MinusEintrag ─────────────────────────────────────────────────────────────
 
 export type MinusEintragDoc = {
-  datum: string; minuten: number; notiz: string | null
+  datum: string; minuten: number; notiz: string | null; employerId: string | null
 }
 
 export const toMinusEintrag = (id: string, d: MinusEintragDoc): MinusEintrag => ({
   id, datum: d.datum, minuten: d.minuten,
   ...(d.notiz ? { notiz: d.notiz } : {}),
+  ...(d.employerId ? { employerId: d.employerId } : {}),
 })
 
 export const fromMinusEintrag = (e: Omit<MinusEintrag, "id">): MinusEintragDoc => ({
-  datum: e.datum, minuten: e.minuten, notiz: e.notiz ?? null,
+  datum: e.datum, minuten: e.minuten, notiz: e.notiz ?? null, employerId: e.employerId ?? null,
 })
 
 // ── GeplanteSchicht ──────────────────────────────────────────────────────────
@@ -111,6 +115,25 @@ export const fromGeplanteSchicht = (s: Omit<GeplanteSchicht, "id">): GeplanteSch
   employerId: s.employerId, datum: s.datum, start: s.start, ende: s.ende,
   uebernommen: s.uebernommen,
   uebernommenShiftId: s.uebernommenShiftId ?? null,
+})
+
+// ── EmailVorlage ─────────────────────────────────────────────────────────────
+
+export type EmailVorlageDoc = {
+  name: string; betreff: string; text: string
+  empfaenger: string | null; cc: string | null
+}
+
+export const toEmailVorlage = (id: string, d: EmailVorlageDoc): EmailVorlage => ({
+  id, name: d.name, betreff: d.betreff, text: d.text,
+  ...(d.empfaenger ? { empfaenger: d.empfaenger } : {}),
+  ...(d.cc ? { cc: d.cc } : {}),
+})
+
+export const fromEmailVorlage = (v: Omit<EmailVorlage, "id">): EmailVorlageDoc => ({
+  name: v.name, betreff: v.betreff, text: v.text,
+  empfaenger: v.empfaenger ?? null,
+  cc: v.cc ?? null,
 })
 
 // ── Abgleich ─────────────────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ export interface PDFButtonProps {
   settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">
   bundesland: Bundesland
   abgleich: Abgleich | null
+  minusMinuten?: number
 }
 
 export default function PDFButtonInner(props: PDFButtonProps) {

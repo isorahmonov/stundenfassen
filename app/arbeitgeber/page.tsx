@@ -1,7 +1,5 @@
-import ArbeitgeberVerwaltung from "../components/ArbeitgeberVerwaltung"
-
-export const metadata = { title: "Arbeitgeber – Stundenfassen" }
+import { redirect } from "next/navigation"
 
 export default function ArbeitgeberSeite() {
-  return <ArbeitgeberVerwaltung />
+  redirect("/profil/arbeitgeber")
 }

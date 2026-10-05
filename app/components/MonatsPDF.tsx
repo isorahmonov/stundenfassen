@@ -70,9 +70,10 @@ interface Props {
   settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">
   bundesland: Bundesland
   abgleich: Abgleich | null
+  minusMinuten?: number
 }
 
-export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesland, abgleich }: Props) {
+export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesland, abgleich, minusMinuten }: Props) {
   const monatsSumme: MonatsSumme = berechneMonatsSumme(schichten, employer, settings)
   const abgleichErgebnis = abgleich ? vergleicheAbgleich(monatsSumme, abgleich) : null
 
@@ -121,6 +122,14 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
               {formatStundenDezimal(monatsSumme.nettoMinuten)}
             </Text>
           </View>
+          {minusMinuten !== undefined && employer.minusImPDFAnzeigen !== false && (
+            <View style={[s.summaryBox, { borderLeftWidth: 2, borderLeftColor: "#dc2626" }]}>
+              <Text style={s.summaryLabel}>Minus-Konto</Text>
+              <Text style={[s.summaryValue, { color: "#dc2626" }]}>
+                −{formatStundenDezimal(minusMinuten)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Schichttabelle */}
