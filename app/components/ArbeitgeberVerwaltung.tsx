@@ -374,7 +374,7 @@ function ArbeitgeberForm({
           type="text"
           value={form.personalnummer}
           onChange={(e) => set("personalnummer", e.target.value)}
-          placeholder="z.B. 220264766"
+          placeholder="z. B. 123456"
           className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 placeholder:text-stone-300 dark:placeholder:text-neutral-600 nums outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
         />
       </div>
