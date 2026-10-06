@@ -1,5 +1,6 @@
 // firebase-admin benötigt Node.js-APIs (crypto, fs) — nicht Edge-kompatibel
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 import { type NextRequest } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase/admin"
@@ -8,8 +9,8 @@ import { parseIcal } from "@/lib/verfuegbarkeit/icalParser"
 // iCal-URLs dürfen nur von Google Calendar kommen (SSRF-Schutz)
 const ERLAUBTE_HOSTS = new Set(["calendar.google.com", "myhaw.haw-hamburg.de"])
 
-// Cache gilt 24 Stunden
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+// Server-Cache: 5 Minuten (Google aktualisiert Feeds sowieso träge)
+const CACHE_TTL_MS = 5 * 60 * 1000
 
 // ─── Authentifizierung ──────────────────────────────────────────────────────
 
@@ -85,7 +86,7 @@ async function holeIcalText(
   if (!secretSnap.exists) throw new EingabeFehler("Kalender nicht gefunden")
   const { url } = secretSnap.data()!
 
-  const res = await fetch(url as string)
+  const res = await fetch(url as string, { cache: "no-store" })
   if (!res.ok) throw new Error(`iCal-Abruf fehlgeschlagen: ${res.status}`)
   const icalText = await res.text()
 
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           defaultStatus: (data.defaultStatus ?? "LOCKED") as "LOCKED" | "FLEXIBLE",
         }
       })
-      return Response.json({ kalender })
+      return Response.json({ kalender }, { headers: { "Cache-Control": "no-store" } })
     }
 
     const forceRefresh = params.get("refresh") === "true"
@@ -137,14 +138,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     const termine = parseIcal(icalText, vonDatum, bisDatum)
 
     // Dates müssen als Strings serialisiert werden
-    return Response.json({
-      letzterAbruf: Date.now(),
-      termine: termine.map((t) => ({
-        ...t,
-        beginn: t.beginn.toISOString(),
-        ende: t.ende.toISOString(),
-      })),
-    })
+    return Response.json(
+      {
+        letzterAbruf: Date.now(),
+        termine: termine.map((t) => ({
+          ...t,
+          beginn: t.beginn.toISOString(),
+          ende: t.ende.toISOString(),
+        })),
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    )
   } catch (err) {
     return fehlerAntwort(err)
   }

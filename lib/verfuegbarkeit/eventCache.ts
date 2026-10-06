@@ -16,9 +16,11 @@ interface CacheEntry {
 // In-Memory-Cache überlebt Tab-Wechsel innerhalb der Session
 const MEM = new Map<string, CacheEntry>()
 
-// Etwas kürzer als der Server-Cache (24 h), damit frische Daten Vorrang haben
-const TTL = 23 * 60 * 60 * 1000
-const LS_PREFIX = "sf_ical_"
+// 2 Minuten: Schutz gegen Doppelklicks, aber immer frische Daten nach Tab-Wechsel
+const TTL = 2 * 60 * 1000
+
+// Version 2: erzwingt Invalidierung alter 23h-Einträge in bestehenden Browsern
+const LS_PREFIX = "sf_ical2_"
 
 export function getCachedTermine(key: string): TerminRoh[] | null {
   const mem = MEM.get(key)
@@ -33,6 +35,21 @@ export function getCachedTermine(key: string): TerminRoh[] | null {
       return null
     }
     MEM.set(key, entry)
+    return entry.termine
+  } catch {
+    return null
+  }
+}
+
+/** Gibt gecachte Daten zurück, auch wenn sie abgelaufen sind (für stale-while-revalidate). */
+export function getStaleTermine(key: string): TerminRoh[] | null {
+  const mem = MEM.get(key)
+  if (mem) return mem.termine
+  try {
+    const raw = localStorage.getItem(LS_PREFIX + key)
+    if (!raw) return null
+    const entry = JSON.parse(raw) as CacheEntry
+    MEM.set(key, entry) // in Memory aufnehmen, auch wenn abgelaufen
     return entry.termine
   } catch {
     return null

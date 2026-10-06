@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { auth, db } from "@/lib/firebase/client"
 import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from "firebase/firestore"
 import { uid } from "@/lib/storage/firestore/shared"
@@ -19,6 +19,7 @@ import {
   type TerminRoh,
   getCachedTermine,
   setCachedTermine,
+  getStaleTermine,
   loadSavedSelection,
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
@@ -192,6 +193,11 @@ export default function VerfuegbarkeitPage() {
   // Geplante Schichten (blockieren Verfügbarkeit wie LOCKED-Termine)
   const [geplanteSchichtenListe, setGeplanteSchichtenListe] = useState<GeplanteSchicht[]>([])
 
+  // Aktualisierungs-Tracking
+  const [zuletztAktualisiert, setZuletztAktualisiert] = useState<Date | null>(null)
+  const letzterRefreshRef = useRef(0) // Timestamp des letzten Netzwerk-Abrufs (für 60s-Throttle)
+  const berechneFetchRef = useRef<(opts?: { force?: boolean }) => Promise<void>>(async () => {})
+
   // Kalender + Arbeitgeber-Bundesland + geplante Schichten beim Start laden
   useEffect(() => {
     apiGet("/api/ical")
@@ -229,8 +235,8 @@ export default function VerfuegbarkeitPage() {
     } catch { /* Archiv-Fehler sind nicht kritisch */ }
   }
 
-  // Neu berechnen wenn Zeitraum oder Kalender sich ändern
-  const berechneFetch = useCallback(async () => {
+  // Neu berechnen — mit stale-while-revalidate und Force-Refresh
+  const berechneFetch = useCallback(async ({ force = false }: { force?: boolean } = {}) => {
     if (kalender.length === 0) return
     setFehler("")
 
@@ -239,11 +245,10 @@ export default function VerfuegbarkeitPage() {
     const bis = wochen[wochen.length - 1][6]
     const alleTage = wochen.flat()
     const moSaTage = alleTage.filter((_, i) => i % 7 !== 0)
-    const kalenderKey = `${kalender.map((k) => k.id).sort().join(",")}_${von}_${bis}`
 
-    function verarbeiteRohdaten(rohdatenProKalender: { roh: TerminRoh[]; k: KalenderInfo }[]) {
+    function verarbeiteRohdaten(rohdaten: { roh: TerminRoh[]; k: KalenderInfo }[]) {
       const alleTermine: TerminMitStatus[] = []
-      for (const { roh, k } of rohdatenProKalender) {
+      for (const { roh, k } of rohdaten) {
         for (const t of roh) {
           alleTermine.push({
             uid: t.uid, titel: t.titel,
@@ -261,37 +266,44 @@ export default function VerfuegbarkeitPage() {
       setVerfBlöcke(berechneVerfuegbarkeit(mitFeiertagen, moSaTage, VERF_EINSTELLUNGEN))
     }
 
-    // Cache-Check: gecachte Daten sofort anzeigen, kein Ladezustand
-    const allCached = kalender.map((k) => ({
-      k,
-      roh: getCachedTermine(`${k.id}_${von}_${bis}`) ?? [],
-    }))
-    const isCacheHit = allCached.every(({ roh }) => roh.length > 0 || true) &&
-      allCached.some(({ roh }) => roh.length > 0)
-
-    if (isCacheHit) {
-      // Sofort rendern — kein Skeleton nötig
-      verarbeiteRohdaten(allCached)
-      setLaden(false)
-      return
+    // ── Schritt 1: Veraltete Daten sofort zeigen (stale-while-revalidate) ────────
+    if (!force) {
+      const staleEintraege = kalender.map((k) => ({
+        k,
+        roh: getStaleTermine(`${k.id}_${von}_${bis}`),
+      }))
+      // Nur wenn ALLE Kalender gecacht sind (fix: kein || true mehr)
+      if (staleEintraege.every(({ roh }) => roh !== null)) {
+        verarbeiteRohdaten(staleEintraege.map(({ k, roh }) => ({ k, roh: roh! })))
+        // Frische Daten (innerhalb TTL)? Dann ist hier Schluss
+        if (kalender.every((k) => getCachedTermine(`${k.id}_${von}_${bis}`) !== null)) {
+          letzterRefreshRef.current = Date.now()
+          return
+        }
+        // Sonst: veraltete Daten sichtbar, Hintergrund-Abruf ohne Skeleton
+      }
     }
 
-    // Kein Cache: Skeleton zeigen und von der API laden
-    setLaden(true)
+    // ── Schritt 2: Netzwerk-Abruf ─────────────────────────────────────────────
+    // Skeleton nur wenn noch gar keine Daten sichtbar sind
+    const hatStaleDaten = !force && kalender.every(
+      (k) => getStaleTermine(`${k.id}_${von}_${bis}`) !== null,
+    )
+    if (!hatStaleDaten) setLaden(true)
+
     try {
       const ergebnisse = await Promise.all(
         kalender.map(async (k) => {
           const cacheKey = `${k.id}_${von}_${bis}`
-          const cached = getCachedTermine(cacheKey)
-          if (cached) return { k, roh: cached }
-          const data = await apiGet(`/api/ical?id=${k.id}&von=${von}&bis=${bis}`) as { termine: TerminRoh[] }
+          const url = `/api/ical?id=${k.id}&von=${von}&bis=${bis}${force ? "&refresh=true" : ""}`
+          const data = await apiGet(url) as { termine: TerminRoh[] }
           setCachedTermine(cacheKey, data.termine)
           return { k, roh: data.termine }
         }),
       )
-      // Alle Rohdaten auch gebündelt cachen (für Tab-Switch-Check)
-      void kalenderKey
       verarbeiteRohdaten(ergebnisse)
+      letzterRefreshRef.current = Date.now()
+      setZuletztAktualisiert(new Date())
     } catch (e) {
       setFehler(String(e))
     } finally {
@@ -299,9 +311,29 @@ export default function VerfuegbarkeitPage() {
     }
   }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe])
 
+  // Ref immer aktuell halten (für den visibilitychange-Handler)
+  useEffect(() => {
+    berechneFetchRef.current = berechneFetch
+  })
+
   useEffect(() => {
     berechneFetch()
   }, [berechneFetch])
+
+  // ── Tab-Fokus: automatisch neu laden (max. alle 60 Sekunden) ──────────────
+  useEffect(() => {
+    function handleVisible() {
+      if (document.visibilityState !== "visible") return
+      if (Date.now() - letzterRefreshRef.current < 60_000) return
+      berechneFetchRef.current()
+    }
+    document.addEventListener("visibilitychange", handleVisible)
+    window.addEventListener("focus", handleVisible)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisible)
+      window.removeEventListener("focus", handleVisible)
+    }
+  }, [])
 
   // Gespeicherte Auswahl laden wenn Woche wechselt
   useEffect(() => {
@@ -363,6 +395,27 @@ export default function VerfuegbarkeitPage() {
         <header className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-base font-semibold sf-text">Verfügbarkeit</h1>
+            <div className="flex items-center gap-2">
+              {zuletztAktualisiert && (
+                <span className="text-xs sf-text-3 tabular-nums">
+                  {zuletztAktualisiert.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+              <button
+                onClick={() => { berechneFetch({ force: true }) }}
+                disabled={laden}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 dark:hover:bg-neutral-800 active:scale-90 transition-all disabled:opacity-40"
+                aria-label="Kalender aktualisieren"
+                title="Aktualisieren"
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M2 8a6 6 0 0 1 11.3-2.8"/>
+                  <path d="M14 8a6 6 0 0 1-11.3 2.8"/>
+                  <polyline points="13.5 2 13.5 5.2 10.3 5.2"/>
+                  <polyline points="2.5 14 2.5 10.8 5.7 10.8"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3 items-end">
             <div>
@@ -403,6 +456,11 @@ export default function VerfuegbarkeitPage() {
             </div>
           </div>
         </header>
+
+        {/* ── Google-Hinweis ─────────────────────────────────────────── */}
+        <p className="text-xs sf-text-3 -mt-2 mb-4">
+          Hinweis: Google aktualisiert Kalender-Feeds teilweise erst nach einigen Stunden.
+        </p>
 
         {/* ── Fehler ─────────────────────────────────────────────────── */}
         {fehler && (
