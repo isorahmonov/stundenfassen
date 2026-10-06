@@ -26,6 +26,7 @@ export type EmployerDoc = {
   zuschlagSonntagProzent: number; zuschlagFeiertagProzent: number; zuschlagNachtProzent: number
   archiviert: boolean
   minusImPDFAnzeigen?: boolean
+  personalnummer?: string
 }
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
@@ -37,6 +38,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   zuschlagNachtProzent: d.zuschlagNachtProzent,
   ...(d.archiviert ? { archiviert: true } : {}),
   ...(d.minusImPDFAnzeigen === false ? { minusImPDFAnzeigen: false } : {}),
+  ...(d.personalnummer ? { personalnummer: d.personalnummer } : {}),
 })
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
@@ -48,6 +50,7 @@ export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   zuschlagNachtProzent: e.zuschlagNachtProzent,
   archiviert: e.archiviert ?? false,
   minusImPDFAnzeigen: e.minusImPDFAnzeigen ?? true,
+  ...(e.personalnummer ? { personalnummer: e.personalnummer } : {}),
 })
 
 // ── Shift ────────────────────────────────────────────────────────────────────
