@@ -6,12 +6,9 @@ import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland, EmailVorlage } from "@/lib/types"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
-import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo } from "@/lib/storage"
+import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo, employers as employersRepo } from "@/lib/storage"
 import { auth } from "@/lib/firebase/client"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
-
-const MITARBEITER = "Iso Rahmonov"
-const PERSONALNUMMER = "220264766"
 
 export interface EmailVerfuegbarkeitProps {
   startSonntagStr: string
@@ -30,12 +27,21 @@ async function blobZuBase64(blob: Blob): Promise<string> {
   return btoa(binary)
 }
 
-function ersetzePlatzhalter(vorlage: string, von: string, bis: string): string {
-  return vorlage
-    .replace(/\{\{name\}\}/g, MITARBEITER)
-    .replace(/\{\{personalnummer\}\}/g, PERSONALNUMMER)
+function ersetzePlatzhalter(vorlage: string, von: string, bis: string, name: string, personalnummer: string): string {
+  let text = vorlage
+    .replace(/\{\{name\}\}/g, name)
     .replace(/\{\{zeitraum_von\}\}/g, von)
     .replace(/\{\{zeitraum_bis\}\}/g, bis)
+
+  if (personalnummer) {
+    text = text.replace(/\{\{personalnummer\}\}/g, personalnummer)
+  } else {
+    // Klammern entfernen, z.B. "(Personalnummer {{personalnummer}})"
+    text = text.replace(/\s*\([^()]*\{\{personalnummer\}\}[^()]*\)/g, "")
+    // Ganze Zeile entfernen, z.B. "Personalnummer: {{personalnummer}}\n"
+    text = text.replace(/[^\n]*\{\{personalnummer\}\}[^\n]*\n?/g, "")
+  }
+  return text
 }
 
 function formatDE(iso: string): string {
@@ -122,6 +128,9 @@ export default function EmailVerfuegbarkeitButtonInner({
   const [fehler, setFehler] = useState("")
   const [gesendeteAn, setGesendeteAn] = useState("")
   const [gesendeteCC, setGesendeteCC] = useState("")
+  const [personalnummer, setPersonalnummer] = useState("")
+
+  const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
 
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
   const vonDatum = formatDE(wochen[0][0])
@@ -139,8 +148,8 @@ export default function EmailVerfuegbarkeitButtonInner({
     : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
 
   const aktivVorlage = vorlagen.find((v) => v.id === aktivVorlageId)
-  const vorschauBetreff = aktivVorlage ? ersetzePlatzhalter(aktivVorlage.betreff, vonDatum, bisDatum) : ""
-  const vorschauText = aktivVorlage ? ersetzePlatzhalter(aktivVorlage.text, vonDatum, bisDatum) : ""
+  const vorschauBetreff = aktivVorlage ? ersetzePlatzhalter(aktivVorlage.betreff, vonDatum, bisDatum, mitarbeiterName, personalnummer) : ""
+  const vorschauText = aktivVorlage ? ersetzePlatzhalter(aktivVorlage.text, vonDatum, bisDatum, mitarbeiterName, personalnummer) : ""
 
   const ccFehler = cc.trim() && !istGueltigeEmailListe(cc)
   const kannSenden = !laden && istGueltigeEmailListe(empfaenger) && empfaenger.trim().length > 0 && istGueltigeEmailListe(cc)
@@ -159,8 +168,12 @@ export default function EmailVerfuegbarkeitButtonInner({
     setGesendeteCC("")
     setEmpfaenger("")
     setCc("")
-    const vl = await emailVorlageRepo.findAlle().catch(() => [])
+    const [vl, aktiveEmps] = await Promise.all([
+      emailVorlageRepo.findAlle().catch(() => []),
+      employersRepo.findAktive().catch(() => []),
+    ])
     setVorlagen(vl)
+    setPersonalnummer(aktiveEmps[0]?.personalnummer ?? "")
     const erste = vl[0]
     setAktivVorlageId(erste?.id ?? "")
     setEmpfaenger(erste?.empfaenger ?? "")
@@ -182,6 +195,8 @@ export default function EmailVerfuegbarkeitButtonInner({
           bundesland={bundesland}
           kwAnker={kwAnker}
           minusEintraege={alleMinus}
+          mitarbeiterName={mitarbeiterName}
+          personalnummer={personalnummer || undefined}
         />,
       ).toBlob()
 

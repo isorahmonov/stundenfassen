@@ -6,7 +6,8 @@ import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland } from "@/lib/types"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
-import { minusEintraege as minusRepo } from "@/lib/storage"
+import { minusEintraege as minusRepo, employers as employersRepo } from "@/lib/storage"
+import { auth } from "@/lib/firebase/client"
 
 export interface PDFVerfuegbarkeitProps {
   startSonntagStr: string
@@ -30,7 +31,12 @@ export default function PDFVerfuegbarkeitButtonInner({
   async function handleClick() {
     setLaden(true)
     try {
-      const alleMinus = await minusRepo.findAlle()
+      const [alleMinus, aktiveEmps] = await Promise.all([
+        minusRepo.findAlle(),
+        employersRepo.findAktive(),
+      ])
+      const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
+      const personalnummer = aktiveEmps[0]?.personalnummer
 
       const blob = await pdf(
         <VerfuegbarkeitPDF
@@ -40,6 +46,8 @@ export default function PDFVerfuegbarkeitButtonInner({
           bundesland={bundesland}
           kwAnker={kwAnker}
           minusEintraege={alleMinus}
+          mitarbeiterName={mitarbeiterName}
+          personalnummer={personalnummer}
         />,
       ).toBlob()
 

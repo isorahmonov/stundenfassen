@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase/client"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
@@ -73,6 +74,9 @@ export default function ProfilSeite() {
 
   const [fehler, setFehler] = useState("")
 
+  const [abmeldenOffen, setAbmeldenOffen] = useState(false)
+  const nutzerEmail = auth.currentUser?.email ?? ""
+
   useEffect(() => { ladeKalender() }, [])
   useEffect(() => { minusRepo.findAlle().then(setMinus).catch(() => {}) }, [minusVersion])
   useEffect(() => { ladeArbeitgeber() }, [])
@@ -132,6 +136,20 @@ export default function ProfilSeite() {
       await employersRepo.update(emp.id, { minusImPDFAnzeigen: emp.minusImPDFAnzeigen !== false ? false : true })
       ladeArbeitgeber()
     } catch (e) { setFehler(String(e)) }
+  }
+
+  async function abmelden() {
+    // Alle App-eigenen localStorage-Einträge löschen (iCal-Cache + Block-Auswahl)
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && (k.startsWith("sf_ical2_") || k.startsWith("sf_sel_"))) {
+        keysToRemove.push(k)
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k))
+    await signOut(auth)
+    // AuthGate erkennt den Logout via onAuthStateChanged und zeigt den Login-Screen
   }
 
   async function ladeKalender() {
@@ -521,8 +539,39 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Konto ────────────────────────────────────────────────────── */}
+          <div className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-neutral-800 text-stone-500 dark:text-neutral-400 flex-shrink-0">
+                <KontoIcon />
+              </span>
+              <span className="text-sm font-semibold sf-text">Konto</span>
+            </div>
+            <div className="border-t border-stone-100 dark:border-white/5 pt-3 space-y-3">
+              <div>
+                <p className="text-xs sf-text-3 mb-0.5">Angemeldet als</p>
+                <p className="text-sm sf-text font-medium break-all">{nutzerEmail || "–"}</p>
+              </div>
+              <button
+                onClick={() => setAbmeldenOffen(true)}
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium text-white active:scale-[.99] transition-all"
+                style={{ backgroundColor: "#2563eb" }}
+              >
+                Abmelden
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
+
+      {abmeldenOffen && (
+        <AbmeldenDialog
+          email={nutzerEmail}
+          onBestaetigen={abmelden}
+          onAbbrechen={() => setAbmeldenOffen(false)}
+        />
+      )}
     </main>
   )
 }
@@ -617,6 +666,60 @@ function EmailKontoIcon() {
       <circle cx="7.5" cy="7.5" r="2.5"/>
       <path d="M10 7.5a2.5 2.5 0 1 0-2.5 2.5c1 0 1.5-.4 1.5-1V7.5M13 7.5a5.5 5.5 0 1 0-1.5 3.8"/>
     </svg>
+  )
+}
+
+function KontoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="8" cy="5.5" r="2.5"/>
+      <path d="M2.5 13.5c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5"/>
+    </svg>
+  )
+}
+
+// ─── AbmeldenDialog ─────────────────────────────────────────────────────────────
+
+function AbmeldenDialog({
+  email,
+  onBestaetigen,
+  onAbbrechen,
+}: {
+  email: string
+  onBestaetigen: () => void
+  onAbbrechen: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
+        onClick={onAbbrechen}
+      />
+      <div className="relative w-full max-w-sm sf-card rounded-2xl shadow-2xl p-6">
+        <h2 className="text-base font-bold sf-text mb-1">Wirklich abmelden?</h2>
+        {email && (
+          <p className="text-sm sf-text-2 mb-4 break-all">
+            Du wirst als <span className="font-medium sf-text">{email}</span> abgemeldet.
+            Lokale Daten (Kalender-Cache, Auswahl) werden gelöscht.
+          </p>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={onAbbrechen}
+            className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={onBestaetigen}
+            className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white active:scale-[.98] transition-all"
+            style={{ backgroundColor: "#2563eb" }}
+          >
+            Abmelden
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

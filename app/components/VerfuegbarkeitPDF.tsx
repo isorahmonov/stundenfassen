@@ -7,9 +7,6 @@ import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { feiertagName } from "@/lib/calc/holidays"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 
-const MITARBEITER = "Iso Rahmonov"
-const PERSONALNUMMER = "220264766"
-
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
 const WOCHENTAGE_LANG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
 const MONATE_LANG = [
@@ -88,6 +85,8 @@ interface Props {
   bundesland: Bundesland
   kwAnker: string
   minusEintraege?: MinusEintrag[]
+  mitarbeiterName: string
+  personalnummer?: string
 }
 
 export function VerfuegbarkeitPDF({
@@ -97,19 +96,23 @@ export function VerfuegbarkeitPDF({
   bundesland,
   kwAnker,
   minusEintraege = [],
+  mitarbeiterName,
+  personalnummer,
 }: Props) {
   const ausgewaehlteKeys = new Set(ausgewaehlt.map(blockKey))
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
 
   return (
-    <Document title="Verfügbarkeit" author={MITARBEITER}>
+    <Document title="Verfügbarkeit" author={mitarbeiterName}>
       <Page size="A4" style={s.page}>
         {/* Kopf */}
         <View style={s.header}>
           <View style={s.headerLeft}>
             <Text style={s.headerTitle}>Verfügbarkeit</Text>
-            <Text style={s.headerMeta}>Mitarbeiter: {MITARBEITER}</Text>
-            <Text style={s.headerMeta}>Personalnummer: {PERSONALNUMMER}</Text>
+            <Text style={s.headerMeta}>Mitarbeiter: {mitarbeiterName}</Text>
+            {personalnummer && (
+              <Text style={s.headerMeta}>Personalnummer: {personalnummer}</Text>
+            )}
           </View>
           {minusEintraege.length > 0 && (
             <View style={s.minusBox}>

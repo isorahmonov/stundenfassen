@@ -23,6 +23,8 @@ export interface Employer {
   archiviert?: boolean;
   /** Minusstunden-Block im Monats-PDF anzeigen; Default true wenn undefined */
   minusImPDFAnzeigen?: boolean;
+  /** Personalnummer für das Verfügbarkeits-PDF, optional */
+  personalnummer?: string;
 }
 
 export interface Shift {

@@ -41,6 +41,7 @@ interface FormDaten {
   zuschlagSonntag: string
   zuschlagFeiertag: string
   zuschlagNacht: string
+  personalnummer: string
 }
 
 const LEER_FORM: FormDaten = {
@@ -52,6 +53,7 @@ const LEER_FORM: FormDaten = {
   zuschlagSonntag: "50",
   zuschlagFeiertag: "100",
   zuschlagNacht: "25",
+  personalnummer: "",
 }
 
 function formZuEmployer(f: FormDaten): Omit<Employer, "id"> {
@@ -64,6 +66,7 @@ function formZuEmployer(f: FormDaten): Omit<Employer, "id"> {
     zuschlagSonntagProzent: parseFloat(f.zuschlagSonntag) || 0,
     zuschlagFeiertagProzent: parseFloat(f.zuschlagFeiertag) || 0,
     zuschlagNachtProzent: parseFloat(f.zuschlagNacht) || 0,
+    ...(f.personalnummer.trim() ? { personalnummer: f.personalnummer.trim() } : {}),
   }
 }
 
@@ -77,6 +80,7 @@ function employerZuForm(e: Employer): FormDaten {
     zuschlagSonntag: String(e.zuschlagSonntagProzent),
     zuschlagFeiertag: String(e.zuschlagFeiertagProzent),
     zuschlagNacht: String(e.zuschlagNachtProzent),
+    personalnummer: e.personalnummer ?? "",
   }
 }
 
@@ -361,6 +365,18 @@ function ArbeitgeberForm({
             <option key={bl.value} value={bl.value}>{bl.label} ({bl.value})</option>
           ))}
         </select>
+      </div>
+
+      {/* Personalnummer */}
+      <div className="mb-4">
+        <FormLabel>Personalnummer <span className="font-normal text-stone-400 dark:text-neutral-500">optional</span></FormLabel>
+        <input
+          type="text"
+          value={form.personalnummer}
+          onChange={(e) => set("personalnummer", e.target.value)}
+          placeholder="z.B. 220264766"
+          className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 placeholder:text-stone-300 dark:placeholder:text-neutral-600 nums outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
+        />
       </div>
 
       {/* Zuschläge */}

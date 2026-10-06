@@ -474,7 +474,7 @@ export default function VerfuegbarkeitPage() {
           <div className="sf-card rounded-2xl p-8 text-center shadow-sm">
             <p className="text-sm sf-text-2">Noch keine Kalender eingerichtet.</p>
             <p className="text-xs sf-text-3 mt-1">
-              Kalender-URLs im <a href="/debug-ical" className="underline">Debug-Bereich</a> hinterlegen.
+              Kalender unter <a href="/profil" className="underline">Profil → Kalender</a> hinterlegen.
             </p>
           </div>
         )}
