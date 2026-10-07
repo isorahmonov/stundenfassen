@@ -28,6 +28,7 @@ export type EmployerDoc = {
   minusImPDFAnzeigen?: boolean
   personalnummer?: string
   verfuegbarkeit?: unknown
+  kurzfristigPauschal?: boolean
 }
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
@@ -41,6 +42,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   ...(d.minusImPDFAnzeigen === false ? { minusImPDFAnzeigen: false } : {}),
   ...(d.personalnummer ? { personalnummer: d.personalnummer } : {}),
   ...(d.verfuegbarkeit ? { verfuegbarkeit: d.verfuegbarkeit as Employer["verfuegbarkeit"] } : {}),
+  ...(d.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
 })
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
@@ -54,6 +56,7 @@ export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   minusImPDFAnzeigen: e.minusImPDFAnzeigen ?? true,
   ...(e.personalnummer ? { personalnummer: e.personalnummer } : {}),
   ...(e.verfuegbarkeit ? { verfuegbarkeit: e.verfuegbarkeit } : {}),
+  ...(e.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
 })
 
 // ── Shift ────────────────────────────────────────────────────────────────────
@@ -78,14 +81,18 @@ export const fromShift = (s: Omit<Shift, "id">): ShiftDoc => ({
 // ── Settings ─────────────────────────────────────────────────────────────────
 
 export type SettingsDoc = {
-  bundesland: Settings["bundesland"]; steuerklasse: Settings["steuerklasse"]
-  kirchensteuer: boolean; kurzfristigPauschal: boolean
+  bundesland?: Settings["bundesland"]
+  steuerklasse: Settings["steuerklasse"]
+  kirchensteuer: boolean
+  kurzfristigPauschal?: boolean
 }
 
 export const toSettings = (d: SettingsDoc): Settings => ({
   id: "default",
-  bundesland: d.bundesland, steuerklasse: d.steuerklasse,
-  kirchensteuer: d.kirchensteuer, kurzfristigPauschal: d.kurzfristigPauschal,
+  ...(d.bundesland ? { bundesland: d.bundesland } : {}),
+  steuerklasse: d.steuerklasse,
+  kirchensteuer: d.kirchensteuer,
+  ...(d.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
 })
 
 // ── MinusEintrag ─────────────────────────────────────────────────────────────

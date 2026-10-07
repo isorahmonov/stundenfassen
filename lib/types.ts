@@ -27,6 +27,8 @@ export interface Employer {
   personalnummer?: string;
   /** Verfügbarkeits-Einstellungen pro Arbeitgeber */
   verfuegbarkeit?: VerfuegbarkeitsEinstellungenArbeitgeber;
+  /** Lohnsteuer 25% pauschal (§40a EStG) statt nach Steuerklasse — nur relevant bei art="kurzfristig" */
+  kurzfristigPauschal?: boolean;
 }
 
 export interface Shift {
@@ -65,11 +67,13 @@ export type Steuerklasse = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface Settings {
   id: string;
-  bundesland: Bundesland;
+  /** Aus Firestore gelesen für ältere Datensätze; wird nicht mehr neu geschrieben */
+  bundesland?: Bundesland;
   steuerklasse: Steuerklasse;
   kirchensteuer: boolean;
-  /** Bei "kurzfristig" Beschäftigungen: Lohnsteuer nach Steuerklasse oder 25% pauschal */
-  kurzfristigPauschal: boolean;
+  /** Aus Firestore gelesen für ältere Datensätze; wird nicht mehr neu geschrieben.
+   *  Gilt als Rückfall, solange kein employer.kurzfristigPauschal gesetzt ist. */
+  kurzfristigPauschal?: boolean;
 }
 
 export interface MinusEintrag {
@@ -126,7 +130,7 @@ export interface VerfuegbarkeitsEinstellungenArbeitgeber {
   wochenStart: "sonntag" | "montag"
   kwSystem: "tkmaxx" | "iso" | "keine"
   kwAnker?: string              // "YYYY-MM-DD", nur bei kwSystem="tkmaxx"
-  pdf: { fusszeilenText?: string }
+  pdf: { fusszeilenText?: string; deinName?: string }
   pufferOrte: PufferOrt[]
   festeSperrzeiten: FesteSperrzeit[]
   einrichtungBestaetigt: boolean

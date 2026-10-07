@@ -17,7 +17,6 @@ const employer: Employer = {
 const settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal"> = {
   steuerklasse: 1,
   kirchensteuer: false,
-  kurzfristigPauschal: false,
 };
 
 describe("berechneMonatsSumme", () => {
@@ -33,6 +32,32 @@ describe("berechneMonatsSumme", () => {
 
     expect(summe.anzahlSchichten).toBe(2);
     expect(summe.nettoMinuten).toBe(8 * 60 + 4 * 60);
+  });
+});
+
+describe("berechneMonatsSumme – kurzfristigPauschal", () => {
+  const kurzfristigEmployer: Employer = {
+    id: "e2",
+    name: "Kurzfristiger Job",
+    farbe: "#dc2626",
+    stundenlohnCent: 1200,
+    art: "kurzfristig",
+    bundesland: "HH",
+    zuschlagSonntagProzent: 0,
+    zuschlagFeiertagProzent: 0,
+    zuschlagNachtProzent: 0,
+  };
+  const shift: Shift = { id: "s1", employerId: "e2", datum: "2026-01-10", start: "09:00", ende: "13:00" };
+
+  it("ohne Pauschal (SK1): netto = brutto (0% Lohnsteuer)", () => {
+    const summe = berechneMonatsSumme([shift], { ...kurzfristigEmployer, kurzfristigPauschal: false }, settings);
+    expect(summe.nettoGeschaetztCent).toBe(summe.bruttoCent);
+  });
+
+  it("mit Pauschal (25%): netto = 75% von brutto", () => {
+    const summe = berechneMonatsSumme([shift], { ...kurzfristigEmployer, kurzfristigPauschal: true }, settings);
+    expect(summe.nettoGeschaetztCent).toBe(Math.round(summe.bruttoCent * 0.75));
+    expect(summe.nettoGeschaetztCent).toBeLessThan(summe.bruttoCent);
   });
 });
 

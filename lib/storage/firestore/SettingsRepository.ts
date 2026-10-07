@@ -11,12 +11,10 @@ export class SettingsRepository implements ISettingsRepository {
 
   async save(input: SettingsInput): Promise<Settings> {
     const data: SettingsDoc = {
-      bundesland: input.bundesland,
       steuerklasse: input.steuerklasse,
       kirchensteuer: input.kirchensteuer,
-      kurzfristigPauschal: input.kurzfristigPauschal,
     }
-    await setDoc(userDoc("settings", "default"), data)
+    await setDoc(userDoc("settings", "default"), data, { merge: true })
     return toSettings(data)
   }
 }

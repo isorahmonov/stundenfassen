@@ -44,7 +44,7 @@ export function berechneMonatsSumme(
     nachtMinuten += berechnung.zuschlagsminuten.nachtMinuten;
   }
 
-  const { nettoCent } = schaetzeNetto(bruttoCent, employer.art, settings);
+  const { nettoCent } = schaetzeNetto(bruttoCent, employer.art, settings, employer.kurzfristigPauschal ?? settings.kurzfristigPauschal ?? false);
 
   return {
     nettoMinuten,

@@ -5,6 +5,7 @@ import { BaseDialog } from "./BaseDialog"
 import type { Bundesland, Employer, VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { employers as employersRepo } from "@/lib/storage"
+import { auth } from "@/lib/firebase/client"
 
 export { sollDialogOeffnen } from "@/lib/verfuegbarkeit/einrichtungsUtils"
 
@@ -23,6 +24,7 @@ interface FormDaten {
   kwSystem: "keine" | "iso" | "tkmaxx"
   kwAnker: string
   personalnummer: string
+  deinName: string
   fusszeilenText: string
   festeSperrzeiten: { wochentag: number; von: string; bis: string; bezeichnung: string }[]
 }
@@ -67,6 +69,7 @@ function initialForm(employer: Employer): FormDaten {
     kwSystem: einst.kwSystem,
     kwAnker: einst.kwAnker ?? "",
     personalnummer: employer.personalnummer ?? "",
+    deinName: einst.pdf?.deinName ?? auth.currentUser?.displayName ?? "",
     fusszeilenText: einst.pdf?.fusszeilenText ?? "",
     festeSperrzeiten: einst.festeSperrzeiten,
   }
@@ -99,6 +102,7 @@ function validiereSchritt(step: number, form: FormDaten): string | null {
       }
       break
     case 4:
+      if (!form.deinName.trim()) return "Bitte deinen Namen für das PDF eingeben."
       if (form.kwSystem === "tkmaxx" && !form.kwAnker.trim())
         return "Bitte ein Ankerdatum für das TK-Maxx-KW-System eingeben."
       break
@@ -263,6 +267,13 @@ function SchrittPdf({ form, set }: { form: FormDaten; set: SetFn }) {
   return (
     <div className="space-y-5">
       <div>
+        <label className="block text-xs sf-text-2 mb-1">
+          Dein Name für das PDF <span className="text-red-500">*</span>
+        </label>
+        <input type="text" value={form.deinName} onChange={e => set("deinName", e.target.value)}
+          placeholder="z. B. Max Mustermann" className={INPUT} />
+      </div>
+      <div>
         <p className="text-xs sf-text-2 font-semibold uppercase tracking-wide mb-2">Kalenderwochen-System</p>
         <div className="space-y-1.5">
           {([
@@ -400,7 +411,7 @@ export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen }: Ein
         pufferOrte:        form.pufferOrte,
         kwSystem:          form.kwSystem,
         kwAnker:           form.kwSystem === "tkmaxx" ? form.kwAnker : undefined,
-        pdf:               { fusszeilenText: form.fusszeilenText },
+        pdf:               { deinName: form.deinName, fusszeilenText: form.fusszeilenText || undefined },
         festeSperrzeiten:  form.festeSperrzeiten,
         einrichtungBestaetigt: true,
       }

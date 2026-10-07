@@ -69,11 +69,9 @@ export default function ProfilSeite() {
   const [neuVorlageOffen, setNeuVorlageOffen] = useState(false)
   const [bearbeitenVorlageId, setBearbeitenVorlageId] = useState<string | null>(null)
 
-  const [steuerDaten, setSteuerDaten] = useState<Omit<Settings, "id">>({
-    bundesland: "HH",
+  const [steuerDaten, setSteuerDaten] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer">>({
     steuerklasse: 1,
     kirchensteuer: false,
-    kurzfristigPauschal: false,
   })
   const [steuerLaden, setSteuerLaden] = useState(false)
 
@@ -94,7 +92,7 @@ export default function ProfilSeite() {
   useEffect(() => { ladeEmailConfig() }, [])
   useEffect(() => {
     settingsRepo.get().then(s => {
-      if (s) setSteuerDaten({ bundesland: s.bundesland, steuerklasse: s.steuerklasse, kirchensteuer: s.kirchensteuer, kurzfristigPauschal: s.kurzfristigPauschal })
+      if (s) setSteuerDaten({ steuerklasse: s.steuerklasse, kirchensteuer: s.kirchensteuer })
     }).catch(() => {})
   }, [])
 
@@ -144,6 +142,13 @@ export default function ProfilSeite() {
       setEmailFormOffen(true)
     } catch (e) { setFehler(String(e)) }
     finally { setEmailLaden(false) }
+  }
+
+  async function toggleKurzfristigPauschal(emp: Employer) {
+    try {
+      await employersRepo.update(emp.id, { kurzfristigPauschal: !emp.kurzfristigPauschal })
+      ladeArbeitgeber()
+    } catch (e) { setFehler(String(e)) }
   }
 
   async function toggleMinusImPDF(emp: Employer) {
@@ -587,17 +592,26 @@ export default function ProfilSeite() {
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-3">
+              {arbeitgeber.filter((e) => e.art === "kurzfristig").length > 0 && (
                 <div>
-                  <p className="text-sm sf-text">Lohnsteuer pauschal 25 %</p>
-                  <p className="text-xs sf-text-3">für kurzfristige Beschäftigung</p>
+                  <p className="text-xs sf-text-2 mb-2">Lohnsteuer pauschal 25 % (§40a EStG)</p>
+                  <div className="space-y-2">
+                    {arbeitgeber.filter((e) => e.art === "kurzfristig").map((emp) => (
+                      <div key={emp.id} className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.farbe }} />
+                          <span className="text-sm sf-text">{emp.name}</span>
+                        </div>
+                        <Toggle
+                          checked={emp.kurzfristigPauschal ?? false}
+                          onChange={() => toggleKurzfristigPauschal(emp)}
+                          label={`Lohnsteuer pauschal 25% für ${emp.name}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <Toggle
-                  checked={steuerDaten.kurzfristigPauschal}
-                  onChange={(v) => setSteuerDaten((d) => ({ ...d, kurzfristigPauschal: v }))}
-                  label="Lohnsteuer pauschal 25 Prozent"
-                />
-              </div>
+              )}
 
               <button
                 onClick={speichernSteuer}

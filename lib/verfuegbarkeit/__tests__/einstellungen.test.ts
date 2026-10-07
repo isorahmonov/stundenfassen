@@ -5,7 +5,7 @@ import {
   NEUTRALE_EINSTELLUNGEN,
   type TerminMitStatus,
 } from "@/lib/verfuegbarkeit/verfuegbarkeit"
-import type { VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
+import type { FesteSperrzeit, VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
 
 const TAG_MO = "2026-09-21"  // Montag
 const TAG_SO = "2026-09-20"  // Sonntag
@@ -130,6 +130,28 @@ describe("Wochentage-Einschränkung", () => {
 
 // ─── Feste Sperrzeiten (festeSperrzeitenTermine-Logik) ───────────────────────
 
+/** Spiegelt festeSperrzeitenTermine() aus app/verfuegbarkeit/page.tsx, aber mit
+ *  explizitem Berlin-Offset, damit der Test in allen Timezones deterministisch läuft. */
+function festeSperrzeitenTermine(
+  sperrzeiten: FesteSperrzeit[],
+  tage: string[],
+): TerminMitStatus[] {
+  return tage.flatMap((datum) => {
+    const [y, m, d] = datum.split("-").map(Number)
+    const wochentag = new Date(y, m - 1, d, 12).getDay()  // 0=So…6=Sa, lokal
+    return sperrzeiten
+      .filter((s) => s.wochentag === wochentag)
+      .map((s) => ({
+        uid: `fest-${datum}-${s.von}`,
+        titel: s.bezeichnung,
+        beginn: berlinZu(datum, s.von),
+        ende:   berlinZu(datum, s.bis),
+        ganztaegig: false,
+        status: "LOCKED" as const,
+      }))
+  })
+}
+
 describe("Feste Sperrzeiten", () => {
   it("Freitagssperre 12–14 Uhr ergibt zwei Blöcke statt einem", () => {
     // Wie der Jumia-Block: Fr 12–14 LOCKED
@@ -150,6 +172,44 @@ describe("Feste Sperrzeiten", () => {
     expect(bloecke).toHaveLength(2)
     expect(bloecke[0]).toMatchObject({ start: "06:00", ende: "12:00" })
     expect(bloecke[1]).toMatchObject({ start: "14:00", ende: "20:30" })
+  })
+
+  it("festeSperrzeiten-Konfig-Pfad: Sperrzeit aus einst.festeSperrzeiten blockiert korrekt", () => {
+    // Testet den vollständigen Pfad: einst.festeSperrzeiten → festeSperrzeitenTermine() → berechneVerfuegbarkeit()
+    const arb: VerfuegbarkeitsEinstellungenArbeitgeber = {
+      ...NEUTRALE_EINSTELLUNGEN,
+      pufferOrte: [],
+      pufferStandardMin: 0,
+      festeSperrzeiten: [
+        { wochentag: 5, von: "12:00", bis: "14:00", bezeichnung: "Freitagsblock" },
+      ],
+    }
+    const termine = festeSperrzeitenTermine(arb.festeSperrzeiten, [TAG_FR])
+    expect(termine).toHaveLength(1)
+    expect(termine[0].titel).toBe("Freitagsblock")
+
+    const bloecke = berechneVerfuegbarkeit(termine, [TAG_FR], einstellungenVonArbeitgeber(arb))
+    expect(bloecke).toHaveLength(2)
+    expect(bloecke[0]).toMatchObject({ start: "06:00", ende: "12:00" })
+    expect(bloecke[1]).toMatchObject({ start: "14:00", ende: "20:30" })
+  })
+
+  it("festeSperrzeiten-Konfig-Pfad: anderen Wochentag ignorieren", () => {
+    const arb: VerfuegbarkeitsEinstellungenArbeitgeber = {
+      ...NEUTRALE_EINSTELLUNGEN,
+      pufferOrte: [],
+      pufferStandardMin: 0,
+      festeSperrzeiten: [
+        { wochentag: 1, von: "12:00", bis: "14:00", bezeichnung: "Montagsblock" },
+      ],
+    }
+    // TAG_FR ist Freitag (5), Sperrzeit ist nur für Montag (1) → keine Sperrtermine
+    const termine = festeSperrzeitenTermine(arb.festeSperrzeiten, [TAG_FR])
+    expect(termine).toHaveLength(0)
+
+    const bloecke = berechneVerfuegbarkeit(termine, [TAG_FR], einstellungenVonArbeitgeber(arb))
+    expect(bloecke).toHaveLength(1)
+    expect(bloecke[0]).toMatchObject({ start: "06:00", ende: "20:30" })
   })
 })
 

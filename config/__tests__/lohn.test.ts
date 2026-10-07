@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { schaetzeNetto } from "@/config/lohn";
 
-const settings = { steuerklasse: 1 as const, kirchensteuer: false, kurzfristigPauschal: false };
+const settings = { steuerklasse: 1 as const, kirchensteuer: false };
 
 describe("schaetzeNetto", () => {
   it("zieht bei Minijob keine Abzüge ab", () => {
@@ -17,18 +17,14 @@ describe("schaetzeNetto", () => {
   });
 
   it("wendet bei kurzfristig die 25%-Pauschalsteuer an, wenn aktiviert", () => {
-    const ergebnis = schaetzeNetto(20000, "kurzfristig", { ...settings, kurzfristigPauschal: true });
+    const ergebnis = schaetzeNetto(20000, "kurzfristig", settings, true);
     expect(ergebnis.rentenversicherungCent).toBe(0);
     expect(ergebnis.lohnsteuerCent).toBe(5000);
     expect(ergebnis.nettoCent).toBe(15000);
   });
 
   it("addiert Kirchensteuer auf die Lohnsteuer, wenn aktiviert", () => {
-    const ergebnis = schaetzeNetto(20000, "kurzfristig", {
-      ...settings,
-      kurzfristigPauschal: true,
-      kirchensteuer: true,
-    });
+    const ergebnis = schaetzeNetto(20000, "kurzfristig", { ...settings, kirchensteuer: true }, true);
     expect(ergebnis.kirchensteuerCent).toBe(Math.round(5000 * 0.09));
   });
 });

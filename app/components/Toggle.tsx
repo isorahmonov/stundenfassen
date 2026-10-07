@@ -17,20 +17,23 @@ export function Toggle({ checked, onChange, label, disabled = false }: TogglePro
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
+      style={{ backgroundColor: checked ? "#3b82f6" : undefined }}
       className={[
-        "relative w-11 h-6 rounded-full flex-shrink-0",
-        "transition-colors",
+        "relative inline-flex flex-shrink-0",
+        "w-12 h-7 rounded-full",
+        checked ? "" : "bg-stone-300 dark:bg-neutral-600",
+        "transition-colors duration-200",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
         "disabled:opacity-40 disabled:pointer-events-none",
-        checked ? "bg-blue-500" : "bg-stone-300 dark:bg-neutral-600",
       ].join(" ")}
     >
       <span
-        className={[
-          "absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm",
-          "transition-transform",
-          checked ? "translate-x-6" : "translate-x-1",
-        ].join(" ")}
+        aria-hidden
+        className="absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm"
+        style={{
+          transform: checked ? "translateX(20px)" : "translateX(0)",
+          transition: "transform 200ms",
+        }}
       />
     </button>
   )

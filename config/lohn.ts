@@ -46,7 +46,8 @@ export interface AbzugErgebnisCent {
 export function schaetzeNetto(
   bruttoCent: number,
   art: EmployerArt,
-  settings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">,
+  settings: Pick<Settings, "steuerklasse" | "kirchensteuer">,
+  kurzfristigPauschal = false,
 ): AbzugErgebnisCent {
   let rentenversicherungCent = 0;
   let lohnsteuerCent = 0;
@@ -62,7 +63,7 @@ export function schaetzeNetto(
     case "kurzfristig":
       // Keine Sozialversicherung. Lohnsteuer entweder pauschal 25% oder nach Steuerklasse.
       rentenversicherungCent = 0;
-      lohnsteuerCent = settings.kurzfristigPauschal
+      lohnsteuerCent = kurzfristigPauschal
         ? Math.round((bruttoCent * PAUSCHALSTEUER_KURZFRISTIG_PROZENT) / 100)
         : Math.round((bruttoCent * LOHNSTEUER_PAUSCHALSATZ_PROZENT[settings.steuerklasse]) / 100);
       break;

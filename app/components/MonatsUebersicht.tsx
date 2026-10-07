@@ -8,6 +8,7 @@ import { collection, getDocs, limit, orderBy, query } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
 import { uid } from "@/lib/storage/firestore/shared"
 import { berechneMonatsSumme, type MonatsSumme } from "@/lib/calc/aggregate"
+import { NETTO_HINWEIS_TEXT } from "@/config/lohn"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { SchichtTabelle } from "./SchichtTabelle"
 import { SchnellEingabe } from "./SchnellEingabe"
@@ -24,7 +25,6 @@ const MONATE = [
 const FALLBACK_SETTINGS = {
   steuerklasse: 1 as Steuerklasse,
   kirchensteuer: false,
-  kurzfristigPauschal: false,
 }
 
 interface EmployerSumme {
@@ -254,6 +254,7 @@ export default function MonatsUebersicht() {
               <Kachel
                 label="Netto geschätzt"
                 wert={formatEuroCent(aktivSumme.summe.nettoGeschaetztCent)}
+                subtitle={NETTO_HINWEIS_TEXT}
               />
               {minusMinutenAktiv !== null && (
                 <Kachel
@@ -345,11 +346,13 @@ function Kachel({
   label,
   wert,
   akzent,
+  subtitle,
   klasse = "",
 }: {
   label: string
   wert: string
   akzent?: string
+  subtitle?: string
   klasse?: string
 }) {
   return (
@@ -363,6 +366,7 @@ function Kachel({
       >
         {wert}
       </p>
+      {subtitle && <p className="text-xs text-stone-400 mt-1 leading-snug">{subtitle}</p>}
     </div>
   )
 }

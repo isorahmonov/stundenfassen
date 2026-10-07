@@ -39,8 +39,8 @@ export default function PDFVerfuegbarkeitButtonInner({
     setLaden(true)
     try {
       const alleMinus = await minusRepo.findAlle()
-      const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
       const einst = employer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
+      const mitarbeiterName = einst.pdf?.deinName ?? auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
       const kwSystem = einst.kwSystem
       const kwAnker = einst.kwAnker
       const wochenStart = einst.wochenStart

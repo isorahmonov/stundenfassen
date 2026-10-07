@@ -124,7 +124,7 @@ export default function EmailVerfuegbarkeitButtonInner({
   const [gesendeteCC, setGesendeteCC] = useState("")
 
   const einst = employer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
-  const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
+  const mitarbeiterName = einst.pdf?.deinName ?? auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
   const personalnummer = employer?.personalnummer ?? ""
 
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
