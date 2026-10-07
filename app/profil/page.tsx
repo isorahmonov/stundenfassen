@@ -6,10 +6,11 @@ import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase/client"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
-import type { Employer, MinusEintrag, EmailVorlage } from "@/lib/types"
-import { minusEintraege as minusRepo, employers as employersRepo, emailVorlagen as emailVorlageRepo } from "@/lib/storage"
+import type { Employer, MinusEintrag, EmailVorlage, Settings, Steuerklasse } from "@/lib/types"
+import { minusEintraege as minusRepo, employers as employersRepo, emailVorlagen as emailVorlageRepo, settings as settingsRepo } from "@/lib/storage"
 import type { MinusEintragInput } from "@/lib/storage"
 import { BaseDialog } from "../components/BaseDialog"
+import { Toggle } from "../components/Toggle"
 
 const BERLIN = "Europe/Berlin"
 
@@ -47,7 +48,7 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
@@ -68,6 +69,14 @@ export default function ProfilSeite() {
   const [neuVorlageOffen, setNeuVorlageOffen] = useState(false)
   const [bearbeitenVorlageId, setBearbeitenVorlageId] = useState<string | null>(null)
 
+  const [steuerDaten, setSteuerDaten] = useState<Omit<Settings, "id">>({
+    bundesland: "HH",
+    steuerklasse: 1,
+    kirchensteuer: false,
+    kurzfristigPauschal: false,
+  })
+  const [steuerLaden, setSteuerLaden] = useState(false)
+
   const [emailKonfiguriert, setEmailKonfiguriert] = useState(false)
   const [emailGmailUser, setEmailGmailUser] = useState("")
   const [emailFormOffen, setEmailFormOffen] = useState(false)
@@ -83,6 +92,11 @@ export default function ProfilSeite() {
   useEffect(() => { ladeArbeitgeber() }, [])
   useEffect(() => { ladeVorlagen() }, [])
   useEffect(() => { ladeEmailConfig() }, [])
+  useEffect(() => {
+    settingsRepo.get().then(s => {
+      if (s) setSteuerDaten({ bundesland: s.bundesland, steuerklasse: s.steuerklasse, kirchensteuer: s.kirchensteuer, kurzfristigPauschal: s.kurzfristigPauschal })
+    }).catch(() => {})
+  }, [])
 
   async function ladeArbeitgeber() {
     try {
@@ -137,6 +151,14 @@ export default function ProfilSeite() {
       await employersRepo.update(emp.id, { minusImPDFAnzeigen: emp.minusImPDFAnzeigen !== false ? false : true })
       ladeArbeitgeber()
     } catch (e) { setFehler(String(e)) }
+  }
+
+  async function speichernSteuer() {
+    setSteuerLaden(true)
+    try {
+      await settingsRepo.save(steuerDaten)
+    } catch (e) { setFehler(String(e)) }
+    finally { setSteuerLaden(false) }
   }
 
   async function abmelden() {
@@ -367,22 +389,11 @@ export default function ProfilSeite() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs sf-text-3">Minusstunden im PDF</span>
-                          <button
-                            role="switch"
-                            aria-checked={emp.minusImPDFAnzeigen !== false}
-                            onClick={() => toggleMinusImPDF(emp)}
-                            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-                              emp.minusImPDFAnzeigen !== false
-                                ? "bg-blue-500"
-                                : "bg-stone-300 dark:bg-neutral-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
-                                emp.minusImPDFAnzeigen !== false ? "translate-x-6" : "translate-x-1"
-                              }`}
-                            />
-                          </button>
+                          <Toggle
+                            checked={emp.minusImPDFAnzeigen !== false}
+                            onChange={() => toggleMinusImPDF(emp)}
+                            label="Minusstunden im PDF anzeigen"
+                          />
                         </div>
                       </div>
                     ))}
@@ -540,6 +551,64 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Steuer-Einstellungen ────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel="Steuer-Einstellungen"
+            symbol={<SteuerIcon />}
+            offen={offen.has("steuer")}
+            onToggle={() => toggle("steuer")}
+          >
+            <div className="pt-3 space-y-4">
+              <div>
+                <p className="text-xs sf-text-2 mb-2">Steuerklasse</p>
+                <div className="flex gap-2">
+                  {([1, 2, 3, 4, 5, 6] as Steuerklasse[]).map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => setSteuerDaten((d) => ({ ...d, steuerklasse: k }))}
+                      className={`w-9 h-9 rounded-xl text-sm font-semibold transition-colors ${
+                        steuerDaten.steuerklasse === k
+                          ? "bg-blue-600 text-white"
+                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      {k}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-sm sf-text">Kirchensteuer</p>
+                <Toggle
+                  checked={steuerDaten.kirchensteuer}
+                  onChange={(v) => setSteuerDaten((d) => ({ ...d, kirchensteuer: v }))}
+                  label="Kirchensteuer"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm sf-text">Lohnsteuer pauschal 25 %</p>
+                  <p className="text-xs sf-text-3">für kurzfristige Beschäftigung</p>
+                </div>
+                <Toggle
+                  checked={steuerDaten.kurzfristigPauschal}
+                  onChange={(v) => setSteuerDaten((d) => ({ ...d, kurzfristigPauschal: v }))}
+                  label="Lohnsteuer pauschal 25 Prozent"
+                />
+              </div>
+
+              <button
+                onClick={speichernSteuer}
+                disabled={steuerLaden}
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.99] transition-all disabled:opacity-40"
+              >
+                {steuerLaden ? "Speichert…" : "Speichern"}
+              </button>
+            </div>
+          </AkkordeonAbschnitt>
+
           {/* ── Konto ────────────────────────────────────────────────────── */}
           <div className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
             <div className="flex items-center gap-3">
@@ -666,6 +735,16 @@ function EmailKontoIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="7.5" cy="7.5" r="2.5"/>
       <path d="M10 7.5a2.5 2.5 0 1 0-2.5 2.5c1 0 1.5-.4 1.5-1V7.5M13 7.5a5.5 5.5 0 1 0-1.5 3.8"/>
+    </svg>
+  )
+}
+
+function SteuerIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 13L13 3"/>
+      <circle cx="4.5" cy="4.5" r="1.5"/>
+      <circle cx="11.5" cy="11.5" r="1.5"/>
     </svg>
   )
 }
