@@ -99,13 +99,13 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
 
   useEffect(() => { laden() }, [])
 
-  async function speichernNeu(form: FormDaten) {
+  async function speichernNeu(form: FormDaten): Promise<void> {
     await employersRepo.add(formZuEmployer(form))
     setNeuFormOffen(false)
     laden()
   }
 
-  async function speichernBearbeiten(id: string, form: FormDaten) {
+  async function speichernBearbeiten(id: string, form: FormDaten): Promise<void> {
     await employersRepo.update(id, formZuEmployer(form))
     setBearbeitenId(null)
     laden()
@@ -281,18 +281,28 @@ function ArbeitgeberForm({
   onAbbrechen,
 }: {
   initial: FormDaten
-  onSpeichern: (f: FormDaten) => void
+  onSpeichern: (f: FormDaten) => Promise<void>
   onAbbrechen: () => void
 }) {
   const [form, setForm] = useState<FormDaten>(initial)
+  const [laden, setLaden] = useState(false)
+  const [fehler, setFehler] = useState("")
 
   function set(key: keyof FormDaten, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onSpeichern(form)
+    setFehler("")
+    setLaden(true)
+    try {
+      await onSpeichern(form)
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLaden(false)
+    }
   }
 
   return (
@@ -401,21 +411,29 @@ function ArbeitgeberForm({
         ))}
       </div>
 
+      {fehler && (
+        <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-xl px-3 py-2 -mt-1">
+          {fehler}
+        </p>
+      )}
+
       {/* Buttons */}
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onAbbrechen}
-          className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
+          disabled={laden}
+          className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:opacity-40"
         >
           Abbrechen
         </button>
         <button
           type="submit"
-          className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-100 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400"
+          disabled={laden}
+          className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-100 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400 disabled:opacity-60"
           style={{ backgroundColor: form.farbe }}
         >
-          Speichern
+          {laden ? "Speichert…" : "Speichern"}
         </button>
       </div>
     </form>

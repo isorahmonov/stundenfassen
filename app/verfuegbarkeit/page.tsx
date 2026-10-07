@@ -266,15 +266,20 @@ export default function VerfuegbarkeitPage() {
 
     try {
       // Bestätigte Shifts anderer Arbeitgeber im Datumsbereich (Cross-Employer-Blocking)
-      const confirmedShifts = await shiftsRepo.findByDatumsbereich(von, bis)
-      const confirmedTermine: TerminMitStatus[] = confirmedShifts.map((s) => ({
-        uid: `shift-${s.id}`,
-        titel: "Schicht",
-        beginn: new Date(`${s.datum}T${s.start}:00`),
-        ende:   new Date(`${s.datum}T${s.ende}:00`),
-        ganztaegig: false,
-        status: "LOCKED" as const,
-      }))
+      let confirmedTermine: TerminMitStatus[] = []
+      try {
+        const confirmedShifts = await shiftsRepo.findByDatumsbereich(von, bis)
+        confirmedTermine = confirmedShifts.map((s) => ({
+          uid: `shift-${s.id}`,
+          titel: "Schicht",
+          beginn: new Date(`${s.datum}T${s.start}:00`),
+          ende:   new Date(`${s.datum}T${s.ende}:00`),
+          ganztaegig: false,
+          status: "LOCKED" as const,
+        }))
+      } catch {
+        setFehler("Schichten anderer Arbeitgeber konnten nicht geladen werden — Verfügbarkeit wird ohne diese Sperre berechnet.")
+      }
 
       const ergebnisse = await Promise.all(
         kalender.map(async (k) => {

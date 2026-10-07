@@ -34,6 +34,13 @@ export class ShiftRepository implements IShiftRepository {
     return snap.docs.map(d => toShift(d.id, d.data() as ShiftDoc))
   }
 
+  async findByDatumsbereich(von: string, bis: string): Promise<Shift[]> {
+    const snap = await getDocs(
+      query(userCol("shifts"), where("datum", ">=", von), where("datum", "<=", bis), orderBy("datum"))
+    )
+    return snap.docs.map(d => toShift(d.id, d.data() as ShiftDoc))
+  }
+
   async findByEmployerUndMonat(employerId: string, monat: number, jahr: number): Promise<Shift[]> {
     const [start, end] = monatRange(monat, jahr)
     const snap = await getDocs(
