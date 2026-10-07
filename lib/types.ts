@@ -134,6 +134,8 @@ export interface VerfuegbarkeitsEinstellungenArbeitgeber {
   pufferOrte: PufferOrt[]
   festeSperrzeiten: FesteSperrzeit[]
   einrichtungBestaetigt: boolean
+  /** Nutzer hat den Dialog bewusst übersprungen; kein Auto-Öffnen mehr, aber Banner zeigen */
+  einrichtungUebersprungen?: boolean
 }
 
 /**

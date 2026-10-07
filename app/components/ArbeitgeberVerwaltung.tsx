@@ -221,6 +221,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
           employer={einrichtungsEmployer}
           onBestaetigt={() => { setEinrichtungsId(null); laden() }}
           onSchliessen={() => setEinrichtungsId(null)}
+          onNachSpaeter={() => { setEinrichtungsId(null); laden() }}
         />
       )}
     </main>
@@ -284,7 +285,9 @@ function ArbeitgeberKarte({
               onClick={onVerfuegbarkeit}
               className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors duration-100"
             >
-              Verfügbarkeit
+              {e.verfuegbarkeit?.einrichtungBestaetigt === true
+                ? "Verfügbarkeits-Einstellungen ändern"
+                : "Verfügbarkeit einrichten"}
               {sollDialogOeffnen(e) && (
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
               )}

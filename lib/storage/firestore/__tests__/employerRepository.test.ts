@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { buildUpdateRow } from "@/lib/storage/firestore/employerUpdateRow"
+import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { EmployerUpdate } from "@/lib/storage"
 
 // Vollständiger EmployerUpdate mit allen Feldern aus Employer (außer id)
@@ -15,6 +16,7 @@ const ALLE_FELDER: EmployerUpdate = {
   archiviert: false,
   minusImPDFAnzeigen: true,
   personalnummer: "12345",
+  verfuegbarkeit: { ...NEUTRALE_EINSTELLUNGEN, einrichtungBestaetigt: true },
 }
 
 describe("buildUpdateRow — Feldabdeckung", () => {
@@ -36,6 +38,25 @@ describe("buildUpdateRow — Feldabdeckung", () => {
     expect(row.archiviert).toBe(false)
     expect(row.minusImPDFAnzeigen).toBe(true)
     expect(row.personalnummer).toBe("12345")
+    expect((row.verfuegbarkeit as { einrichtungBestaetigt?: boolean })?.einrichtungBestaetigt).toBe(true)
+  })
+
+  it("schreibt einrichtungBestaetigt und einrichtungUebersprungen als Teil von verfuegbarkeit", () => {
+    const row = buildUpdateRow({
+      verfuegbarkeit: { ...NEUTRALE_EINSTELLUNGEN, einrichtungBestaetigt: true, einrichtungUebersprungen: true },
+    })
+    const v = row.verfuegbarkeit as { einrichtungBestaetigt?: boolean; einrichtungUebersprungen?: boolean }
+    expect(v?.einrichtungBestaetigt).toBe(true)
+    expect(v?.einrichtungUebersprungen).toBe(true)
+  })
+
+  it("schreibt einrichtungUebersprungen=true ohne einrichtungBestaetigt zu verlieren", () => {
+    const row = buildUpdateRow({
+      verfuegbarkeit: { ...NEUTRALE_EINSTELLUNGEN, einrichtungBestaetigt: false, einrichtungUebersprungen: true },
+    })
+    const v = row.verfuegbarkeit as { einrichtungBestaetigt?: boolean; einrichtungUebersprungen?: boolean }
+    expect(v?.einrichtungBestaetigt).toBe(false)
+    expect(v?.einrichtungUebersprungen).toBe(true)
   })
 
   it("lässt undefined-Felder weg (kein versehentliches Überschreiben)", () => {

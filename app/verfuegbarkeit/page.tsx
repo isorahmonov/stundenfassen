@@ -504,6 +504,21 @@ export default function VerfuegbarkeitPage() {
           </div>
         </header>
 
+        {selectedEmployer?.verfuegbarkeit?.einrichtungUebersprungen === true &&
+          selectedEmployer.verfuegbarkeit.einrichtungBestaetigt !== true && (
+          <div className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3">
+            <p className="text-sm text-amber-800 dark:text-amber-300">
+              Für <strong>{selectedEmployer.name}</strong> ist die Verfügbarkeit noch nicht eingerichtet
+            </p>
+            <button
+              onClick={() => setEinrichtungsId(selectedEmployer.id)}
+              className="shrink-0 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+            >
+              Jetzt einrichten
+            </button>
+          </div>
+        )}
+
         <p className="text-xs sf-text-3 -mt-2 mb-4">
           Hinweis: Google aktualisiert Kalender-Feeds teilweise erst nach einigen Stunden.
         </p>
@@ -537,6 +552,7 @@ export default function VerfuegbarkeitPage() {
                 bundesland={bundesland}
                 employer={selectedEmployer}
                 onNachExport={nachExport}
+                onEinrichten={selectedEmployerId ? () => setEinrichtungsId(selectedEmployerId) : undefined}
               />
               <EmailVerfuegbarkeitButton
                 startSonntagStr={startSonntagStr}
@@ -545,6 +561,7 @@ export default function VerfuegbarkeitPage() {
                 bundesland={bundesland}
                 employer={selectedEmployer}
                 onNachExport={nachExport}
+                onEinrichten={selectedEmployerId ? () => setEinrichtungsId(selectedEmployerId) : undefined}
               />
             </div>
           </div>
@@ -670,6 +687,10 @@ export default function VerfuegbarkeitPage() {
             employersRepo.findAktive().then((emps) => setAlleAktiveArbeitgeber(emps)).catch(() => {})
           }}
           onSchliessen={() => setEinrichtungsId(null)}
+          onNachSpaeter={() => {
+            setEinrichtungsId(null)
+            employersRepo.findAktive().then((emps) => setAlleAktiveArbeitgeber(emps)).catch(() => {})
+          }}
         />
       )}
     </main>

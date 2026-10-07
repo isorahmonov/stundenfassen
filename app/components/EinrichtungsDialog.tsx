@@ -370,9 +370,11 @@ export interface EinrichtungsDialogProps {
   employer: Employer
   onBestaetigt: () => void
   onSchliessen: () => void
+  /** Wird nach erfolgreichem Setzen von einrichtungUebersprungen aufgerufen (statt onSchliessen). */
+  onNachSpaeter?: () => void
 }
 
-export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen }: EinrichtungsDialogProps) {
+export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen, onNachSpaeter }: EinrichtungsDialogProps) {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormDaten>(() => initialForm(employer))
   const [fehler, setFehler] = useState<string | null>(null)
@@ -428,6 +430,16 @@ export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen }: Ein
     }
   }
 
+  async function spaeter() {
+    try {
+      const bestehende = employer.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
+      await employersRepo.update(employer.id, {
+        verfuegbarkeit: { ...bestehende, einrichtungUebersprungen: true },
+      })
+    } catch { /* best effort */ }
+    ;(onNachSpaeter ?? onSchliessen)()
+  }
+
   const istLetzterSchritt = step === TOTAL_STEPS - 1
 
   return (
@@ -462,8 +474,9 @@ export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen }: Ein
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         <button
-          onClick={onSchliessen}
-          className="text-sm text-stone-400 dark:text-neutral-500 hover:text-stone-600 dark:hover:text-neutral-300 transition-colors mr-auto"
+          onClick={spaeter}
+          disabled={laden}
+          className="text-sm text-stone-400 dark:text-neutral-500 hover:text-stone-600 dark:hover:text-neutral-300 transition-colors mr-auto disabled:opacity-40"
         >
           Später
         </button>
