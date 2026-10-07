@@ -27,6 +27,7 @@ export type EmployerDoc = {
   archiviert: boolean
   minusImPDFAnzeigen?: boolean
   personalnummer?: string
+  verfuegbarkeit?: unknown
 }
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
@@ -39,6 +40,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   ...(d.archiviert ? { archiviert: true } : {}),
   ...(d.minusImPDFAnzeigen === false ? { minusImPDFAnzeigen: false } : {}),
   ...(d.personalnummer ? { personalnummer: d.personalnummer } : {}),
+  ...(d.verfuegbarkeit ? { verfuegbarkeit: d.verfuegbarkeit as Employer["verfuegbarkeit"] } : {}),
 })
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
@@ -51,6 +53,7 @@ export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   archiviert: e.archiviert ?? false,
   minusImPDFAnzeigen: e.minusImPDFAnzeigen ?? true,
   ...(e.personalnummer ? { personalnummer: e.personalnummer } : {}),
+  ...(e.verfuegbarkeit ? { verfuegbarkeit: e.verfuegbarkeit } : {}),
 })
 
 // ── Shift ────────────────────────────────────────────────────────────────────

@@ -4,18 +4,19 @@ import { useEffect, useRef, useState } from "react"
 import { pdf } from "@react-pdf/renderer"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
-import type { Bundesland, EmailVorlage } from "@/lib/types"
+import type { Bundesland, Employer, EmailVorlage } from "@/lib/types"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
-import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo, employers as employersRepo } from "@/lib/storage"
+import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo } from "@/lib/storage"
 import { auth } from "@/lib/firebase/client"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
+import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 
 export interface EmailVerfuegbarkeitProps {
   startSonntagStr: string
   anzahlWochen: number
   ausgewaehlt: VerfuegbarkeitsBlock[]
   bundesland: Bundesland
-  kwAnker: string
+  employer: Employer | null
   onNachExport: () => Promise<void>
 }
 
@@ -36,9 +37,7 @@ function ersetzePlatzhalter(vorlage: string, von: string, bis: string, name: str
   if (personalnummer) {
     text = text.replace(/\{\{personalnummer\}\}/g, personalnummer)
   } else {
-    // Klammern entfernen, z.B. "(Personalnummer {{personalnummer}})"
     text = text.replace(/\s*\([^()]*\{\{personalnummer\}\}[^()]*\)/g, "")
-    // Ganze Zeile entfernen, z.B. "Personalnummer: {{personalnummer}}\n"
     text = text.replace(/[^\n]*\{\{personalnummer\}\}[^\n]*\n?/g, "")
   }
   return text
@@ -76,7 +75,6 @@ function ErfolgView({ an, cc, onSchliessen }: { an: string; cc: string; onSchlie
 
   return (
     <div className="flex flex-col items-center gap-5 py-6 px-2">
-      {/* Animierter Haken-Kreis */}
       <div className={`transition-all duration-300 ${sichtbar ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}>
         <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
           <svg
@@ -90,17 +88,13 @@ function ErfolgView({ an, cc, onSchliessen }: { an: string; cc: string; onSchlie
           </svg>
         </div>
       </div>
-
-      {/* Empfängerinfo */}
-      <div className={`text-center space-y-1 transition-all duration-300 delay-200 ${sichtbar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-        <p className="text-sm font-semibold sf-text">Gesendet!</p>
+      <div className={`text-center transition-all duration-300 delay-200 ${sichtbar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+        <p className="text-sm font-semibold sf-text mb-1">Gesendet!</p>
         <p className="text-xs sf-text-2">An: {an}</p>
         {cc && <p className="text-xs sf-text-2">CC: {cc}</p>}
       </div>
-
-      {/* Schließen mit Countdown */}
       <button
-        onClick={() => ref.current()}
+        onClick={onSchliessen}
         className={`text-xs sf-text-3 hover:sf-text transition-all duration-300 delay-300 ${sichtbar ? "opacity-100" : "opacity-0"}`}
       >
         Schließen ({sekunden}s)
@@ -116,7 +110,7 @@ export default function EmailVerfuegbarkeitButtonInner({
   anzahlWochen,
   ausgewaehlt,
   bundesland,
-  kwAnker,
+  employer,
   onNachExport,
 }: EmailVerfuegbarkeitProps) {
   const [dialogOffen, setDialogOffen] = useState(false)
@@ -128,24 +122,29 @@ export default function EmailVerfuegbarkeitButtonInner({
   const [fehler, setFehler] = useState("")
   const [gesendeteAn, setGesendeteAn] = useState("")
   const [gesendeteCC, setGesendeteCC] = useState("")
-  const [personalnummer, setPersonalnummer] = useState("")
 
+  const einst = employer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
   const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
+  const personalnummer = employer?.personalnummer ?? ""
 
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
   const vonDatum = formatDE(wochen[0][0])
   const bisDatum = formatDE(wochen[wochen.length - 1][6])
 
-  const kwVon = tkWoche(startSonntagStr, kwAnker)
-  const letzterSo = (() => {
-    const d = new Date(startSonntagStr + "T00:00:00Z")
-    d.setUTCDate(d.getUTCDate() + (anzahlWochen - 1) * 7)
-    return d.toISOString().slice(0, 10)
+  // Dateiname je nach kwSystem
+  const dateiname = (() => {
+    const letzterSo = new Date(startSonntagStr + "T00:00:00Z")
+    letzterSo.setUTCDate(letzterSo.getUTCDate() + (anzahlWochen - 1) * 7)
+    const letzterSoStr = letzterSo.toISOString().slice(0, 10)
+    if (einst.kwSystem === "tkmaxx" && einst.kwAnker) {
+      const kwVon = tkWoche(startSonntagStr, einst.kwAnker)
+      const kwBis = tkWoche(letzterSoStr, einst.kwAnker)
+      return anzahlWochen === 1 ? `Verfuegbarkeit_KW${kwVon}.pdf` : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
+    }
+    const bis = new Date(letzterSo)
+    bis.setUTCDate(bis.getUTCDate() + 6)
+    return `Verfuegbarkeit_${startSonntagStr}_${bis.toISOString().slice(0, 10)}.pdf`
   })()
-  const kwBis = tkWoche(letzterSo, kwAnker)
-  const dateiname = anzahlWochen === 1
-    ? `Verfuegbarkeit_KW${kwVon}.pdf`
-    : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
 
   const aktivVorlage = vorlagen.find((v) => v.id === aktivVorlageId)
   const vorschauBetreff = aktivVorlage ? ersetzePlatzhalter(aktivVorlage.betreff, vonDatum, bisDatum, mitarbeiterName, personalnummer) : ""
@@ -168,12 +167,8 @@ export default function EmailVerfuegbarkeitButtonInner({
     setGesendeteCC("")
     setEmpfaenger("")
     setCc("")
-    const [vl, aktiveEmps] = await Promise.all([
-      emailVorlageRepo.findAlle().catch(() => []),
-      employersRepo.findAktive().catch(() => []),
-    ])
+    const vl = await emailVorlageRepo.findAlle().catch(() => [])
     setVorlagen(vl)
-    setPersonalnummer(aktiveEmps[0]?.personalnummer ?? "")
     const erste = vl[0]
     setAktivVorlageId(erste?.id ?? "")
     setEmpfaenger(erste?.empfaenger ?? "")
@@ -193,10 +188,13 @@ export default function EmailVerfuegbarkeitButtonInner({
           anzahlWochen={anzahlWochen}
           ausgewaehlt={ausgewaehlt}
           bundesland={bundesland}
-          kwAnker={kwAnker}
+          kwSystem={einst.kwSystem}
+          kwAnker={einst.kwAnker}
+          wochenStart={einst.wochenStart}
           minusEintraege={alleMinus}
           mitarbeiterName={mitarbeiterName}
           personalnummer={personalnummer || undefined}
+          fusszeilenText={einst.pdf?.fusszeilenText}
         />,
       ).toBlob()
 
@@ -251,8 +249,6 @@ export default function EmailVerfuegbarkeitButtonInner({
             onClick={() => !laden && !zeigeErfolg && setDialogOffen(false)}
           />
           <div className="relative w-full max-w-md sf-card rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-
-            {/* Header — immer sichtbar */}
             <div className="flex items-center justify-between px-5 pt-5 pb-0">
               <h2 className="text-sm font-semibold sf-text">Per E-Mail senden</h2>
               <button
@@ -278,8 +274,6 @@ export default function EmailVerfuegbarkeitButtonInner({
               </div>
             ) : (
               <div className="px-5 pb-5 pt-4 space-y-4">
-
-                {/* Vorlage (nur wenn mehrere) */}
                 {vorlagen.length > 1 && (
                   <div>
                     <label className="block text-xs sf-text-2 mb-1">Vorlage</label>
@@ -295,7 +289,6 @@ export default function EmailVerfuegbarkeitButtonInner({
                   </div>
                 )}
 
-                {/* An */}
                 <div>
                   <label className="block text-xs sf-text-2 mb-1">An</label>
                   <input
@@ -307,7 +300,6 @@ export default function EmailVerfuegbarkeitButtonInner({
                   />
                 </div>
 
-                {/* CC */}
                 <div>
                   <label className="block text-xs sf-text-2 mb-1">
                     CC <span className="text-stone-400 font-normal">optional, mehrere durch Komma</span>
@@ -316,7 +308,7 @@ export default function EmailVerfuegbarkeitButtonInner({
                     type="text"
                     value={cc}
                     onChange={(e) => setCc(e.target.value)}
-                    placeholder="kollege@example.de, chef@example.de"
+                    placeholder="kollege@example.de"
                     className={`w-full rounded-xl border px-3 py-2 text-sm sf-text sf-input outline-none focus:ring-2 transition-shadow ${
                       ccFehler
                         ? "border-red-400 dark:border-red-600 focus:ring-red-200 dark:focus:ring-red-900"
@@ -328,7 +320,6 @@ export default function EmailVerfuegbarkeitButtonInner({
                   )}
                 </div>
 
-                {/* Vorschau */}
                 {aktivVorlage && (
                   <div className="rounded-xl bg-stone-50 dark:bg-neutral-800/50 p-3 space-y-2">
                     <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Vorschau</p>

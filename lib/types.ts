@@ -25,6 +25,8 @@ export interface Employer {
   minusImPDFAnzeigen?: boolean;
   /** Personalnummer für das Verfügbarkeits-PDF, optional */
   personalnummer?: string;
+  /** Verfügbarkeits-Einstellungen pro Arbeitgeber */
+  verfuegbarkeit?: VerfuegbarkeitsEinstellungenArbeitgeber;
 }
 
 export interface Shift {
@@ -97,6 +99,37 @@ export interface GeplanteSchicht {
   ende: string       // "HH:mm"
   uebernommen: boolean
   uebernommenShiftId?: string  // ID in shifts-Collection nach Übernahme
+}
+
+export interface PufferOrt {
+  suchtext: string
+  vorMin: number
+  nachMin: number
+}
+
+export interface FesteSperrzeit {
+  /** 0 = Sonntag, 1 = Montag … 6 = Samstag */
+  wochentag: number
+  von: string
+  bis: string
+  bezeichnung: string
+}
+
+export interface VerfuegbarkeitsEinstellungenArbeitgeber {
+  /** Erlaubte Wochentage: 0=So, 1=Mo … 6=Sa */
+  wochentage: number[]
+  fruehestens: string           // "HH:mm"
+  spaetestens: string           // "HH:mm"
+  mindestdauerMin: number
+  rundungMin: number
+  pufferStandardMin: number
+  wochenStart: "sonntag" | "montag"
+  kwSystem: "tkmaxx" | "iso" | "keine"
+  kwAnker?: string              // "YYYY-MM-DD", nur bei kwSystem="tkmaxx"
+  pdf: { fusszeilenText?: string }
+  pufferOrte: PufferOrt[]
+  festeSperrzeiten: FesteSperrzeit[]
+  einrichtungBestaetigt: boolean
 }
 
 /**

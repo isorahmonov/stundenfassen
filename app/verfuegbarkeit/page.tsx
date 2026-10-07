@@ -6,14 +6,15 @@ import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from "fi
 import { uid } from "@/lib/storage/firestore/shared"
 import {
   berechneVerfuegbarkeit,
+  einstellungenVonArbeitgeber,
+  NEUTRALE_EINSTELLUNGEN,
   type TerminMitStatus,
   type VerfuegbarkeitsBlock,
-  type VerfuegbarkeitsEinstellungen,
 } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { aktuellerSonntagStr, snapZuSonntag, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { PDFVerfuegbarkeitButton } from "@/app/components/PDFVerfuegbarkeitButton"
 import { EmailVerfuegbarkeitButton } from "@/app/components/EmailVerfuegbarkeitButton"
-import type { Bundesland, GeplanteSchicht } from "@/lib/types"
+import type { Bundesland, Employer, GeplanteSchicht, VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
 import { feiertagName, istFeiertag } from "@/lib/calc/holidays"
 import {
   type TerminRoh,
@@ -24,7 +25,7 @@ import {
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
-import { employers, geplanteSchichten as geplanteRepo } from "@/lib/storage"
+import { employers as employersRepo, geplanteSchichten as geplanteRepo, shifts as shiftsRepo } from "@/lib/storage"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -37,88 +38,12 @@ interface ArchivEintrag {
   datumBis: string
   kalenderwochen: number[]
   gesamtMinuten: number
-}
-
-// ─── Einstellungen (später aus Firestore) ────────────────────────────────────
-
-const VERF_EINSTELLUNGEN: VerfuegbarkeitsEinstellungen = {
-  fensterStartMin: 360,
-  fensterEndeMin: 1230,
-  mindestdauerMin: 180,
-  puffer: [
-    { suchtext: "Berliner Tor", pufferVorMin: 30, pufferNachMin: 30 },
-    { suchtext: "Stiftstraße",  pufferVorMin: 30, pufferNachMin: 30 },
-    { suchtext: "Steindamm",    pufferVorMin: 30, pufferNachMin: 30 },
-  ],
-  pufferFallbackMin: 30,
-}
-
-const KW_ANKER_DEFAULT = "2026-02-01"
-const BERLIN = "Europe/Berlin"
-
-const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
-  { value: "BB", label: "Brandenburg" }, { value: "BE", label: "Berlin" },
-  { value: "BW", label: "Baden-Württemberg" }, { value: "BY", label: "Bayern" },
-  { value: "HB", label: "Bremen" }, { value: "HE", label: "Hessen" },
-  { value: "HH", label: "Hamburg" }, { value: "MV", label: "Mecklenburg-Vorpommern" },
-  { value: "NI", label: "Niedersachsen" }, { value: "NW", label: "Nordrhein-Westfalen" },
-  { value: "RP", label: "Rheinland-Pfalz" }, { value: "SH", label: "Schleswig-Holstein" },
-  { value: "SL", label: "Saarland" }, { value: "SN", label: "Sachsen" },
-  { value: "ST", label: "Sachsen-Anhalt" }, { value: "TH", label: "Thüringen" },
-]
-
-/**
- * Erzeugt ganztägige LOCKED-Termine für jeden gesetzlichen Feiertag im Zeitraum.
- * Feiertag = LOCKED-Termin, kein Sonderfall im Berechnungscode.
- */
-/** Geplante Schichten als LOCKED-Termine — blockieren Verfügbarkeit wie Kalendertermine. */
-function geplanteTermine(schichten: GeplanteSchicht[], alleTage: string[]): TerminMitStatus[] {
-  const tageSet = new Set(alleTage)
-  return schichten
-    .filter((s) => tageSet.has(s.datum))
-    .map((s) => ({
-      uid: `geplant-${s.id}`,
-      titel: "Schicht",
-      beginn: new Date(`${s.datum}T${s.start}:00`),  // lokale Zeit (Berlin)
-      ende:   new Date(`${s.datum}T${s.ende}:00`),
-      ganztaegig: false,
-      status: "LOCKED" as const,
-    }))
-}
-
-/** Freitags 12:00–14:00 Uhr (Europe/Berlin) immer LOCKED — Jumia-Zeit. */
-function jumiaTermine(tage: string[]): TerminMitStatus[] {
-  return tage.flatMap((datum) => {
-    // Ohne "Z" → lokale Zeit; der Client läuft in Europe/Berlin.
-    const beginn = new Date(`${datum}T12:00:00`)
-    if (beginn.getDay() !== 5) return []  // 5 = Freitag
-    return [{
-      uid: `jumia-${datum}`,
-      titel: "Jumia",
-      beginn,
-      ende: new Date(`${datum}T14:00:00`),
-      ganztaegig: false,
-      status: "LOCKED" as const,
-    }]
-  })
-}
-
-function feiertagsTermine(tage: string[], bundesland: Bundesland): TerminMitStatus[] {
-  return tage.flatMap((datum) => {
-    const date = new Date(datum + "T12:00:00")
-    if (!istFeiertag(date, bundesland)) return []
-    return [{
-      uid: `feiertag-${datum}`,
-      titel: feiertagName(date, bundesland)!,
-      beginn: new Date(datum + "T00:00:00Z"),
-      ende: new Date(new Date(datum + "T00:00:00Z").getTime() + 86_400_000),
-      ganztaegig: true,
-      status: "LOCKED" as const,
-    }]
-  })
+  employerId?: string
 }
 
 // ─── Hilfsfunktionen ─────────────────────────────────────────────────────────
+
+const BERLIN = "Europe/Berlin"
 
 function berlinDatumStr(date: Date): string {
   return date.toLocaleDateString("sv", { timeZone: BERLIN })
@@ -136,7 +61,6 @@ function formatTagKopf(datum: string): string {
   })
 }
 
-
 function blockKey(b: VerfuegbarkeitsBlock): string {
   return `${b.datum}|${b.start}|${b.ende}`
 }
@@ -148,6 +72,11 @@ function parseDatum(iso: string): Date {
 
 function formatDauerMin(min: number): string {
   return (min / 60).toFixed(1).replace(".", ",") + " Std"
+}
+
+function uhrzeitZuMin(s: string): number {
+  const [h, m] = s.split(":").map(Number)
+  return h * 60 + m
 }
 
 async function getToken(): Promise<string> {
@@ -166,53 +95,99 @@ async function apiGet(path: string): Promise<unknown> {
   return res.json()
 }
 
+// ─── Termine aus Einstellungen ────────────────────────────────────────────────
+
+function festeSperrzeitenTermine(
+  einst: VerfuegbarkeitsEinstellungenArbeitgeber,
+  tage: string[],
+): TerminMitStatus[] {
+  return tage.flatMap((datum) => {
+    const wochentag = parseDatum(datum).getDay()  // 0=So…6=Sa
+    return einst.festeSperrzeiten
+      .filter((s) => s.wochentag === wochentag)
+      .map((s) => ({
+        uid: `fest-${datum}-${s.von}`,
+        titel: s.bezeichnung,
+        beginn: new Date(`${datum}T${s.von}:00`),
+        ende:   new Date(`${datum}T${s.bis}:00`),
+        ganztaegig: false,
+        status: "LOCKED" as const,
+      }))
+  })
+}
+
+function feiertagsTermine(tage: string[], bundesland: Bundesland): TerminMitStatus[] {
+  return tage.flatMap((datum) => {
+    const date = new Date(datum + "T12:00:00")
+    if (!istFeiertag(date, bundesland)) return []
+    return [{
+      uid: `feiertag-${datum}`,
+      titel: feiertagName(date, bundesland)!,
+      beginn: new Date(datum + "T00:00:00Z"),
+      ende: new Date(new Date(datum + "T00:00:00Z").getTime() + 86_400_000),
+      ganztaegig: true,
+      status: "LOCKED" as const,
+    }]
+  })
+}
+
+function geplanteTermine(schichten: GeplanteSchicht[], alleTage: string[]): TerminMitStatus[] {
+  const tageSet = new Set(alleTage)
+  return schichten
+    .filter((s) => tageSet.has(s.datum))
+    .map((s) => ({
+      uid: `geplant-${s.id}`,
+      titel: "Schicht",
+      beginn: new Date(`${s.datum}T${s.start}:00`),
+      ende:   new Date(`${s.datum}T${s.ende}:00`),
+      ganztaegig: false,
+      status: "LOCKED" as const,
+    }))
+}
+
 // ─── Komponente ───────────────────────────────────────────────────────────────
 
 export default function VerfuegbarkeitPage() {
-  // Zeitraum
   const [startSonntagStr, setStartSonntagStr] = useState(aktuellerSonntagStr)
   const [anzahlWochen, setAnzahlWochen] = useState(2)
 
-  // Daten
+  const [alleAktiveArbeitgeber, setAlleAktiveArbeitgeber] = useState<Employer[]>([])
+  const [selectedEmployerId, setSelectedEmployerId] = useState<string>("")
+
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
   const [termine, setTermine] = useState<TerminMitStatus[]>([])
   const [verfBlöcke, setVerfBlöcke] = useState<VerfuegbarkeitsBlock[]>([])
   const [laden, setLaden] = useState(false)
   const [fehler, setFehler] = useState("")
 
-  // Auswahl
   const [ausgewaehlt, setAusgewaehlt] = useState<Set<string>>(new Set())
-
-  // Settings
-  const [bundesland, setBundesland] = useState<Bundesland>("HH")
-  const [kwAnker] = useState(KW_ANKER_DEFAULT)
-
-  // Archiv
   const [archivListe, setArchivListe] = useState<ArchivEintrag[]>([])
-
-  // Geplante Schichten (blockieren Verfügbarkeit wie LOCKED-Termine)
   const [geplanteSchichtenListe, setGeplanteSchichtenListe] = useState<GeplanteSchicht[]>([])
 
-  // Aktualisierungs-Tracking
   const [zuletztAktualisiert, setZuletztAktualisiert] = useState<Date | null>(null)
-  const letzterRefreshRef = useRef(0) // Timestamp des letzten Netzwerk-Abrufs (für 60s-Throttle)
+  const letzterRefreshRef = useRef(0)
   const berechneFetchRef = useRef<(opts?: { force?: boolean }) => Promise<void>>(async () => {})
 
-  // Kalender + Arbeitgeber-Bundesland + geplante Schichten beim Start laden
+  // Ausgewählter Arbeitgeber
+  const selectedEmployer = alleAktiveArbeitgeber.find((e) => e.id === selectedEmployerId) ?? null
+  const einst: VerfuegbarkeitsEinstellungenArbeitgeber = selectedEmployer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
+  const bundesland = (selectedEmployer?.bundesland ?? "HH") as Bundesland
+
+  // Beim Start: Arbeitgeber, Kalender und geplante Schichten laden
   useEffect(() => {
+    employersRepo.findAktive().then((emps) => {
+      setAlleAktiveArbeitgeber(emps)
+      if (emps.length > 0) setSelectedEmployerId(emps[0].id)
+    }).catch(() => {})
+
     apiGet("/api/ical")
       .then((d) => setKalender((d as { kalender: KalenderInfo[] }).kalender))
       .catch((e) => setFehler(String(e)))
-    employers.findAktive().then((emps) => {
-      if (emps[0]?.bundesland) setBundesland(emps[0].bundesland)
-    }).catch(() => { /* Fallback bleibt HH */ })
+
     geplanteRepo.findAlle().then(setGeplanteSchichtenListe).catch(() => {})
   }, [])
 
-  // Archiv beim Start laden
-  useEffect(() => {
-    ladeArchiv()
-  }, [])
+  useEffect(() => { ladeArchiv() }, [])
 
   async function ladeArchiv() {
     try {
@@ -229,13 +204,13 @@ export default function VerfuegbarkeitPage() {
             datumBis: data.datumBis as string,
             kalenderwochen: data.kalenderwochen as number[],
             gesamtMinuten: data.gesamtMinuten as number,
+            employerId: data.employerId as string | undefined,
           }
         }),
       )
     } catch { /* Archiv-Fehler sind nicht kritisch */ }
   }
 
-  // Neu berechnen — mit stale-while-revalidate und Force-Refresh
   const berechneFetch = useCallback(async ({ force = false }: { force?: boolean } = {}) => {
     if (kalender.length === 0) return
     setFehler("")
@@ -244,7 +219,9 @@ export default function VerfuegbarkeitPage() {
     const von = wochen[0][0]
     const bis = wochen[wochen.length - 1][6]
     const alleTage = wochen.flat()
-    const moSaTage = alleTage.filter((_, i) => i % 7 !== 0)
+
+    // Erlaubte Tage aus Einstellungen (wochentage: 0=So…6=Sa, entspricht Index in der Woche)
+    const erlaubteTage = alleTage.filter((_, i) => einst.wochentage.includes(i % 7))
 
     function verarbeiteRohdaten(rohdaten: { roh: TerminRoh[]; k: KalenderInfo }[]) {
       const alleTermine: TerminMitStatus[] = []
@@ -259,39 +236,46 @@ export default function VerfuegbarkeitPage() {
         }
       }
       const feiertage = feiertagsTermine(alleTage, bundesland)
-      const jumia = jumiaTermine(alleTage)
+      const festeSperrzeiten = festeSperrzeitenTermine(einst, alleTage)
       const geplant = geplanteTermine(geplanteSchichtenListe, alleTage)
-      const mitFeiertagen = [...alleTermine, ...feiertage, ...jumia, ...geplant]
-      setTermine(mitFeiertagen)
-      setVerfBlöcke(berechneVerfuegbarkeit(mitFeiertagen, moSaTage, VERF_EINSTELLUNGEN))
+      const mitAllem = [...alleTermine, ...feiertage, ...festeSperrzeiten, ...geplant]
+      setTermine(mitAllem)
+      setVerfBlöcke(
+        berechneVerfuegbarkeit(mitAllem, erlaubteTage, einstellungenVonArbeitgeber(einst)),
+      )
     }
 
-    // ── Schritt 1: Veraltete Daten sofort zeigen (stale-while-revalidate) ────────
+    // Stale-while-revalidate
     if (!force) {
       const staleEintraege = kalender.map((k) => ({
-        k,
-        roh: getStaleTermine(`${k.id}_${von}_${bis}`),
+        k, roh: getStaleTermine(`${k.id}_${von}_${bis}`),
       }))
-      // Nur wenn ALLE Kalender gecacht sind (fix: kein || true mehr)
       if (staleEintraege.every(({ roh }) => roh !== null)) {
         verarbeiteRohdaten(staleEintraege.map(({ k, roh }) => ({ k, roh: roh! })))
-        // Frische Daten (innerhalb TTL)? Dann ist hier Schluss
         if (kalender.every((k) => getCachedTermine(`${k.id}_${von}_${bis}`) !== null)) {
           letzterRefreshRef.current = Date.now()
           return
         }
-        // Sonst: veraltete Daten sichtbar, Hintergrund-Abruf ohne Skeleton
       }
     }
 
-    // ── Schritt 2: Netzwerk-Abruf ─────────────────────────────────────────────
-    // Skeleton nur wenn noch gar keine Daten sichtbar sind
     const hatStaleDaten = !force && kalender.every(
       (k) => getStaleTermine(`${k.id}_${von}_${bis}`) !== null,
     )
     if (!hatStaleDaten) setLaden(true)
 
     try {
+      // Bestätigte Shifts anderer Arbeitgeber im Datumsbereich (Cross-Employer-Blocking)
+      const confirmedShifts = await shiftsRepo.findByDatumsbereich(von, bis)
+      const confirmedTermine: TerminMitStatus[] = confirmedShifts.map((s) => ({
+        uid: `shift-${s.id}`,
+        titel: "Schicht",
+        beginn: new Date(`${s.datum}T${s.start}:00`),
+        ende:   new Date(`${s.datum}T${s.ende}:00`),
+        ganztaegig: false,
+        status: "LOCKED" as const,
+      }))
+
       const ergebnisse = await Promise.all(
         kalender.map(async (k) => {
           const cacheKey = `${k.id}_${von}_${bis}`
@@ -301,7 +285,27 @@ export default function VerfuegbarkeitPage() {
           return { k, roh: data.termine }
         }),
       )
-      verarbeiteRohdaten(ergebnisse)
+
+      const alleKalTermine: TerminMitStatus[] = []
+      for (const { roh, k } of ergebnisse) {
+        for (const t of roh) {
+          alleKalTermine.push({
+            uid: t.uid, titel: t.titel,
+            beginn: new Date(t.beginn), ende: new Date(t.ende),
+            ganztaegig: t.ganztaegig, ort: t.ort,
+            status: resolveStatus(t.titel, k.defaultStatus),
+          })
+        }
+      }
+
+      const feiertage = feiertagsTermine(alleTage, bundesland)
+      const festeSperrzeiten = festeSperrzeitenTermine(einst, alleTage)
+      const geplant = geplanteTermine(geplanteSchichtenListe, alleTage)
+      const mitAllem = [...alleKalTermine, ...feiertage, ...festeSperrzeiten, ...geplant, ...confirmedTermine]
+      setTermine(mitAllem)
+      setVerfBlöcke(
+        berechneVerfuegbarkeit(mitAllem, erlaubteTage, einstellungenVonArbeitgeber(einst)),
+      )
       letzterRefreshRef.current = Date.now()
       setZuletztAktualisiert(new Date())
     } catch (e) {
@@ -309,18 +313,13 @@ export default function VerfuegbarkeitPage() {
     } finally {
       setLaden(false)
     }
-  }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe])
+  }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe, einst, selectedEmployerId])
 
-  // Ref immer aktuell halten (für den visibilitychange-Handler)
-  useEffect(() => {
-    berechneFetchRef.current = berechneFetch
-  })
+  useEffect(() => { berechneFetchRef.current = berechneFetch })
 
-  useEffect(() => {
-    berechneFetch()
-  }, [berechneFetch])
+  useEffect(() => { berechneFetch() }, [berechneFetch])
 
-  // ── Tab-Fokus: automatisch neu laden (max. alle 60 Sekunden) ──────────────
+  // Tab-Fokus: automatisch neu laden (max. alle 60 Sekunden)
   useEffect(() => {
     function handleVisible() {
       if (document.visibilityState !== "visible") return
@@ -335,7 +334,6 @@ export default function VerfuegbarkeitPage() {
     }
   }, [])
 
-  // Gespeicherte Auswahl laden wenn Woche wechselt
   useEffect(() => {
     setAusgewaehlt(loadSavedSelection(startSonntagStr))
   }, [startSonntagStr])
@@ -346,7 +344,6 @@ export default function VerfuegbarkeitPage() {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
-      // Optimistic: sofort in UI + asynchron in localStorage (kein await nötig)
       saveSelection(startSonntagStr, next)
       return next
     })
@@ -355,8 +352,14 @@ export default function VerfuegbarkeitPage() {
   async function nachExport() {
     const ausgewaehlteBlöcke = verfBlöcke.filter((b) => ausgewaehlt.has(blockKey(b)))
     const wochen = wochenDaten(startSonntagStr, anzahlWochen)
-    const { tkWoche } = await import("@/lib/verfuegbarkeit/kwBerechnung")
-    const kwNummern = wochen.map((w) => tkWoche(w[0], kwAnker))
+
+    // KW-Nummern je nach kwSystem
+    let kwNummern: number[] = []
+    if (einst.kwSystem === "tkmaxx" && einst.kwAnker) {
+      const { tkWoche } = await import("@/lib/verfuegbarkeit/kwBerechnung")
+      kwNummern = wochen.map((w) => tkWoche(w[0], einst.kwAnker!))
+    }
+
     await addDoc(collection(db, "users", uid(), "verfuegbarkeit_archiv"), {
       erstelltAm: serverTimestamp(),
       datumVon: wochen[0][0],
@@ -364,6 +367,7 @@ export default function VerfuegbarkeitPage() {
       kalenderwochen: kwNummern,
       gesamtMinuten: ausgewaehlteBlöcke.reduce((s, b) => s + b.dauerMin, 0),
       bloecke: ausgewaehlteBlöcke.map((b) => ({ datum: b.datum, start: b.start, ende: b.ende })),
+      ...(selectedEmployerId ? { employerId: selectedEmployerId } : {}),
     })
     ladeArchiv()
   }
@@ -372,8 +376,8 @@ export default function VerfuegbarkeitPage() {
   const ausgewaehlteBlöcke = verfBlöcke.filter((b) => ausgewaehlt.has(blockKey(b)))
   const gesamtMin = ausgewaehlteBlöcke.reduce((s, b) => s + b.dauerMin, 0)
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
+  const mindestStdText = `${(einst.mindestdauerMin / 60).toFixed(0).replace(".0", "")} Std`
 
-  // Lookup-Maps
   const verfBlöckeNachDatum = verfBlöcke.reduce<Record<string, VerfuegbarkeitsBlock[]>>(
     (acc, b) => { (acc[b.datum] ??= []).push(b); return acc },
     {},
@@ -387,11 +391,22 @@ export default function VerfuegbarkeitPage() {
     {},
   )
 
+  const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
+    { value: "BB", label: "Brandenburg" }, { value: "BE", label: "Berlin" },
+    { value: "BW", label: "Baden-Württemberg" }, { value: "BY", label: "Bayern" },
+    { value: "HB", label: "Bremen" }, { value: "HE", label: "Hessen" },
+    { value: "HH", label: "Hamburg" }, { value: "MV", label: "Mecklenburg-Vorpommern" },
+    { value: "NI", label: "Niedersachsen" }, { value: "NW", label: "Nordrhein-Westfalen" },
+    { value: "RP", label: "Rheinland-Pfalz" }, { value: "SH", label: "Schleswig-Holstein" },
+    { value: "SL", label: "Saarland" }, { value: "SN", label: "Sachsen" },
+    { value: "ST", label: "Sachsen-Anhalt" }, { value: "TH", label: "Thüringen" },
+  ]
+
   return (
     <main className="min-h-screen sf-page">
       <div className="mx-auto max-w-2xl px-4 pt-6">
 
-        {/* ── Zeitraum-Steuerung ──────────────────────────────────────── */}
+        {/* ── Kopfzeile ─────────────────────────────────────────────────── */}
         <header className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-base font-semibold sf-text">Verfügbarkeit</h1>
@@ -402,11 +417,10 @@ export default function VerfuegbarkeitPage() {
                 </span>
               )}
               <button
-                onClick={() => { berechneFetch({ force: true }) }}
+                onClick={() => berechneFetch({ force: true })}
                 disabled={laden}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 dark:hover:bg-neutral-800 active:scale-90 transition-all disabled:opacity-40"
                 aria-label="Kalender aktualisieren"
-                title="Aktualisieren"
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M2 8a6 6 0 0 1 11.3-2.8"/>
@@ -417,7 +431,25 @@ export default function VerfuegbarkeitPage() {
               </button>
             </div>
           </div>
+
           <div className="flex flex-wrap gap-3 items-end">
+
+            {/* Arbeitgeber-Auswahl */}
+            {alleAktiveArbeitgeber.length > 1 && (
+              <div>
+                <label className="block text-xs sf-text-2 mb-1">Arbeitgeber</label>
+                <select
+                  value={selectedEmployerId}
+                  onChange={(e) => setSelectedEmployerId(e.target.value)}
+                  className="rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text"
+                >
+                  {alleAktiveArbeitgeber.map((e) => (
+                    <option key={e.id} value={e.id}>{e.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs sf-text-2 mb-1">Ab (wird auf Sonntag eingerastet)</label>
               <input
@@ -430,6 +462,7 @@ export default function VerfuegbarkeitPage() {
                 className="rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text"
               />
             </div>
+
             <div>
               <label className="block text-xs sf-text-2 mb-1">Wochen</label>
               <select
@@ -442,12 +475,14 @@ export default function VerfuegbarkeitPage() {
                 ))}
               </select>
             </div>
+
             <div>
               <label className="block text-xs sf-text-2 mb-1">Bundesland (Feiertage)</label>
               <select
                 value={bundesland}
-                onChange={(e) => setBundesland(e.target.value as Bundesland)}
-                className="rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text"
+                onChange={() => {/* wird aus Arbeitgeber gelesen */}}
+                disabled
+                className="rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm sf-text opacity-60"
               >
                 {BUNDESLAENDER.map((bl) => (
                   <option key={bl.value} value={bl.value}>{bl.label} ({bl.value})</option>
@@ -457,19 +492,16 @@ export default function VerfuegbarkeitPage() {
           </div>
         </header>
 
-        {/* ── Google-Hinweis ─────────────────────────────────────────── */}
         <p className="text-xs sf-text-3 -mt-2 mb-4">
           Hinweis: Google aktualisiert Kalender-Feeds teilweise erst nach einigen Stunden.
         </p>
 
-        {/* ── Fehler ─────────────────────────────────────────────────── */}
         {fehler && (
           <div className="mb-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
             <p className="text-xs font-mono text-red-700 dark:text-red-300 break-all">{fehler}</p>
           </div>
         )}
 
-        {/* ── Keine Kalender ─────────────────────────────────────────── */}
         {kalender.length === 0 && !laden && (
           <div className="sf-card rounded-2xl p-8 text-center shadow-sm">
             <p className="text-sm sf-text-2">Noch keine Kalender eingerichtet.</p>
@@ -479,14 +511,11 @@ export default function VerfuegbarkeitPage() {
           </div>
         )}
 
-        {/* ── Wochensumme + PDF (sticky oben auf mobile) ─────────────── */}
         {verfBlöcke.length > 0 && (
           <div className="sf-card rounded-2xl px-4 py-3 mb-4 shadow-sm flex items-center justify-between gap-4">
             <div>
               <p className="text-xs sf-text-2">Ausgewählt</p>
-              <p className="text-lg font-semibold sf-text nums">
-                {formatDauerMin(gesamtMin)}
-              </p>
+              <p className="text-lg font-semibold sf-text nums">{formatDauerMin(gesamtMin)}</p>
             </div>
             <div className="flex items-center gap-2">
               <PDFVerfuegbarkeitButton
@@ -494,7 +523,7 @@ export default function VerfuegbarkeitPage() {
                 anzahlWochen={anzahlWochen}
                 ausgewaehlt={ausgewaehlteBlöcke}
                 bundesland={bundesland}
-                kwAnker={kwAnker}
+                employer={selectedEmployer}
                 onNachExport={nachExport}
               />
               <EmailVerfuegbarkeitButton
@@ -502,21 +531,19 @@ export default function VerfuegbarkeitPage() {
                 anzahlWochen={anzahlWochen}
                 ausgewaehlt={ausgewaehlteBlöcke}
                 bundesland={bundesland}
-                kwAnker={kwAnker}
+                employer={selectedEmployer}
                 onNachExport={nachExport}
               />
             </div>
           </div>
         )}
 
-        {/* ── Wochenansicht ───────────────────────────────────────────── */}
         {laden ? (
           <WochenSkeleton anzahlWochen={anzahlWochen} />
         ) : (
           <div className="space-y-6 pb-4">
             {wochen.map((wocheDaten, wi) => (
               <section key={wocheDaten[0]}>
-                {/* Wochen-Trenner */}
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-xs font-semibold sf-text-2 uppercase tracking-wide">
                     Woche {wi + 1}
@@ -526,7 +553,8 @@ export default function VerfuegbarkeitPage() {
 
                 <div className="space-y-2">
                   {wocheDaten.map((datum, tagIdx) => {
-                    const istSo = tagIdx === 0
+                    const wochentagNr = tagIdx % 7   // 0=So, 1=Mo…6=Sa
+                    const istErlaubt = einst.wochentage.includes(wochentagNr)
                     const date = parseDatum(datum)
                     const feiertag = feiertagName(date, bundesland)
                     const blöcke = verfBlöckeNachDatum[datum] ?? []
@@ -541,7 +569,6 @@ export default function VerfuegbarkeitPage() {
                           feiertag ? "border border-red-100 dark:border-red-900/40" : ""
                         }`}
                       >
-                        {/* Tag-Kopf */}
                         <div className="flex items-baseline justify-between mb-2">
                           <h3 className={`text-sm font-medium ${feiertag ? "text-red-600 dark:text-red-400" : "sf-text"}`}>
                             {formatTagKopf(datum)}
@@ -551,20 +578,15 @@ export default function VerfuegbarkeitPage() {
                           )}
                         </div>
 
-                        {/* Sonntag oder Feiertag */}
-                        {(istSo || feiertag) ? (
+                        {(!istErlaubt || feiertag) ? (
                           <p className="text-xs sf-text-3">— nicht verfügbar</p>
                         ) : blöcke.length === 0 ? (
                           <>
-                            <p className="text-xs sf-text-3">— keine freien Blöcke ≥ 3 Std</p>
-                            {/* Blocking-Termine trotzdem anzeigen */}
-                            {termineHeute.length > 0 && (
-                              <EreignisListe termine={termineHeute} />
-                            )}
+                            <p className="text-xs sf-text-3">— keine freien Blöcke ≥ {mindestStdText}</p>
+                            {termineHeute.length > 0 && <EreignisListe termine={termineHeute} />}
                           </>
                         ) : (
                           <>
-                            {/* Freie Blöcke — antippbar */}
                             <div className="space-y-2 mb-3">
                               {blöcke.map((b) => {
                                 const key = blockKey(b)
@@ -583,18 +605,13 @@ export default function VerfuegbarkeitPage() {
                                       {b.start}–{b.ende}
                                     </span>
                                     <span className={`text-xs ${aktiv ? "text-blue-100" : "sf-text-3"}`}>
-                                      {formatDauerMin(b.dauerMin)}
-                                      {aktiv ? " ✓" : ""}
+                                      {formatDauerMin(b.dauerMin)}{aktiv ? " ✓" : ""}
                                     </span>
                                   </button>
                                 )
                               })}
                             </div>
-
-                            {/* Blockierende Termine (grau, informativ) */}
-                            {termineHeute.length > 0 && (
-                              <EreignisListe termine={termineHeute} />
-                            )}
+                            {termineHeute.length > 0 && <EreignisListe termine={termineHeute} />}
                           </>
                         )}
                       </div>
@@ -606,7 +623,6 @@ export default function VerfuegbarkeitPage() {
           </div>
         )}
 
-        {/* ── Archiv ─────────────────────────────────────────────────── */}
         {archivListe.length > 0 && (
           <section className="mt-8 mb-4">
             <h2 className="text-xs font-semibold sf-text-2 uppercase tracking-wide mb-3">
@@ -614,17 +630,13 @@ export default function VerfuegbarkeitPage() {
             </h2>
             <div className="space-y-2">
               {archivListe.slice(0, 5).map((e) => (
-                <div
-                  key={e.id}
-                  className="sf-card rounded-xl px-4 py-3 shadow-sm flex items-center justify-between gap-4"
-                >
+                <div key={e.id} className="sf-card rounded-xl px-4 py-3 shadow-sm flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium sf-text">
-                      KW {e.kalenderwochen.join(" + ")}
+                      {e.kalenderwochen.length > 0 ? `KW ${e.kalenderwochen.join(" + ")}` : e.datumVon}
                     </p>
                     <p className="text-xs sf-text-3">
-                      {e.erstelltAm.toLocaleDateString("de-DE")} ·{" "}
-                      {formatDauerMin(e.gesamtMinuten)}
+                      {e.erstelltAm.toLocaleDateString("de-DE")} · {formatDauerMin(e.gesamtMinuten)}
                     </p>
                   </div>
                   <span className="text-xs sf-text-3 whitespace-nowrap">
@@ -668,7 +680,7 @@ function WochenSkeleton({ anzahlWochen }: { anzahlWochen: number }) {
   )
 }
 
-// ─── Unterkomponente: Termineist im Tag ──────────────────────────────────────
+// ─── Termineiste ─────────────────────────────────────────────────────────────
 
 function EreignisListe({ termine }: { termine: TerminMitStatus[] }) {
   return (
@@ -683,9 +695,7 @@ function EreignisListe({ termine }: { termine: TerminMitStatus[] }) {
               <span>
                 {berlinUhrzeit(t.beginn.toISOString())}–{berlinUhrzeit(t.ende.toISOString())}
                 {" "}
-                <span className={t.status === "LOCKED" ? "text-red-400" : "text-amber-400"}>
-                  {"●"}
-                </span>
+                <span className={t.status === "LOCKED" ? "text-red-400" : "text-amber-400"}>●</span>
                 {" "}{t.titel}
               </span>
             )}

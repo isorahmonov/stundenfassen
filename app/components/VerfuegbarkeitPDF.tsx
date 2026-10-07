@@ -7,6 +7,23 @@ import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { feiertagName } from "@/lib/calc/holidays"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 
+type KwSystem = "tkmaxx" | "iso" | "keine"
+
+function isoWoche(datum: string): number {
+  const [y, m, d] = datum.split("-").map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  const dayOfWeek = date.getUTCDay() || 7
+  const thursday = new Date(Date.UTC(y, m - 1, d + 4 - dayOfWeek))
+  const yearStart = new Date(Date.UTC(thursday.getUTCFullYear(), 0, 1))
+  return Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7)
+}
+
+function berechneKw(datum: string, kwSystem: KwSystem, kwAnker?: string): number | null {
+  if (kwSystem === "tkmaxx" && kwAnker) return tkWoche(datum, kwAnker)
+  if (kwSystem === "iso") return isoWoche(datum)
+  return null
+}
+
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
 const WOCHENTAGE_LANG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
 const MONATE_LANG = [
@@ -83,10 +100,13 @@ interface Props {
   anzahlWochen: number
   ausgewaehlt: VerfuegbarkeitsBlock[]
   bundesland: Bundesland
-  kwAnker: string
+  kwSystem: KwSystem
+  kwAnker?: string
+  wochenStart: "sonntag" | "montag"
   minusEintraege?: MinusEintrag[]
   mitarbeiterName: string
   personalnummer?: string
+  fusszeilenText?: string
 }
 
 export function VerfuegbarkeitPDF({
@@ -94,10 +114,13 @@ export function VerfuegbarkeitPDF({
   anzahlWochen,
   ausgewaehlt,
   bundesland,
+  kwSystem,
   kwAnker,
+  wochenStart,
   minusEintraege = [],
   mitarbeiterName,
   personalnummer,
+  fusszeilenText,
 }: Props) {
   const ausgewaehlteKeys = new Set(ausgewaehlt.map(blockKey))
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
@@ -129,9 +152,15 @@ export function VerfuegbarkeitPDF({
         {wochen.map((wocheDaten) => {
           const sonntag = wocheDaten[0]
           const samstag = wocheDaten[6]
-          const kwNr = tkWoche(sonntag, kwAnker)
+          // Bei wochenStart="montag": Montag (Index 1) als Referenz für ISO-KW
+          const kwRefDatum = wochenStart === "montag" ? wocheDaten[1] : sonntag
+          const kwNr = berechneKw(kwRefDatum, kwSystem, kwAnker)
 
-          // Summe der ausgewählten Blöcke in dieser Woche
+          // Tage in Anzeigereihenfolge: wochenStart="montag" → Mo zuerst (1–6, dann 0)
+          const tageIdx = wochenStart === "montag"
+            ? [1, 2, 3, 4, 5, 6, 0]
+            : [0, 1, 2, 3, 4, 5, 6]
+
           const wocheMin = ausgewaehlt
             .filter((b) => b.datum >= sonntag && b.datum <= samstag)
             .reduce((s, b) => s + b.dauerMin, 0)
@@ -140,7 +169,11 @@ export function VerfuegbarkeitPDF({
           return (
             <View key={sonntag} style={s.wocheContainer} wrap={false}>
               <Text style={s.wocheKopf}>
-                KW {kwNr} · Datum: {formatDatumLang(sonntag)} bis {formatDatumLang(samstag)}
+                {kwNr !== null ? `KW ${kwNr} · ` : ""}
+                {wochenStart === "montag"
+                  ? `${formatDatumLang(wocheDaten[1])} bis ${formatDatumLang(wocheDaten[0])}`
+                  : `${formatDatumLang(sonntag)} bis ${formatDatumLang(samstag)}`
+                }
               </Text>
 
               <View style={s.table}>
@@ -151,13 +184,13 @@ export function VerfuegbarkeitPDF({
                   <Text style={s.thZeit}>Verfügbare Zeit</Text>
                 </View>
 
-                {/* Zeilen So–Sa */}
-                {wocheDaten.map((datum, idx) => {
+                {/* Zeilen in Anzeigereihenfolge */}
+                {tageIdx.map((idx) => {
+                  const datum = wocheDaten[idx]
                   const date = parseDatum(datum)
                   const feiertag = feiertagName(date, bundesland)
                   const istSo = idx === 0
 
-                  // Ausgewählte Blöcke für diesen Tag
                   const tagesBlöcke = ausgewaehlt.filter(
                     (b) => b.datum === datum && ausgewaehlteKeys.has(blockKey(b)),
                   )
@@ -197,9 +230,11 @@ export function VerfuegbarkeitPDF({
         })}
 
         {/* Fußzeile */}
-        <View style={s.footer} fixed>
-          <Text style={s.footerText}>Stundenfassen</Text>
-        </View>
+        {(fusszeilenText !== undefined ? fusszeilenText : "Stundenfassen") ? (
+          <View style={s.footer} fixed>
+            <Text style={s.footerText}>{fusszeilenText ?? "Stundenfassen"}</Text>
+          </View>
+        ) : null}
       </Page>
     </Document>
   )

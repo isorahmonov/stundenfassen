@@ -9,6 +9,7 @@ export interface IShiftRepository {
   findByMonat(monat: number, jahr: number): Promise<Shift[]>;
   findByEmployer(employerId: string): Promise<Shift[]>;
   findByEmployerUndMonat(employerId: string, monat: number, jahr: number): Promise<Shift[]>;
+  findByDatumsbereich(von: string, bis: string): Promise<Shift[]>;
   add(input: ShiftInput): Promise<Shift>;
   update(id: string, changes: ShiftUpdate): Promise<Shift | undefined>;
   remove(id: string): Promise<void>;

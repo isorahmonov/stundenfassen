@@ -4,18 +4,25 @@ import { useState } from "react"
 import { pdf } from "@react-pdf/renderer"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
-import type { Bundesland } from "@/lib/types"
+import type { Bundesland, Employer } from "@/lib/types"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
-import { minusEintraege as minusRepo, employers as employersRepo } from "@/lib/storage"
+import { minusEintraege as minusRepo } from "@/lib/storage"
 import { auth } from "@/lib/firebase/client"
+import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 
 export interface PDFVerfuegbarkeitProps {
   startSonntagStr: string
   anzahlWochen: number
   ausgewaehlt: VerfuegbarkeitsBlock[]
   bundesland: Bundesland
-  kwAnker: string
+  employer: Employer | null
   onNachExport: () => Promise<void>
+}
+
+function letzterSonntagStr(startSonntagStr: string, anzahlWochen: number): string {
+  const d = new Date(startSonntagStr + "T00:00:00Z")
+  d.setUTCDate(d.getUTCDate() + (anzahlWochen - 1) * 7)
+  return d.toISOString().slice(0, 10)
 }
 
 export default function PDFVerfuegbarkeitButtonInner({
@@ -23,7 +30,7 @@ export default function PDFVerfuegbarkeitButtonInner({
   anzahlWochen,
   ausgewaehlt,
   bundesland,
-  kwAnker,
+  employer,
   onNachExport,
 }: PDFVerfuegbarkeitProps) {
   const [laden, setLaden] = useState(false)
@@ -31,12 +38,14 @@ export default function PDFVerfuegbarkeitButtonInner({
   async function handleClick() {
     setLaden(true)
     try {
-      const [alleMinus, aktiveEmps] = await Promise.all([
-        minusRepo.findAlle(),
-        employersRepo.findAktive(),
-      ])
+      const alleMinus = await minusRepo.findAlle()
       const mitarbeiterName = auth.currentUser?.displayName ?? auth.currentUser?.email ?? ""
-      const personalnummer = aktiveEmps[0]?.personalnummer
+      const einst = employer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
+      const kwSystem = einst.kwSystem
+      const kwAnker = einst.kwAnker
+      const wochenStart = einst.wochenStart
+      const personalnummer = employer?.personalnummer
+      const fusszeilenText = einst.pdf?.fusszeilenText
 
       const blob = await pdf(
         <VerfuegbarkeitPDF
@@ -44,20 +53,27 @@ export default function PDFVerfuegbarkeitButtonInner({
           anzahlWochen={anzahlWochen}
           ausgewaehlt={ausgewaehlt}
           bundesland={bundesland}
+          kwSystem={kwSystem}
           kwAnker={kwAnker}
+          wochenStart={wochenStart}
           minusEintraege={alleMinus}
           mitarbeiterName={mitarbeiterName}
           personalnummer={personalnummer}
+          fusszeilenText={fusszeilenText}
         />,
       ).toBlob()
 
-      const kwVon = tkWoche(startSonntagStr, kwAnker)
-      const letzterSo = new Date(startSonntagStr + "T00:00:00Z")
-      letzterSo.setUTCDate(letzterSo.getUTCDate() + (anzahlWochen - 1) * 7)
-      const kwBis = tkWoche(letzterSo.toISOString().slice(0, 10), kwAnker)
-      const dateiname = anzahlWochen === 1
-        ? `Verfuegbarkeit_KW${kwVon}.pdf`
-        : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
+      const letzterSo = letzterSonntagStr(startSonntagStr, anzahlWochen)
+      let dateiname: string
+      if (kwSystem === "tkmaxx" && kwAnker) {
+        const kwVon = tkWoche(startSonntagStr, kwAnker)
+        const kwBis = tkWoche(letzterSo, kwAnker)
+        dateiname = anzahlWochen === 1 ? `Verfuegbarkeit_KW${kwVon}.pdf` : `Verfuegbarkeit_KW${kwVon}-KW${kwBis}.pdf`
+      } else {
+        const bis = new Date(letzterSo + "T00:00:00Z")
+        bis.setUTCDate(bis.getUTCDate() + 6)
+        dateiname = `Verfuegbarkeit_${startSonntagStr}_${bis.toISOString().slice(0, 10)}.pdf`
+      }
 
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")

@@ -1,4 +1,5 @@
 import type { KalenderTermin } from "./icalParser"
+import type { VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
 
 export type TerminStatus = "LOCKED" | "FLEXIBLE" | "RELEASED"
 
@@ -22,6 +23,8 @@ export interface VerfuegbarkeitsEinstellungen {
   puffer: PufferEinstellung[]
   /** Puffer wenn kein Standort erkannt wird */
   pufferFallbackMin: number
+  /** Rundungsschritte in Minuten; Standard 30 */
+  rundungMin?: number
 }
 
 export interface VerfuegbarkeitsBlock {
@@ -60,14 +63,14 @@ function minZuUhrzeit(min: number): string {
 
 // ─── Runden ──────────────────────────────────────────────────────────────────
 
-/** Start: auf nächste halbe Stunde aufrunden (:00 oder :30) */
-export function rundeAuf(min: number): number {
-  return Math.ceil(min / 30) * 30
+/** Start: auf nächsten Rundungsschritt aufrunden (Standard: 30 min) */
+export function rundeAuf(min: number, rundungMin = 30): number {
+  return Math.ceil(min / rundungMin) * rundungMin
 }
 
-/** Ende: auf vorherige halbe Stunde abrunden (:00 oder :30) */
-export function rundeAb(min: number): number {
-  return Math.floor(min / 30) * 30
+/** Ende: auf vorherigen Rundungsschritt abrunden (Standard: 30 min) */
+export function rundeAb(min: number, rundungMin = 30): number {
+  return Math.floor(min / rundungMin) * rundungMin
 }
 
 // ─── Puffer-Erkennung ────────────────────────────────────────────────────────
@@ -156,12 +159,13 @@ function berechneBlocksFuerTag(
   if (cursor < fensterEndeMin) luecken.push([cursor, fensterEndeMin])
 
   // Mindestdauer (vor Runden), runden, Mindestdauer nochmals prüfen
+  const r = einstellungen.rundungMin ?? 30
   const bloecke: VerfuegbarkeitsBlock[] = []
   for (const [von, bis] of luecken) {
     if (bis - von < mindestdauerMin) continue
 
-    const start = rundeAuf(von)
-    const ende = rundeAb(bis)
+    const start = rundeAuf(von, r)
+    const ende = rundeAb(bis, r)
     const dauer = ende - start
 
     if (dauer >= mindestdauerMin) {
@@ -170,6 +174,47 @@ function berechneBlocksFuerTag(
   }
 
   return bloecke
+}
+
+// ─── Konverter + Defaults ────────────────────────────────────────────────────
+
+function uhrzeitZuMin(s: string): number {
+  const [h, m] = s.split(":").map(Number)
+  return h * 60 + m
+}
+
+/** Wandelt Arbeitgeber-Einstellungen in die Berechnungsstruktur um. */
+export function einstellungenVonArbeitgeber(
+  arb: VerfuegbarkeitsEinstellungenArbeitgeber,
+): VerfuegbarkeitsEinstellungen {
+  return {
+    fensterStartMin: uhrzeitZuMin(arb.fruehestens),
+    fensterEndeMin:  uhrzeitZuMin(arb.spaetestens),
+    mindestdauerMin: arb.mindestdauerMin,
+    rundungMin:      arb.rundungMin,
+    puffer: arb.pufferOrte.map((p) => ({
+      suchtext:      p.suchtext,
+      pufferVorMin:  p.vorMin,
+      pufferNachMin: p.nachMin,
+    })),
+    pufferFallbackMin: arb.pufferStandardMin,
+  }
+}
+
+/** Neutrale Standardwerte für Arbeitgeber ohne gespeicherte Einstellungen. */
+export const NEUTRALE_EINSTELLUNGEN: VerfuegbarkeitsEinstellungenArbeitgeber = {
+  wochentage:        [1, 2, 3, 4, 5, 6],
+  fruehestens:       "06:00",
+  spaetestens:       "20:30",
+  mindestdauerMin:   180,
+  rundungMin:        30,
+  pufferStandardMin: 30,
+  wochenStart:       "montag",
+  kwSystem:          "keine",
+  pdf:               {},
+  pufferOrte:        [],
+  festeSperrzeiten:  [],
+  einrichtungBestaetigt: false,
 }
 
 /**
