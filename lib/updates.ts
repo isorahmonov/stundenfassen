@@ -1,10 +1,10 @@
 export const CURRENT_UPDATE = {
-  version: "2026-10-06",
-  title: "Neu und wichtig",
+  version: "2026-10-07",
+  title: "Neu: Verfügbarkeit pro Arbeitgeber einrichten",
   points: [
-    "Dein PDF und deine E-Mails nutzen jetzt deinen eigenen Namen. Trag deine Personalnummer unter Profil → Arbeitgeber ein, sonst fehlt sie im PDF.",
-    "Abmelden: Den Button findest du unten im Profil.",
-    "Kalender aktualisiert sich schneller, und es gibt einen Aktualisieren-Button mit Uhrzeit der letzten Abfrage.",
-    "Feiertage: Gesperrt werden nur noch die gesetzlichen Feiertage deines Bundeslands.",
+    "Abmelden im Profil-Tab",
+    "Kalender lädt schneller und aktualisiert sich beim Zurückkehren in die App",
+    "Feiertage richten sich nach dem Bundesland des Arbeitgebers",
+    "Beim ersten Öffnen legst du pro Arbeitgeber Zeitfenster, Wochentage und Wegezeiten fest",
   ],
 }

@@ -9,6 +9,7 @@ import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
 import type { Employer, MinusEintrag, EmailVorlage } from "@/lib/types"
 import { minusEintraege as minusRepo, employers as employersRepo, emailVorlagen as emailVorlageRepo } from "@/lib/storage"
 import type { MinusEintragInput } from "@/lib/storage"
+import { BaseDialog } from "../components/BaseDialog"
 
 const BERLIN = "Europe/Berlin"
 
@@ -690,12 +691,8 @@ function AbmeldenDialog({
   onAbbrechen: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
-        onClick={onAbbrechen}
-      />
-      <div className="relative w-full max-w-sm sf-card rounded-2xl shadow-2xl p-6">
+    <BaseDialog onBackdropClick={onAbbrechen} maxWidth="max-w-sm">
+      <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         <h2 className="text-base font-bold sf-text mb-1">Wirklich abmelden?</h2>
         {email && (
           <p className="text-sm sf-text-2 mb-4 break-all">
@@ -719,7 +716,7 @@ function AbmeldenDialog({
           </button>
         </div>
       </div>
-    </div>
+    </BaseDialog>
   )
 }
 

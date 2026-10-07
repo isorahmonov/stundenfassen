@@ -5,6 +5,7 @@ import Link from "next/link"
 import type { Bundesland, Employer, EmployerArt } from "@/lib/types"
 import { employers as employersRepo } from "@/lib/storage"
 import { formatEuroCent } from "@/lib/calc/format"
+import { EinrichtungsDialog, sollDialogOeffnen } from "./EinrichtungsDialog"
 
 const ART_LABEL: Record<EmployerArt, string> = {
   werkstudent: "Werkstudent",
@@ -88,6 +89,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
   const [employers, setEmployers] = useState<Employer[]>([])
   const [bearbeitenId, setBearbeitenId] = useState<string | null>(null)
   const [neuFormOffen, setNeuFormOffen] = useState(false)
+  const [einrichtungsId, setEinrichtungsId] = useState<string | null>(null)
   const [laedt, setLaedt] = useState(true)
 
   async function laden() {
@@ -118,6 +120,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
 
   const aktive = employers.filter((e) => !e.archiviert)
   const archivierte = employers.filter((e) => e.archiviert)
+  const einrichtungsEmployer = einrichtungsId ? employers.find(e => e.id === einrichtungsId) : undefined
 
   return (
     <main className="min-h-screen sf-page">
@@ -184,6 +187,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
                   employer={e}
                   onBearbeiten={() => { setBearbeitenId(e.id); setNeuFormOffen(false) }}
                   onArchivieren={() => archivieren(e.id, true)}
+                  onVerfuegbarkeit={() => { setEinrichtungsId(e.id); setBearbeitenId(null); setNeuFormOffen(false) }}
                 />
               )
             )}
@@ -211,6 +215,14 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
           </div>
         )}
       </div>
+
+      {einrichtungsEmployer && (
+        <EinrichtungsDialog
+          employer={einrichtungsEmployer}
+          onBestaetigt={() => { setEinrichtungsId(null); laden() }}
+          onSchliessen={() => setEinrichtungsId(null)}
+        />
+      )}
     </main>
   )
 }
@@ -219,11 +231,13 @@ function ArbeitgeberKarte({
   employer: e,
   onBearbeiten,
   onArchivieren,
+  onVerfuegbarkeit,
   archiviert = false,
 }: {
   employer: Employer
   onBearbeiten: () => void
   onArchivieren: () => void
+  onVerfuegbarkeit?: () => void
   archiviert?: boolean
 }) {
   return (
@@ -263,6 +277,20 @@ function ArbeitgeberKarte({
         >
           Bearbeiten
         </button>
+        {onVerfuegbarkeit && (
+          <>
+            <span className="text-stone-200 dark:text-neutral-700">·</span>
+            <button
+              onClick={onVerfuegbarkeit}
+              className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors duration-100"
+            >
+              Verfügbarkeit
+              {sollDialogOeffnen(e) && (
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
+              )}
+            </button>
+          </>
+        )}
         <span className="text-stone-200 dark:text-neutral-700">·</span>
         <button
           onClick={onArchivieren}

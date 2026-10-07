@@ -26,6 +26,7 @@ import {
 } from "@/lib/verfuegbarkeit/eventCache"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import { employers as employersRepo, geplanteSchichten as geplanteRepo, shifts as shiftsRepo } from "@/lib/storage"
+import { EinrichtungsDialog, sollDialogOeffnen } from "../components/EinrichtungsDialog"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -164,6 +165,9 @@ export default function VerfuegbarkeitPage() {
   const [archivListe, setArchivListe] = useState<ArchivEintrag[]>([])
   const [geplanteSchichtenListe, setGeplanteSchichtenListe] = useState<GeplanteSchicht[]>([])
 
+  const [einrichtungsId, setEinrichtungsId] = useState<string | null>(null)
+  const einrichtungsEmployer = einrichtungsId ? alleAktiveArbeitgeber.find((e) => e.id === einrichtungsId) : undefined
+
   const [zuletztAktualisiert, setZuletztAktualisiert] = useState<Date | null>(null)
   const letzterRefreshRef = useRef(0)
   const berechneFetchRef = useRef<(opts?: { force?: boolean }) => Promise<void>>(async () => {})
@@ -177,7 +181,10 @@ export default function VerfuegbarkeitPage() {
   useEffect(() => {
     employersRepo.findAktive().then((emps) => {
       setAlleAktiveArbeitgeber(emps)
-      if (emps.length > 0) setSelectedEmployerId(emps[0].id)
+      if (emps.length > 0) {
+        setSelectedEmployerId(emps[0].id)
+        if (sollDialogOeffnen(emps[0])) setEinrichtungsId(emps[0].id)
+      }
     }).catch(() => {})
 
     apiGet("/api/ical")
@@ -654,6 +661,17 @@ export default function VerfuegbarkeitPage() {
         )}
 
       </div>
+
+      {einrichtungsId && einrichtungsEmployer && (
+        <EinrichtungsDialog
+          employer={einrichtungsEmployer}
+          onBestaetigt={() => {
+            setEinrichtungsId(null)
+            employersRepo.findAktive().then((emps) => setAlleAktiveArbeitgeber(emps)).catch(() => {})
+          }}
+          onSchliessen={() => setEinrichtungsId(null)}
+        />
+      )}
     </main>
   )
 }
