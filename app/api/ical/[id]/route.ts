@@ -2,11 +2,10 @@ export const runtime = "nodejs"
 
 import { type NextRequest } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase/admin"
+import { validiereUndNormalisiereIcalUrl, SSRFFehler } from "@/lib/ical/ssrfGuard"
 
 class AuthFehler extends Error {}
 class EingabeFehler extends Error {}
-
-const ERLAUBTE_HOSTS = new Set(["calendar.google.com", "myhaw.haw-hamburg.de"])
 
 async function ermittleUid(request: NextRequest): Promise<string> {
   const header = request.headers.get("authorization") ?? ""
@@ -23,18 +22,10 @@ async function ermittleUid(request: NextRequest): Promise<string> {
 function fehlerAntwort(err: unknown): Response {
   if (err instanceof AuthFehler)
     return Response.json({ fehler: err.message }, { status: 401 })
-  if (err instanceof EingabeFehler)
-    return Response.json({ fehler: err.message }, { status: 400 })
+  if (err instanceof EingabeFehler || err instanceof SSRFFehler)
+    return Response.json({ fehler: (err as Error).message }, { status: 400 })
   console.error("[api/ical/[id]]", err)
   return Response.json({ fehler: "Interner Fehler" }, { status: 500 })
-}
-
-function validiereUrl(urlString: string) {
-  let url: URL
-  try { url = new URL(urlString) } catch { throw new EingabeFehler("Ungültige URL") }
-  if (url.protocol !== "https:") throw new EingabeFehler("URL muss HTTPS sein")
-  if (!ERLAUBTE_HOSTS.has(url.hostname))
-    throw new EingabeFehler(`Host nicht erlaubt: ${url.hostname}`)
 }
 
 // ─── PUT /api/ical/[id] ──────────────────────────────────────────────────────
@@ -64,8 +55,7 @@ export async function PUT(
     if (b.defaultStatus === "LOCKED" || b.defaultStatus === "FLEXIBLE")
       updates.defaultStatus = b.defaultStatus
     if (typeof b.url === "string") {
-      validiereUrl(b.url)
-      updates.url = b.url
+      updates.url = await validiereUndNormalisiereIcalUrl(b.url)
       // Cache invalidieren wenn URL sich ändert
       await adminDb.collection("ical_cache").doc(uid).collection("kalender").doc(id).delete()
     }

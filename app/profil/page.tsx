@@ -936,8 +936,13 @@ function KalenderFormular({
           placeholder={istBearbeitung ? "Neue URL (leer lassen = unverändert)" : "https://calendar.google.com/calendar/ical/…"}
           required={!istBearbeitung}
           className={`${inputKlasse} font-mono text-xs`} />
-        {istBearbeitung && (
+        {istBearbeitung ? (
           <p className="text-xs sf-text-3 mt-1">URL nur ausfüllen wenn du sie ändern möchtest.</p>
+        ) : (
+          <p className="text-xs sf-text-3 mt-1">
+            Google: Kalender-Einstellungen → &quot;Geheime Adresse im iCal-Format&quot; · Uni-Portal/Outlook: iCal- oder ICS-Export.
+            Behandle den Link wie ein Passwort — er enthält oft einen geheimen Token.
+          </p>
         )}
       </div>
 

@@ -5,9 +5,7 @@ export const dynamic = "force-dynamic"
 import { type NextRequest } from "next/server"
 import { adminAuth, adminDb } from "@/lib/firebase/admin"
 import { parseIcal } from "@/lib/verfuegbarkeit/icalParser"
-
-// iCal-URLs dürfen nur von Google Calendar kommen (SSRF-Schutz)
-const ERLAUBTE_HOSTS = new Set(["calendar.google.com", "myhaw.haw-hamburg.de"])
+import { validiereUndNormalisiereIcalUrl, holeSicherIcal, SSRFFehler } from "@/lib/ical/ssrfGuard"
 
 // Server-Cache: 5 Minuten (Google aktualisiert Feeds sowieso träge)
 const CACHE_TTL_MS = 5 * 60 * 1000
@@ -32,26 +30,12 @@ class EingabeFehler extends Error {}
 function fehlerAntwort(err: unknown): Response {
   if (err instanceof AuthFehler)
     return Response.json({ fehler: err.message }, { status: 401 })
-  if (err instanceof EingabeFehler)
-    return Response.json({ fehler: err.message }, { status: 400 })
+  if (err instanceof EingabeFehler || err instanceof SSRFFehler)
+    return Response.json({ fehler: (err as Error).message }, { status: 400 })
   console.error("[api/ical]", err)
   return Response.json({ fehler: "Interner Fehler" }, { status: 500 })
 }
 
-// ─── URL-Validierung ────────────────────────────────────────────────────────
-
-function validiereIcalUrl(urlString: string): URL {
-  let url: URL
-  try {
-    url = new URL(urlString)
-  } catch {
-    throw new EingabeFehler("Ungültige URL")
-  }
-  if (url.protocol !== "https:") throw new EingabeFehler("URL muss HTTPS sein")
-  if (!ERLAUBTE_HOSTS.has(url.hostname))
-    throw new EingabeFehler(`Host nicht erlaubt: ${url.hostname}`)
-  return url
-}
 
 // ─── Cache-Logik ────────────────────────────────────────────────────────────
 
@@ -86,9 +70,7 @@ async function holeIcalText(
   if (!secretSnap.exists) throw new EingabeFehler("Kalender nicht gefunden")
   const { url } = secretSnap.data()!
 
-  const res = await fetch(url as string, { cache: "no-store" })
-  if (!res.ok) throw new Error(`iCal-Abruf fehlgeschlagen: ${res.status}`)
-  const icalText = await res.text()
+  const icalText = await holeSicherIcal(url as string)
 
   await cacheRef.set({ letzterAbrufMs: Date.now(), icalText })
   return icalText
@@ -181,7 +163,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const { name, farbe, url } = b as Record<string, string>
     const defaultStatus = b.defaultStatus as "LOCKED" | "FLEXIBLE"
-    validiereIcalUrl(url)
+    const normUrl = await validiereUndNormalisiereIcalUrl(url)
 
     const id = crypto.randomUUID()
     await adminDb
@@ -189,7 +171,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       .doc(uid)
       .collection("kalender")
       .doc(id)
-      .set({ id, name, farbe, url, defaultStatus })
+      .set({ id, name, farbe, url: normUrl, defaultStatus })
 
     return Response.json({ id, name, farbe, defaultStatus }, { status: 201 })
   } catch (err) {
