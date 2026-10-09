@@ -18,9 +18,10 @@ export default function ImpressumSeite() {
 
         <h1 className="text-xl font-bold sf-text">Impressum</h1>
 
+        {/* TODO: Prüfen, ob Rechtsform/Inhaber im Impressum ergänzt werden muss (§ 5 DDG) */}
         <section className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
           <p className="text-sm sf-text-2 leading-relaxed">
-            Angaben gemäß § 5 TMG:
+            Angaben gemäß § 5 DDG:
           </p>
           <p className="text-sm sf-text leading-relaxed whitespace-pre-line">
             {LEGAL.NAME}{"\n"}{LEGAL.ANSCHRIFT}{"\n"}{LEGAL.EMAIL}

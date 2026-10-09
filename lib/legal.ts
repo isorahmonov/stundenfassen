@@ -2,9 +2,9 @@
 // Trage hier die echten Werte ein, bevor du deployest.
 // Der Vercel-Build schlägt fehl, solange Platzhalter enthalten sind.
 export const LEGAL = {
-  NAME: "{{NAME}}",
-  ANSCHRIFT: "{{ANSCHRIFT}}",
-  EMAIL: "{{E-MAIL}}",
+  NAME: "DanishAI Company",
+  ANSCHRIFT: "Projensdorfer Straße 155, 24106 Kiel",
+  EMAIL: "info@freeslot.de",
 } as const
 
 const PLATZHALTER_RE = /\{\{[^}]+\}\}/

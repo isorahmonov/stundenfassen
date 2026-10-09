@@ -72,6 +72,7 @@ export async function GET(req: NextRequest) {
     const secretsRef = adminDb.collection("secrets").doc(uid)
 
     const [
+      authUserRecord,
       employersSnap,
       shiftsSnap,
       settingsSnap,
@@ -83,6 +84,7 @@ export async function GET(req: NextRequest) {
       secretsSnap,
       kalenderSnap,
     ] = await Promise.all([
+      adminAuth.getUser(uid),
       userRef.collection("employers").get(),
       userRef.collection("shifts").get(),
       userRef.collection("settings").get(),
@@ -102,6 +104,10 @@ export async function GET(req: NextRequest) {
       version: 1,
       hinweis:
         "iCal-URLs und Passwörter sind nicht enthalten. Diese Datei enthält personenbezogene Daten — bitte sicher aufbewahren.",
+      konto: {
+        email: authUserRecord.email ?? null,
+        anzeigename: authUserRecord.displayName ?? null,
+      },
       daten: {
         employers: snapshotZuListe(employersSnap),
         shifts: snapshotZuListe(shiftsSnap),
