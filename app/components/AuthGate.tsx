@@ -8,6 +8,7 @@ import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
 import { ThemeToggle } from "./ThemeToggle"
+import { ShiftslotLogo } from "./ShiftslotLogo"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 import s from "./AuthGate.module.css"
 
@@ -17,6 +18,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [fehler, setFehler] = useState("")
+  const [isSigningIn, setIsSigningIn] = useState(false)
   const [animSeen] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
     try { return sessionStorage.getItem("sf_login_anim") === "1" } catch { return false }
@@ -40,11 +42,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   async function handleGoogleLogin() {
     setFehler("")
+    setIsSigningIn(true)
     try {
       await signInWithPopup(auth, googleProvider)
     } catch (e: unknown) {
       const msg = e instanceof Error ? `${e.name}: ${e.message}` : JSON.stringify(e)
       setFehler(msg)
+    } finally {
+      setIsSigningIn(false)
     }
   }
 
@@ -64,8 +69,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         </div>
         <div className={`${s.loginWrap} ${animSeen ? s.animVerkuerzt : ""}`}>
 
-          {/* Intro: slot animation + app name */}
+          {/* Intro: logo + slot animation + app name */}
           <div className={s.introWrap}>
+            <div className={`${s.logoMark} ${isSigningIn ? s.logoSpinning : ""}`}>
+              <ShiftslotLogo size={72} mode="mark" />
+            </div>
             <div className={s.slotWrap} aria-hidden="true">
               <div className={s.slotBar}>
                 <div className={`${s.block} ${s.c1}`} />
@@ -107,7 +115,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               </p>
             </div>
 
-            <div className="flex justify-center gap-4 mt-6">
+            <div className="flex justify-center mt-5">
+              <LangSelector />
+            </div>
+
+            <div className="flex justify-center gap-4 mt-4">
               <Link href="/datenschutz" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
                 Datenschutz
               </Link>
@@ -133,6 +145,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       <div className="pb-20">{children}</div>
       <TabBar />
     </>
+  )
+}
+
+function LangSelector() {
+  const [lang, setLang] = useState<"de" | "en" | "ru">("de")
+  return (
+    <div className={s.langWrap} role="group" aria-label="Sprache">
+      {(["de", "en", "ru"] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          className={`${s.langBtn}${lang === l ? ` ${s.langActive}` : ""}`}
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
   )
 }
 
