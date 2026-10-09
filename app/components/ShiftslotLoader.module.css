@@ -8,7 +8,14 @@
   display: inline-flex;
   flex-shrink: 0;
   transform-origin: center;
+  /* lg default: 1.2 s spin + 2 s hold = 3.2 s cycle */
   animation: loaderSpin 3.2s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+}
+
+/* sm / md: 1.2 s spin + 0.3 s hold = 1.5 s cycle */
+.loader.sm .spinning,
+.loader.md .spinning {
+  animation: loaderSpinFast 1.5s cubic-bezier(0.42, 0, 0.58, 1) infinite;
 }
 
 .label {
@@ -29,16 +36,25 @@
   border-width: 0;
 }
 
-/* rotate one full turn (37.5 % of cycle = 1.2 s), then hold */
+/* rotate one full turn (37.5 % of 3.2 s = 1.2 s), then hold 2 s */
 @keyframes loaderSpin {
   0%    { transform: rotate(0deg); }
   37.5% { transform: rotate(360deg); }
   100%  { transform: rotate(360deg); }
 }
 
+/* same spin speed, shorter hold: 80 % of 1.5 s = 1.2 s spin, 0.3 s hold */
+@keyframes loaderSpinFast {
+  0%  { transform: rotate(0deg); }
+  80% { transform: rotate(360deg); }
+  100%{ transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .spinning {
-    animation: loaderPulse 3s ease-in-out infinite;
+  .spinning,
+  .loader.sm .spinning,
+  .loader.md .spinning {
+    animation: loaderPulse 3s ease-in-out infinite !important;
   }
 }
 

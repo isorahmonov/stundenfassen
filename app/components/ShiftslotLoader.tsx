@@ -12,7 +12,7 @@ interface Props {
 
 export function ShiftslotLoader({ size = "md", label }: Props) {
   return (
-    <span role="status" className={s.loader}>
+    <span role="status" className={`${s.loader} ${s[size]}`}>
       <span className={s.spinning} aria-hidden="true">
         <ShiftslotLogo size={SIZE[size]} mode="mark" />
       </span>
