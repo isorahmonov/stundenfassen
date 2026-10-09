@@ -10,6 +10,7 @@ import { TabBar } from "./TabBar"
 import { ThemeToggle } from "./ThemeToggle"
 import { ShiftslotLogo } from "./ShiftslotLogo"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
+import { STRINGS } from "@/lib/ui-strings"
 import s from "./AuthGate.module.css"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
@@ -17,8 +18,10 @@ const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
+  const [authFehler, setAuthFehler] = useState(false)
   const [fehler, setFehler] = useState("")
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const [tabHidden, setTabHidden] = useState(false)
   const [animSeen] = useState<boolean>(() => {
     if (typeof window === "undefined") return false
     try { return sessionStorage.getItem("sf_login_anim") === "1" } catch { return false }
@@ -27,17 +30,36 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const istOeffentlich = OEFFENTLICHE_PFADE.includes(pathname)
 
   useEffect(() => {
+    let settled = false
+    const timer = setTimeout(() => {
+      if (!settled) {
+        setAuthFehler(true)
+        setLaden(false)
+      }
+    }, 10_000)
     const unsubscribe = onAuthStateChanged(auth, (u) => {
+      settled = true
+      clearTimeout(timer)
       setUser(u)
       setLaden(false)
     })
-    return unsubscribe
+    return () => {
+      settled = true
+      clearTimeout(timer)
+      unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
     try { sessionStorage.setItem("sf_login_anim", "1") } catch {
       // ignore — PWA/private browsing
     }
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setTabHidden(document.hidden)
+    document.addEventListener("visibilitychange", handler)
+    return () => document.removeEventListener("visibilitychange", handler)
   }, [])
 
   async function handleGoogleLogin() {
@@ -56,7 +78,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (laden && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center">
-        <span className="text-sm text-stone-400 dark:text-neutral-500">Lade…</span>
+        <span className="text-sm text-stone-400 dark:text-neutral-500">{STRINGS.LAEDT}</span>
+      </div>
+    )
+  }
+
+  if (authFehler && !istOeffentlich) {
+    return (
+      <div className="min-h-screen sf-page flex items-center justify-center px-4">
+        <div className="mx-auto max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <p className="text-sm text-red-600 dark:text-red-400 mb-5 leading-snug">
+            {STRINGS.AUTH_LAEDT_FEHLER}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-xl bg-stone-900 dark:bg-neutral-100 px-5 py-2 text-sm font-semibold text-white dark:text-neutral-900 active:scale-95 transition-all"
+          >
+            {STRINGS.AUTH_NEU_LADEN}
+          </button>
+        </div>
       </div>
     )
   }
@@ -70,8 +110,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <div className={`${s.loginWrap} ${animSeen ? s.animVerkuerzt : ""}`}>
 
           {/* Intro: logo + slot animation + app name */}
-          <div className={s.introWrap}>
-            <div className={`${s.logoMark} ${isSigningIn ? s.logoSpinning : ""}`}>
+          <div className={`${s.introWrap}${tabHidden ? ` ${s.animPaused}` : ""}`}>
+            <div className={s.logoMark}>
               <ShiftslotLogo size={72} mode="mark" />
             </div>
             <div className={s.slotWrap} aria-hidden="true">
@@ -101,10 +141,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               )}
               <button
                 onClick={handleGoogleLogin}
-                className={`w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-medium text-stone-700 dark:text-neutral-200 hover:bg-stone-50 dark:hover:bg-neutral-750 active:scale-[.99] transition-all ${s.loginBtn}`}
+                disabled={isSigningIn}
+                className={`w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-medium text-stone-700 dark:text-neutral-200 hover:bg-stone-50 dark:hover:bg-neutral-750 active:scale-[.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed ${s.loginBtn}`}
               >
                 <GoogleIcon />
-                Mit Google anmelden
+                {isSigningIn ? "Anmelden…" : "Mit Google anmelden"}
               </button>
               <p className="text-xs text-stone-400 dark:text-neutral-500 text-center mt-4 leading-relaxed">
                 Mit der Anmeldung akzeptierst du die{" "}
