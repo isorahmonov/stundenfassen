@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" overflow="hidden">
+  <defs>
+    <!-- Background: white → soft periwinkle, diagonal -->
+    <linearGradient id="bgB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#CDE0FF"/>
+    </linearGradient>
+    <!-- Green bar: vivid → deep -->
+    <linearGradient id="grnB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#27D478"/>
+      <stop offset="100%" stop-color="#14A456"/>
+    </linearGradient>
+    <!-- Blue bar -->
+    <linearGradient id="bluB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#4291FF"/>
+      <stop offset="100%" stop-color="#1A60DC"/>
+    </linearGradient>
+    <!-- Blue bar bottom (slightly lighter) -->
+    <linearGradient id="blu2B" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#62AAFF"/>
+      <stop offset="100%" stop-color="#2E7AEE"/>
+    </linearGradient>
+    <!-- Orange block: bright → deep -->
+    <linearGradient id="orgB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FF9A2E"/>
+      <stop offset="100%" stop-color="#E25700"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ─── Background: full square, no rounded corners ─── -->
+  <rect width="1024" height="1024" fill="url(#bgB)"/>
+
+  <!-- ─── Symbol: 4 rows × (130 h + 32 gap) = 616 px → 60 % of 1024 ─── -->
+  <!-- All bars: x=202, w=620 (60.5 % width), rx=65 -->
+
+  <!-- Row 1 – Green bar -->
+  <rect x="202" y="204" width="620" height="130" rx="65" fill="url(#grnB)"/>
+
+  <!-- Row 2 – Blue bar -->
+  <rect x="202" y="366" width="620" height="130" rx="65" fill="url(#bluB)"/>
+
+  <!-- Row 3 – SLOT: dashed outline, no fill -->
+  <rect x="202" y="528" width="620" height="130" rx="65"
+        fill="none"
+        stroke="#90AFC8"
+        stroke-width="9"
+        stroke-dasharray="20 11"/>
+
+  <!-- Row 4 – Blue bar (slightly lighter for variety) -->
+  <rect x="202" y="690" width="620" height="130" rx="65" fill="url(#blu2B)"/>
+
+  <!-- ─── Orange block: enters from right edge, 40 px gap from slot ─── -->
+  <rect x="862" y="528" width="300" height="130" rx="65" fill="url(#orgB)"/>
+</svg>

@@ -1,0 +1,31 @@
+/* ── Theme switching: default = system preference ────────────── */
+
+.dark  { display: none; }
+.light { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  .dark  { display: block; }
+  .light { display: none; }
+}
+
+/* Explicit data-theme overrides (set by the Part-2 theme system) */
+:global([data-theme="dark"])  .dark  { display: block; }
+:global([data-theme="dark"])  .light { display: none;  }
+:global([data-theme="light"]) .dark  { display: none;  }
+:global([data-theme="light"]) .light { display: block; }
+
+/* ── Wordmark layout ─────────────────────────────────────────── */
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.wordmarkText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--sf-text);
+  line-height: 1;
+}

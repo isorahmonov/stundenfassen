@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" overflow="hidden">
+  <defs>
+    <!-- Background: deep blue → indigo, diagonal -->
+    <linearGradient id="bgA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0C1847"/>
+      <stop offset="100%" stop-color="#22138A"/>
+    </linearGradient>
+    <!-- Subtle top-center radial sheen on background -->
+    <radialGradient id="bgSheen" cx="50%" cy="15%" r="55%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#3A5FD0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3A5FD0" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Green bar: bright top → deep bottom -->
+    <linearGradient id="grnA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#4DF4A2"/>
+      <stop offset="100%" stop-color="#17CB7B"/>
+    </linearGradient>
+    <!-- Blue bar top -->
+    <linearGradient id="bluA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#5ACFFF"/>
+      <stop offset="100%" stop-color="#28ADF2"/>
+    </linearGradient>
+    <!-- Blue bar bottom (softer shade) -->
+    <linearGradient id="blu2A" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#46B2EE"/>
+      <stop offset="100%" stop-color="#1D8AD6"/>
+    </linearGradient>
+    <!-- Orange block: warm top → deep orange bottom -->
+    <linearGradient id="orgA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFB85A"/>
+      <stop offset="100%" stop-color="#FF6E18"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ─── Background: full square, no rounded corners ─── -->
+  <rect width="1024" height="1024" fill="url(#bgA)"/>
+  <rect width="1024" height="1024" fill="url(#bgSheen)"/>
+
+  <!-- ─── Symbol: 4 rows × (130 h + 32 gap) = 616 px → 60 % of 1024 ─── -->
+  <!-- All bars: x=202, w=620 (60.5 % width), rx=65 -->
+
+  <!-- Row 1 – Green bar -->
+  <rect x="202" y="204" width="620" height="130" rx="65" fill="url(#grnA)"/>
+
+  <!-- Row 2 – Blue bar -->
+  <rect x="202" y="366" width="620" height="130" rx="65" fill="url(#bluA)"/>
+
+  <!-- Row 3 – SLOT: dashed outline, no fill -->
+  <rect x="202" y="528" width="620" height="130" rx="65"
+        fill="none"
+        stroke="#6E9ED8"
+        stroke-width="8"
+        stroke-dasharray="20 11"
+        opacity="0.65"/>
+
+  <!-- Row 4 – Blue bar (slightly cooler) -->
+  <rect x="202" y="690" width="620" height="130" rx="65" fill="url(#blu2A)"/>
+
+  <!-- ─── Orange block: enters from right edge, 40 px gap from slot ─── -->
+  <!-- x=862 → right edge 1162, clipped at 1024; shows 162 px (left cap + straight) -->
+  <rect x="862" y="528" width="300" height="130" rx="65" fill="url(#orgA)"/>
+</svg>
