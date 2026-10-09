@@ -47,3 +47,4 @@ scripts/migrate-*
 *.backup.json
 employer-backup-*.json
 tsconfig.scripts.json
+scripts/screenshot-login.mjs
