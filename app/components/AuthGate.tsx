@@ -1,15 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import type { User } from "firebase/auth"
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
 
+const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
+
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [fehler, setFehler] = useState("")
+  const pathname = usePathname()
+  const istOeffentlich = OEFFENTLICHE_PFADE.includes(pathname)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -29,7 +35,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }
 
-  if (laden) {
+  if (laden && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center">
         <span className="text-sm text-stone-400 dark:text-neutral-500">Lade…</span>
@@ -37,7 +43,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
+  if (!user && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
@@ -63,10 +69,31 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               <GoogleIcon />
               Mit Google anmelden
             </button>
+            <p className="text-xs text-stone-400 dark:text-neutral-500 text-center mt-4 leading-relaxed">
+              Mit der Anmeldung akzeptierst du die{" "}
+              <Link href="/datenschutz" className="underline hover:text-stone-600 dark:hover:text-neutral-300">
+                Datenschutzerklärung
+              </Link>
+              .
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-4 mt-6">
+            <Link href="/datenschutz" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
+              Datenschutz
+            </Link>
+            <span className="text-xs text-stone-300 dark:text-neutral-600">·</span>
+            <Link href="/impressum" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
+              Impressum
+            </Link>
           </div>
         </div>
       </div>
     )
+  }
+
+  if (!user && istOeffentlich) {
+    return <div className="min-h-screen sf-page">{children}</div>
   }
 
   return (

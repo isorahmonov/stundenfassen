@@ -643,6 +643,15 @@ export default function ProfilSeite() {
               >
                 Abmelden
               </button>
+              <div className="flex justify-center gap-4 pt-1">
+                <Link href="/datenschutz" className="text-xs sf-text-3 hover:underline">
+                  Datenschutz
+                </Link>
+                <span className="text-xs sf-text-3">·</span>
+                <Link href="/impressum" className="text-xs sf-text-3 hover:underline">
+                  Impressum
+                </Link>
+              </div>
             </div>
           </div>
 
