@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { signOut } from "firebase/auth"
-import { auth } from "@/lib/firebase/client"
+import { signOut, reauthenticateWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "@/lib/firebase/client"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
 import type { Employer, MinusEintrag, EmailVorlage, Settings, Steuerklasse } from "@/lib/types"
@@ -83,6 +83,7 @@ export default function ProfilSeite() {
   const [fehler, setFehler] = useState("")
 
   const [abmeldenOffen, setAbmeldenOffen] = useState(false)
+  const [loeschenOffen, setLoeschenOffen] = useState(false)
   const nutzerEmail = auth.currentUser?.email ?? ""
 
   useEffect(() => { ladeKalender() }, [])
@@ -178,6 +179,53 @@ export default function ProfilSeite() {
     keysToRemove.forEach((k) => localStorage.removeItem(k))
     await signOut(auth)
     // AuthGate erkennt den Logout via onAuthStateChanged und zeigt den Login-Screen
+  }
+
+  async function kontoLoeschen() {
+    if (!auth.currentUser) throw new Error("Nicht angemeldet")
+    // Frische Google-Bestätigung via Popup (Pflicht vor Konto-Löschung).
+    // iOS-Homescreen-PWA blockiert Popups (auth/popup-blocked) — in dem Fall
+    // klaren Hinweis geben. Muss im iOS-PWA-Modus getestet werden.
+    try {
+      await reauthenticateWithPopup(auth.currentUser, googleProvider)
+    } catch (e: unknown) {
+      const err = e as { code?: string }
+      if (
+        err.code === "auth/popup-blocked" ||
+        err.code === "auth/cancelled-popup-request"
+      ) {
+        throw new Error(
+          "Das Anmelde-Popup wurde blockiert. Bitte öffne die App im Browser (Safari → Teilen → In Browser öffnen) und versuche es erneut.",
+        )
+      }
+      throw e
+    }
+    const token = await auth.currentUser.getIdToken(true)
+
+    const res = await fetch("/api/konto/loeschen", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}))
+      throw new Error((b as Record<string, string>).fehler ?? `Fehler ${res.status}`)
+    }
+
+    // Alle sf_* localStorage-Schlüssel löschen
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith("sf_")) keysToRemove.push(k)
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k))
+
+    // Service-Worker-Caches leeren
+    if ("caches" in window) {
+      const cacheNames = await caches.keys()
+      await Promise.all(cacheNames.map((name) => caches.delete(name)))
+    }
+
+    await signOut(auth)
   }
 
   async function ladeKalender() {
@@ -643,6 +691,12 @@ export default function ProfilSeite() {
               >
                 Abmelden
               </button>
+              <button
+                onClick={() => setLoeschenOffen(true)}
+                className="w-full rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-[.99] transition-all"
+              >
+                Konto löschen
+              </button>
               <div className="flex justify-center gap-4 pt-1">
                 <Link href="/datenschutz" className="text-xs sf-text-3 hover:underline">
                   Datenschutz
@@ -663,6 +717,14 @@ export default function ProfilSeite() {
           email={nutzerEmail}
           onBestaetigen={abmelden}
           onAbbrechen={() => setAbmeldenOffen(false)}
+        />
+      )}
+
+      {loeschenOffen && (
+        <KontoLoeschenDialog
+          email={nutzerEmail}
+          onLoeschen={kontoLoeschen}
+          onAbbrechen={() => setLoeschenOffen(false)}
         />
       )}
     </main>
@@ -815,6 +877,99 @@ function AbmeldenDialog({
             style={{ backgroundColor: "#2563eb" }}
           >
             Abmelden
+          </button>
+        </div>
+      </div>
+    </BaseDialog>
+  )
+}
+
+// ─── KontoLoeschenDialog ─────────────────────────────────────────────────────────
+
+function KontoLoeschenDialog({
+  email,
+  onLoeschen,
+  onAbbrechen,
+}: {
+  email: string
+  onLoeschen: () => Promise<void>
+  onAbbrechen: () => void
+}) {
+  const [eingabe, setEingabe] = useState("")
+  const [fehler, setFehler] = useState("")
+  const [laden, setLaden] = useState(false)
+
+  const bestaetigt = eingabe === email || eingabe === "LÖSCHEN"
+
+  async function handleBestaetigen() {
+    if (!bestaetigt) return
+    setLaden(true)
+    setFehler("")
+    try {
+      await onLoeschen()
+    } catch (e) {
+      setFehler(e instanceof Error ? e.message : String(e))
+      setLaden(false)
+    }
+  }
+
+  return (
+    <BaseDialog onBackdropClick={laden ? undefined : onAbbrechen} maxWidth="max-w-sm">
+      <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
+        <div>
+          <h2 className="text-base font-bold sf-text mb-2">Konto unwiderruflich löschen?</h2>
+          <p className="text-sm sf-text-2 leading-relaxed mb-1.5">
+            Diese Aktion kann nicht rückgängig gemacht werden. Gelöscht werden:
+          </p>
+          <ul className="text-sm sf-text-2 leading-relaxed list-disc list-inside space-y-0.5 pl-1">
+            <li>Alle Schichten, Arbeitgeber und Einstellungen</li>
+            <li>E-Mail-Vorlagen und Abrechnungsabgleiche</li>
+            <li>Geplante Schichten und Minusstunden-Einträge</li>
+            <li>Kalender-URLs (inkl. Token) und iCal-Cache</li>
+            <li>Gmail-Zugangsdaten</li>
+            <li>Dein Google-Konto-Zugang zu dieser App</li>
+          </ul>
+        </div>
+
+        <p className="text-sm sf-text-2 leading-relaxed">
+          Es öffnet sich ein Google-Popup zur Bestätigung deiner Identität.
+        </p>
+
+        <div>
+          <label className="text-xs sf-text-2 mb-1.5 block">
+            Gib deine E-Mail-Adresse oder <span className="font-mono">LÖSCHEN</span> ein
+          </label>
+          <input
+            type="text"
+            value={eingabe}
+            onChange={(e) => setEingabe(e.target.value)}
+            placeholder={email || "LÖSCHEN"}
+            disabled={laden}
+            className="sf-input w-full rounded-xl px-3 py-2.5 text-sm disabled:opacity-50"
+            autoComplete="off"
+          />
+        </div>
+
+        {fehler && (
+          <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
+            {fehler}
+          </p>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            onClick={onAbbrechen}
+            disabled={laden}
+            className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={handleBestaetigen}
+            disabled={!bestaetigt || laden}
+            className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[.98] transition-all disabled:opacity-40"
+          >
+            {laden ? "Wird gelöscht…" : "Konto löschen"}
           </button>
         </div>
       </div>
