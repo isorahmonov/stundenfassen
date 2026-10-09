@@ -29,6 +29,7 @@ import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import { employers as employersRepo, geplanteSchichten as geplanteRepo, shifts as shiftsRepo } from "@/lib/storage"
 import { EinrichtungsDialog, sollDialogOeffnen } from "../components/EinrichtungsDialog"
 import { KeinArbeitgeberKarte } from "../components/KeinArbeitgeberKarte"
+import { useLang, useT } from "@/app/components/LangProvider"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -58,8 +59,8 @@ function berlinUhrzeit(isoStr: string): string {
   })
 }
 
-function formatTagKopf(datum: string): string {
-  return new Date(datum + "T12:00:00Z").toLocaleDateString("de-DE", {
+function formatTagKopf(datum: string, locale = "de-DE"): string {
+  return new Date(datum + "T12:00:00Z").toLocaleDateString(locale, {
     timeZone: BERLIN, weekday: "long", day: "2-digit", month: "2-digit",
   })
 }
@@ -151,6 +152,9 @@ function geplanteTermine(schichten: GeplanteSchicht[], alleTage: string[]): Term
 // ─── Komponente ───────────────────────────────────────────────────────────────
 
 export default function VerfuegbarkeitPage() {
+  const { locale } = useLang()
+  const t = useT()
+
   const [startSonntagStr, setStartSonntagStr] = useState(aktuellerSonntagStr)
   const [anzahlWochen, setAnzahlWochen] = useState(2)
 
@@ -241,12 +245,12 @@ export default function VerfuegbarkeitPage() {
     function verarbeiteRohdaten(rohdaten: { roh: TerminRoh[]; k: KalenderInfo }[]) {
       const alleTermine: TerminMitStatus[] = []
       for (const { roh, k } of rohdaten) {
-        for (const t of roh) {
+        for (const termin of roh) {
           alleTermine.push({
-            uid: t.uid, titel: t.titel,
-            beginn: new Date(t.beginn), ende: new Date(t.ende),
-            ganztaegig: t.ganztaegig, ort: t.ort,
-            status: resolveStatus(t.titel, k.defaultStatus),
+            uid: termin.uid, titel: termin.titel,
+            beginn: new Date(termin.beginn), ende: new Date(termin.ende),
+            ganztaegig: termin.ganztaegig, ort: termin.ort,
+            status: resolveStatus(termin.titel, k.defaultStatus),
           })
         }
       }
@@ -293,7 +297,7 @@ export default function VerfuegbarkeitPage() {
           status: "LOCKED" as const,
         }))
       } catch {
-        setFehler("Schichten anderer Arbeitgeber konnten nicht geladen werden — Verfügbarkeit wird ohne diese Sperre berechnet.")
+        setFehler(t("VERF_SCHICHTEN_LADEN_FEHLER"))
       }
 
       const ergebnisseRaw = await Promise.allSettled(
@@ -331,12 +335,12 @@ export default function VerfuegbarkeitPage() {
 
       const alleKalTermine: TerminMitStatus[] = []
       for (const { roh, k } of ergebnisse) {
-        for (const t of roh) {
+        for (const termin of roh) {
           alleKalTermine.push({
-            uid: t.uid, titel: t.titel,
-            beginn: new Date(t.beginn), ende: new Date(t.ende),
-            ganztaegig: t.ganztaegig, ort: t.ort,
-            status: resolveStatus(t.titel, k.defaultStatus),
+            uid: termin.uid, titel: termin.titel,
+            beginn: new Date(termin.beginn), ende: new Date(termin.ende),
+            ganztaegig: termin.ganztaegig, ort: termin.ort,
+            status: resolveStatus(termin.titel, k.defaultStatus),
           })
         }
       }
@@ -356,7 +360,7 @@ export default function VerfuegbarkeitPage() {
     } finally {
       setLaden(false)
     }
-  }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe, einst, selectedEmployerId])
+  }, [kalender, startSonntagStr, anzahlWochen, bundesland, geplanteSchichtenListe, einst, selectedEmployerId, t])
 
   useEffect(() => { berechneFetchRef.current = berechneFetch })
 
@@ -426,9 +430,9 @@ export default function VerfuegbarkeitPage() {
     {},
   )
   const termineNachDatum = termine.reduce<Record<string, TerminMitStatus[]>>(
-    (acc, t) => {
-      const datum = berlinDatumStr(t.beginn)
-      ;(acc[datum] ??= []).push(t)
+    (acc, termin) => {
+      const datum = berlinDatumStr(termin.beginn)
+      ;(acc[datum] ??= []).push(termin)
       return acc
     },
     {},
@@ -459,18 +463,18 @@ export default function VerfuegbarkeitPage() {
         {/* ── Kopfzeile ─────────────────────────────────────────────────── */}
         <header className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-base font-semibold sf-text">Verfügbarkeit</h1>
+            <h1 className="text-base font-semibold sf-text">{t("VERF_TITEL")}</h1>
             <div className="flex items-center gap-2">
               {zuletztAktualisiert && (
                 <span className="text-xs sf-text-3 tabular-nums">
-                  {zuletztAktualisiert.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                  {zuletztAktualisiert.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
                 </span>
               )}
               <button
                 onClick={() => berechneFetch({ force: true })}
                 disabled={laden}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 dark:hover:bg-neutral-800 active:scale-90 transition-all disabled:opacity-40"
-                aria-label="Kalender aktualisieren"
+                aria-label={t("VERF_KALENDER_AKTUALISIEREN")}
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M2 8a6 6 0 0 1 11.3-2.8"/>
@@ -487,7 +491,7 @@ export default function VerfuegbarkeitPage() {
             {/* Arbeitgeber-Auswahl */}
             {alleAktiveArbeitgeber.length > 1 && (
               <div>
-                <label className="block text-xs sf-text-2 mb-1">Arbeitgeber</label>
+                <label className="block text-xs sf-text-2 mb-1">{t("ARBEITGEBER_LABEL")}</label>
                 <select
                   value={selectedEmployerId}
                   onChange={(e) => setSelectedEmployerId(e.target.value)}
@@ -501,7 +505,7 @@ export default function VerfuegbarkeitPage() {
             )}
 
             <div>
-              <label className="block text-xs sf-text-2 mb-1">Ab (wird auf Sonntag eingerastet)</label>
+              <label className="block text-xs sf-text-2 mb-1">{t("VERF_AB_LABEL")}</label>
               <input
                 type="date"
                 value={startSonntagStr}
@@ -514,7 +518,7 @@ export default function VerfuegbarkeitPage() {
             </div>
 
             <div>
-              <label className="block text-xs sf-text-2 mb-1">Wochen</label>
+              <label className="block text-xs sf-text-2 mb-1">{t("VERF_WOCHEN_LABEL")}</label>
               <select
                 value={anzahlWochen}
                 onChange={(e) => setAnzahlWochen(Number(e.target.value))}
@@ -527,7 +531,7 @@ export default function VerfuegbarkeitPage() {
             </div>
 
             <div>
-              <label className="block text-xs sf-text-2 mb-1">Bundesland (Feiertage)</label>
+              <label className="block text-xs sf-text-2 mb-1">{t("VERF_BUNDESLAND_LABEL")}</label>
               <select
                 value={bundesland}
                 onChange={() => {/* wird aus Arbeitgeber gelesen */}}
@@ -546,19 +550,19 @@ export default function VerfuegbarkeitPage() {
           selectedEmployer.verfuegbarkeit.einrichtungBestaetigt !== true && (
           <div className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3">
             <p className="text-sm text-amber-800 dark:text-amber-300">
-              Für <strong>{selectedEmployer.name}</strong> ist die Verfügbarkeit noch nicht eingerichtet
+              {t("VERF_NICHT_EINGERICHTET").replace("{name}", selectedEmployer.name)}
             </p>
             <button
               onClick={() => setEinrichtungsId(selectedEmployer.id)}
               className="shrink-0 text-sm font-semibold text-amber-700 dark:text-amber-400 hover:underline"
             >
-              Jetzt einrichten
+              {t("JETZT_EINRICHTEN")}
             </button>
           </div>
         )}
 
         <p className="text-xs sf-text-3 -mt-2 mb-4">
-          Hinweis: Google aktualisiert Kalender-Feeds teilweise erst nach einigen Stunden.
+          {t("VERF_GOOGLE_HINWEIS")}
         </p>
 
         {fehler && (
@@ -573,14 +577,15 @@ export default function VerfuegbarkeitPage() {
               const k = kalender.find((kal) => kal.id === id)
               const ts = kalenderStaleStand[id]
               const standStr = ts
-                ? new Date(ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+                ? new Date(ts).toLocaleString(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
                 : null
+              const kalName = k?.name ?? id
               return (
                 <div key={id} className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
                   <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
                     {standStr
-                      ? `Kalender „${k?.name ?? id}" konnte nicht geladen werden – Stand: ${standStr}`
-                      : `Kalender „${k?.name ?? id}" konnte nicht geladen werden – ohne diesen Kalender berechnet`}
+                      ? t("VERF_KALENDER_FEHLER_MIT_STAND").replace("{name}", kalName).replace("{stand}", standStr)
+                      : t("VERF_KALENDER_FEHLER_OHNE_STAND").replace("{name}", kalName)}
                   </p>
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{msg}</p>
                 </div>
@@ -591,9 +596,11 @@ export default function VerfuegbarkeitPage() {
 
         {kalender.length === 0 && !laden && (
           <div className="sf-card rounded-2xl p-8 text-center shadow-sm">
-            <p className="text-sm sf-text-2">Noch keine Kalender eingerichtet.</p>
+            <p className="text-sm sf-text-2">{t("VERF_KEINE_KALENDER")}</p>
             <p className="text-xs sf-text-3 mt-1">
-              Kalender unter <a href="/profil" className="underline">Profil → Kalender</a> hinterlegen.
+              {t("VERF_KALENDER_PROFIL_VOR")}{" "}
+              <a href="/profil" className="underline">{t("VERF_KALENDER_PROFIL_LINK")}</a>
+              {" "}{t("VERF_KALENDER_PROFIL_NACH")}
             </p>
           </div>
         )}
@@ -601,7 +608,7 @@ export default function VerfuegbarkeitPage() {
         {verfBlöcke.length > 0 && (
           <div className="sf-card rounded-2xl px-4 py-3 mb-4 shadow-sm flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs sf-text-2">Ausgewählt</p>
+              <p className="text-xs sf-text-2">{t("VERF_AUSGEWAEHLT")}</p>
               <p className="text-lg font-semibold sf-text nums">{formatDauerMin(gesamtMin)}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -635,7 +642,7 @@ export default function VerfuegbarkeitPage() {
               <section key={wocheDaten[0]}>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-xs font-semibold sf-text-2 uppercase tracking-wide">
-                    Woche {wi + 1}
+                    {t("VERF_WOCHE")} {wi + 1}
                   </span>
                   <div className="flex-1 h-px bg-stone-200 dark:bg-neutral-800" />
                 </div>
@@ -648,7 +655,7 @@ export default function VerfuegbarkeitPage() {
                     const feiertag = feiertagName(date, bundesland)
                     const blöcke = verfBlöckeNachDatum[datum] ?? []
                     const termineHeute = (termineNachDatum[datum] ?? []).filter(
-                      (t) => t.status !== "RELEASED",
+                      (termin) => termin.status !== "RELEASED",
                     )
 
                     return (
@@ -660,7 +667,7 @@ export default function VerfuegbarkeitPage() {
                       >
                         <div className="flex items-baseline justify-between mb-2">
                           <h3 className={`text-sm font-medium ${feiertag ? "text-red-600 dark:text-red-400" : "sf-text"}`}>
-                            {formatTagKopf(datum)}
+                            {formatTagKopf(datum, locale)}
                           </h3>
                           {feiertag && (
                             <span className="text-xs text-red-500 dark:text-red-400">{feiertag}</span>
@@ -668,10 +675,10 @@ export default function VerfuegbarkeitPage() {
                         </div>
 
                         {(!istErlaubt || feiertag) ? (
-                          <p className="text-xs sf-text-3">— nicht verfügbar</p>
+                          <p className="text-xs sf-text-3">{t("VERF_NICHT_VERFUEGBAR")}</p>
                         ) : blöcke.length === 0 ? (
                           <>
-                            <p className="text-xs sf-text-3">— keine freien Blöcke ≥ {mindestStdText}</p>
+                            <p className="text-xs sf-text-3">{t("VERF_KEINE_BLOECKE").replace("{min}", mindestStdText)}</p>
                             {termineHeute.length > 0 && <EreignisListe termine={termineHeute} />}
                           </>
                         ) : (
@@ -715,17 +722,19 @@ export default function VerfuegbarkeitPage() {
         {archivListe.length > 0 && (
           <section className="mt-8 mb-4">
             <h2 className="text-xs font-semibold sf-text-2 uppercase tracking-wide mb-3">
-              Zuletzt exportiert
+              {t("VERF_ZULETZT_EXPORTIERT")}
             </h2>
             <div className="space-y-2">
               {archivListe.slice(0, 5).map((e) => (
                 <div key={e.id} className="sf-card rounded-xl px-4 py-3 shadow-sm flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium sf-text">
-                      {e.kalenderwochen.length > 0 ? `KW ${e.kalenderwochen.join(" + ")}` : e.datumVon}
+                      {e.kalenderwochen.length > 0
+                        ? `${t("SCHICHTEN_KW_PREFIX")} ${e.kalenderwochen.join(" + ")}`
+                        : e.datumVon}
                     </p>
                     <p className="text-xs sf-text-3">
-                      {e.erstelltAm.toLocaleDateString("de-DE")} · {formatDauerMin(e.gesamtMinuten)}
+                      {e.erstelltAm.toLocaleDateString(locale)} · {formatDauerMin(e.gesamtMinuten)}
                     </p>
                   </div>
                   <span className="text-xs sf-text-3 whitespace-nowrap">
@@ -784,7 +793,7 @@ function WochenSkeleton({ anzahlWochen }: { anzahlWochen: number }) {
   )
 }
 
-// ─── Termineiste ─────────────────────────────────────────────────────────────
+// ─── Ereignisliste ────────────────────────────────────────────────────────────
 
 function EreignisListe({ termine }: { termine: TerminMitStatus[] }) {
   return (

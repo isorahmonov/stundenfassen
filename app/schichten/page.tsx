@@ -10,11 +10,11 @@ import {
   geplanteSchichten as geplanteRepo,
 } from "@/lib/storage"
 import { KeinArbeitgeberKarte } from "@/app/components/KeinArbeitgeberKarte"
-import { STRINGS } from "@/lib/ui-strings"
 import { withTimeout } from "@/lib/withTimeout"
 import type { Employer, GeplanteSchicht } from "@/lib/types"
 import { aktuellerSonntagStr, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
+import { useLang, useT } from "@/app/components/LangProvider"
 
 const KW_ANKER = "2026-02-01"
 const BERLIN = "Europe/Berlin"
@@ -25,9 +25,9 @@ function formatDauerMin(min: number): string {
   return (min / 60).toFixed(1).replace(".", ",") + " Std."
 }
 
-function datumKurz(iso: string): string {
+function datumKurz(iso: string, locale = "de-DE"): string {
   const [y, m, d] = iso.split("-").map(Number)
-  return new Date(y, m - 1, d, 12).toLocaleDateString("de-DE", {
+  return new Date(y, m - 1, d, 12).toLocaleDateString(locale, {
     timeZone: BERLIN,
     weekday: "short",
     day: "2-digit",
@@ -49,6 +49,9 @@ function heuteISO(): string {
 // ─── Hauptseite ───────────────────────────────────────────────────────────────
 
 export default function SchichtenPage() {
+  const { locale } = useLang()
+  const t = useT()
+
   const [startSonntagStr, setStartSonntagStr] = useState(aktuellerSonntagStr)
   const [arbeitgeber, setArbeitgeber] = useState<Employer[]>([])
   const [alleGeplante, setAlleGeplante] = useState<GeplanteSchicht[]>([])
@@ -63,7 +66,7 @@ export default function SchichtenPage() {
   const vonStr = woche[0]
   const bisStr = woche[6]
   const moStr  = woche[1]
-  const wochenLabel = `KW ${tkWoche(startSonntagStr, KW_ANKER)} · ${datumKurz(moStr)} – ${datumKurz(bisStr)}`
+  const wochenLabel = `${t("SCHICHTEN_KW_PREFIX")} ${tkWoche(startSonntagStr, KW_ANKER)} · ${datumKurz(moStr, locale)} – ${datumKurz(bisStr, locale)}`
 
   const wochenGeplante = alleGeplante
     .filter((s) => s.datum >= vonStr && s.datum <= bisStr)
@@ -170,13 +173,13 @@ export default function SchichtenPage() {
           <button
             onClick={prevWoche}
             className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
-            aria-label="Vorherige Woche"
+            aria-label={t("SCHICHTEN_ARIA_PREV")}
           >‹</button>
           <h1 className="text-sm font-semibold sf-text text-center">{wochenLabel}</h1>
           <button
             onClick={nextWoche}
             className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
-            aria-label="Nächste Woche"
+            aria-label={t("SCHICHTEN_ARIA_NEXT")}
           >›</button>
         </header>
 
@@ -197,12 +200,12 @@ export default function SchichtenPage() {
         {/* Wochenübersicht */}
         <div className="sf-card rounded-2xl p-4 shadow-sm mb-4 flex gap-8">
           <div>
-            <p className="text-xs sf-text-3 mb-0.5">Eingeteilt</p>
+            <p className="text-xs sf-text-3 mb-0.5">{t("SCHICHTEN_EINGETEILT")}</p>
             <p className="text-xl font-semibold nums sf-text">{formatDauerMin(eingeteiltMin)}</p>
           </div>
           {archivMinuten !== null && (
             <div>
-              <p className="text-xs sf-text-3 mb-0.5">Angeboten (letztes PDF)</p>
+              <p className="text-xs sf-text-3 mb-0.5">{t("SCHICHTEN_ANGEBOTEN_PDF")}</p>
               <p className="text-xl font-semibold nums sf-text">{formatDauerMin(archivMinuten)}</p>
             </div>
           )}
@@ -213,7 +216,7 @@ export default function SchichtenPage() {
           {neuOffen ? (
             <div className="sf-card rounded-2xl shadow-sm overflow-hidden">
               <div className="p-4">
-                <p className="text-sm font-semibold sf-text mb-4">Neue Schicht eintragen</p>
+                <p className="text-sm font-semibold sf-text mb-4">{t("SCHICHTEN_NEUE_EINTRAGEN")}</p>
                 <NeueSchichtFormular
                   arbeitgeber={arbeitgeber}
                   onSpeichern={(d) => hinzufuegen(d).catch((e) => setFehler(String(e)))}
@@ -227,7 +230,7 @@ export default function SchichtenPage() {
               className="w-full sf-card rounded-2xl p-3 shadow-sm flex items-center justify-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-stone-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
             >
               <span className="text-xl font-light leading-none">+</span>
-              Neue Schicht eintragen
+              {t("SCHICHTEN_NEUE_EINTRAGEN")}
             </button>
           )}
         </div>
@@ -236,12 +239,12 @@ export default function SchichtenPage() {
         <div className="space-y-2">
           {wochenGeplante.length === 0 ? (
             <div className="sf-card rounded-2xl p-8 text-center shadow-sm">
-              <p className="text-sm sf-text-2">Keine Schichten diese Woche.</p>
+              <p className="text-sm sf-text-2">{t("SCHICHTEN_KEINE_DIESE_WOCHE")}</p>
               <button
                 onClick={() => setNeuOffen(true)}
                 className="mt-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Erste eintragen →
+                {t("SCHICHTEN_ERSTE_EINTRAGEN")}
               </button>
             </div>
           ) : (
@@ -256,8 +259,8 @@ export default function SchichtenPage() {
                       style={{ backgroundColor: ag?.farbe ?? "#a8a29e" }}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium sf-text">{ag?.name ?? "Unbekannt"}</p>
-                      <p className="text-xs sf-text-2">{datumKurz(s.datum)}</p>
+                      <p className="text-sm font-medium sf-text">{ag?.name ?? t("SCHICHTEN_UNBEKANNTER_AG")}</p>
+                      <p className="text-xs sf-text-2">{datumKurz(s.datum, locale)}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-semibold nums sf-text">{s.start}–{s.ende}</p>
@@ -268,25 +271,25 @@ export default function SchichtenPage() {
                   <div className="flex items-center pt-2 border-t border-stone-100 dark:border-white/5">
                     {s.uebernommen ? (
                       <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                        ✓ In Stundenzettel übernommen
+                        {t("SCHICHTEN_UEBERNOMMEN")}
                       </span>
                     ) : (
                       <button
                         onClick={() => uebernehmen(s).catch((e) => setFehler(String(e)))}
                         className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                       >
-                        In Stundenzettel übernehmen →
+                        {t("SCHICHTEN_UEBERNEHMEN")}
                       </button>
                     )}
                     <span className="flex-1" />
                     <button
                       onClick={() => {
-                        if (confirm(`Schicht am ${datumKurz(s.datum)} löschen?`))
+                        if (confirm(t("SCHICHTEN_LOESCHEN_FRAGE").replace("{datum}", datumKurz(s.datum, locale))))
                           loeschen(s.id).catch((e) => setFehler(String(e)))
                       }}
                       className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors"
                     >
-                      Löschen
+                      {t("LOESCHEN")}
                     </button>
                   </div>
                 </div>
@@ -311,6 +314,7 @@ function NeueSchichtFormular({
   onSpeichern: (d: { employerId: string; datum: string; start: string; ende: string }) => void
   onAbbrechen: () => void
 }) {
+  const t = useT()
   const [employerId, setEmployerId] = useState(arbeitgeber[0]?.id ?? "")
   const [datum, setDatum] = useState(heuteISO)
   const [start, setStart] = useState("")
@@ -329,7 +333,7 @@ function NeueSchichtFormular({
     <form onSubmit={submit} className="space-y-3">
       {/* Arbeitgeber */}
       <div>
-        <p className="text-xs sf-text-2 mb-1">Arbeitgeber</p>
+        <p className="text-xs sf-text-2 mb-1">{t("ARBEITGEBER_LABEL")}</p>
         <select
           value={employerId}
           onChange={(e) => setEmployerId(e.target.value)}
@@ -344,7 +348,7 @@ function NeueSchichtFormular({
 
       {/* Datum */}
       <div>
-        <p className="text-xs sf-text-2 mb-1">Datum</p>
+        <p className="text-xs sf-text-2 mb-1">{t("DATUM_LABEL")}</p>
         <input
           type="date"
           value={datum}
@@ -357,7 +361,7 @@ function NeueSchichtFormular({
       {/* Start / Ende */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="text-xs sf-text-2 mb-1">Start</p>
+          <p className="text-xs sf-text-2 mb-1">{t("SCHICHTEN_FORM_START")}</p>
           <input
             type="time"
             value={start}
@@ -367,7 +371,7 @@ function NeueSchichtFormular({
           />
         </div>
         <div>
-          <p className="text-xs sf-text-2 mb-1">Ende</p>
+          <p className="text-xs sf-text-2 mb-1">{t("SCHICHTEN_FORM_ENDE")}</p>
           <input
             type="time"
             value={ende}
@@ -385,13 +389,13 @@ function NeueSchichtFormular({
           onClick={onAbbrechen}
           className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
         >
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button
           type="submit"
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 active:scale-95 transition-all"
         >
-          Hinzufügen
+          {t("HINZUFUEGEN")}
         </button>
       </div>
     </form>

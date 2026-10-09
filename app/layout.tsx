@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { AuthGate } from "./components/AuthGate"
+import { LangProvider } from "./components/LangProvider"
 import { ServiceWorkerRegistrar } from "./components/ServiceWorkerRegistrar"
 import { ThemeProvider } from "./components/ThemeProvider"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
@@ -53,10 +54,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: FOUC_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <ServiceWorkerRegistrar />
-          <AuthGate>{children}</AuthGate>
-        </ThemeProvider>
+        <LangProvider>
+          <ThemeProvider>
+            <ServiceWorkerRegistrar />
+            <AuthGate>{children}</AuthGate>
+          </ThemeProvider>
+        </LangProvider>
       </body>
     </html>
   )

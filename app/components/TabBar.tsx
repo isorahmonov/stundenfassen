@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useT } from "./LangProvider"
+import type { UiStrings } from "@/lib/i18n"
 
-const TABS = [
+const TABS: { href: string; labelKey: keyof UiStrings; icon: React.ReactNode }[] = [
   {
     href: "/",
-    label: "Home",
+    labelKey: "TAB_HOME",
     icon: (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M3 9.5L11 3l8 6.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5Z"/>
@@ -16,7 +18,7 @@ const TABS = [
   },
   {
     href: "/verfuegbarkeit",
-    label: "Kalender",
+    labelKey: "TAB_KALENDER",
     icon: (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <rect x="3" y="4" width="16" height="16" rx="2"/>
@@ -28,7 +30,7 @@ const TABS = [
   },
   {
     href: "/schichten",
-    label: "Schichten",
+    labelKey: "TAB_SCHICHTEN",
     icon: (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="11" cy="11" r="8"/>
@@ -38,7 +40,7 @@ const TABS = [
   },
   {
     href: "/profil",
-    label: "Profil",
+    labelKey: "TAB_PROFIL",
     icon: (
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <circle cx="11" cy="8" r="4"/>
@@ -46,10 +48,11 @@ const TABS = [
       </svg>
     ),
   },
-] as const
+]
 
 export function TabBar() {
   const path = usePathname()
+  const t = useT()
 
   return (
     <nav
@@ -71,7 +74,7 @@ export function TabBar() {
               aria-current={aktiv ? "page" : undefined}
             >
               {tab.icon}
-              <span className="text-[10px] font-medium leading-none">{tab.label}</span>
+              <span className="text-[10px] font-medium leading-none">{t(tab.labelKey)}</span>
             </Link>
           )
         })}

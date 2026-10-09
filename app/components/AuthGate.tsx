@@ -10,13 +10,15 @@ import { TabBar } from "./TabBar"
 import { ThemeToggle } from "./ThemeToggle"
 import { ShiftslotLogo } from "./ShiftslotLogo"
 import { ShiftslotLoader } from "./ShiftslotLoader"
-import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
-import { STRINGS } from "@/lib/ui-strings"
+import { APP_NAME } from "@/lib/brand"
+import { LOCALES, type Locale } from "@/lib/i18n"
+import { useLang, useT } from "./LangProvider"
 import s from "./AuthGate.module.css"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
+  const t = useT()
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [authFehler, setAuthFehler] = useState(false)
@@ -89,13 +91,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen sf-page flex items-center justify-center px-4">
         <div className="mx-auto max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
           <p className="text-sm text-red-600 dark:text-red-400 mb-5 leading-snug">
-            {STRINGS.AUTH_LAEDT_FEHLER}
+            {t("AUTH_LAEDT_FEHLER")}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-xl bg-stone-900 dark:bg-neutral-100 px-5 py-2 text-sm font-semibold text-white dark:text-neutral-900 active:scale-95 transition-all"
           >
-            {STRINGS.AUTH_NEU_LADEN}
+            {t("AUTH_NEU_LADEN")}
           </button>
         </div>
       </div>
@@ -129,7 +131,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             </div>
 
             <h1 className={s.appName}>{APP_NAME}</h1>
-            <p className={s.tagline}>{APP_TAGLINE}</p>
+            <p className={s.tagline}>{t("TAGLINE")}</p>
           </div>
 
           {/* Login card */}
@@ -146,12 +148,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 className={`w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-medium text-stone-700 dark:text-neutral-200 hover:bg-stone-50 dark:hover:bg-neutral-750 active:scale-[.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed ${s.loginBtn}`}
               >
                 <GoogleIcon />
-                {isSigningIn ? "Anmelden…" : "Mit Google anmelden"}
+                {isSigningIn ? t("ANMELDEN_LAEUFT") : t("MIT_GOOGLE_ANMELDEN")}
               </button>
               <p className="text-xs text-stone-400 dark:text-neutral-500 text-center mt-4 leading-relaxed">
-                Mit der Anmeldung akzeptierst du die{" "}
+                {t("ANMELDUNG_ZUSTIMMUNG_PRAEFIX")}{" "}
                 <Link href="/datenschutz" className="underline hover:text-stone-600 dark:hover:text-neutral-300">
-                  Datenschutzerklärung
+                  {t("DATENSCHUTZERKLAERUNG")}
                 </Link>
                 .
               </p>
@@ -163,11 +165,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
             <div className="flex justify-center gap-4 mt-4">
               <Link href="/datenschutz" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
-                Datenschutz
+                {t("DATENSCHUTZ")}
               </Link>
               <span className="text-xs text-stone-300 dark:text-neutral-600">·</span>
               <Link href="/impressum" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
-                Impressum
+                {t("IMPRESSUM")}
               </Link>
             </div>
           </div>
@@ -191,16 +193,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 function LangSelector() {
-  const [lang, setLang] = useState<"de" | "en" | "ru">("de")
+  const { locale, setLocale } = useLang()
   return (
-    <div className={s.langWrap} role="group" aria-label="Sprache">
-      {(["de", "en", "ru"] as const).map((l) => (
+    <div className={s.langWrap} role="group" aria-label="Language">
+      {(LOCALES as readonly Locale[]).map((l) => (
         <button
           key={l}
           type="button"
-          className={`${s.langBtn}${lang === l ? ` ${s.langActive}` : ""}`}
-          onClick={() => setLang(l)}
-          aria-pressed={lang === l}
+          className={`${s.langBtn}${locale === l ? ` ${s.langActive}` : ""}`}
+          onClick={() => setLocale(l)}
+          aria-pressed={locale === l}
         >
           {l.toUpperCase()}
         </button>

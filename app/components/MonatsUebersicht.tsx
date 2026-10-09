@@ -18,13 +18,13 @@ import { PDFButton } from "./PDFButton"
 import { HeatmapAbschnitt } from "./HeatmapAbschnitt"
 import { KeinArbeitgeberKarte } from "./KeinArbeitgeberKarte"
 import { ShiftslotLoader } from "./ShiftslotLoader"
-import { STRINGS } from "@/lib/ui-strings"
+import { useLang, useT } from "./LangProvider"
 import { withTimeout } from "@/lib/withTimeout"
 
-const MONATE = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember",
-]
+function monatName(monat: number, locale: string): string {
+  const name = new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2000, monat - 1, 1))
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
 
 const FALLBACK_SETTINGS = {
   steuerklasse: 1 as Steuerklasse,
@@ -37,6 +37,8 @@ interface EmployerSumme {
 }
 
 export default function MonatsUebersicht() {
+  const t = useT()
+  const { locale } = useLang()
   const heute = new Date()
   const [monat, setMonat] = useState(heute.getMonth() + 1)
   const [jahr, setJahr] = useState(heute.getFullYear())
@@ -182,13 +184,13 @@ export default function MonatsUebersicht() {
       <div className="min-h-screen sf-page flex items-center justify-center px-4">
         <div className="mx-auto max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
           <p className="text-sm text-red-600 dark:text-red-400 mb-5 leading-snug">
-            {STRINGS.LADE_FEHLER_PREFIX} {fehler}
+            {t("LADE_FEHLER_PREFIX")} {fehler}
           </p>
           <button
             onClick={() => setVersion((v) => v + 1)}
             className="rounded-xl bg-stone-900 dark:bg-neutral-100 px-5 py-2 text-sm font-semibold text-white dark:text-neutral-900 active:scale-95 transition-all"
           >
-            {STRINGS.ERNEUT_VERSUCHEN}
+            {t("ERNEUT_VERSUCHEN")}
           </button>
         </div>
       </div>
@@ -202,7 +204,7 @@ export default function MonatsUebersicht() {
         <header className="flex items-center justify-between mb-8">
           <NavButton onClick={zumVormonat} label="Vormonat">‹</NavButton>
           <h1 className="text-base font-semibold tracking-tight text-stone-900 dark:text-neutral-100 select-none">
-            {MONATE[monat - 1]} {jahr}
+            {monatName(monat, locale)} {jahr}
           </h1>
           <div className="flex items-center gap-1">
             <Link

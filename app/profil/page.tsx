@@ -13,6 +13,8 @@ import { BaseDialog } from "../components/BaseDialog"
 import { Toggle } from "../components/Toggle"
 import { ThemeToggle } from "../components/ThemeToggle"
 import { ShiftslotLoader } from "../components/ShiftslotLoader"
+import { useLang } from "@/app/components/LangProvider"
+import { LOCALES } from "@/lib/i18n"
 
 const BERLIN = "Europe/Berlin"
 
@@ -50,11 +52,12 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "erscheinungsbild"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "sprache" | "erscheinungsbild"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
 export default function ProfilSeite() {
+  const { locale, setLocale } = useLang()
   const [offen, setOffen] = useState<Set<Sektion>>(new Set())
 
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
@@ -695,6 +698,37 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Sprache ──────────────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel="Sprache"
+            symbol={<SpracheIcon />}
+            badge={locale.toUpperCase()}
+            offen={offen.has("sprache")}
+            onToggle={() => toggle("sprache")}
+          >
+            <div className="pt-3 pb-1">
+              <div className="flex gap-2 flex-wrap">
+                {(LOCALES as readonly string[]).map((l) => {
+                  const label = l === "de" ? "Deutsch" : l === "en" ? "English" : l === "ru" ? "Русский" : "Français"
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => setLocale(l as typeof LOCALES[number])}
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                        locale === l
+                          ? "bg-blue-600 text-white"
+                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      <span className="font-semibold">{l.toUpperCase()}</span>
+                      <span className={`text-xs ${locale === l ? "text-blue-100" : "sf-text-3"}`}>{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </AkkordeonAbschnitt>
+
           {/* ── Erscheinungsbild ──────────────────────────────────────────── */}
           <AkkordeonAbschnitt
             titel="Erscheinungsbild"
@@ -889,6 +923,17 @@ function ErscheinungsbildIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="8" cy="8" r="3"/>
       <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M11.2 4.8l-1.4 1.4M4.8 11.2l-1.4 1.4"/>
+    </svg>
+  )
+}
+
+function SpracheIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="8" cy="8" r="6"/>
+      <path d="M8 2c0 0-3 2-3 6s3 6 3 6"/>
+      <path d="M8 2c0 0 3 2 3 6s-3 6-3 6"/>
+      <path d="M2 8h12"/>
     </svg>
   )
 }
