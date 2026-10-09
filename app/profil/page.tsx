@@ -11,6 +11,7 @@ import { minusEintraege as minusRepo, employers as employersRepo, emailVorlagen 
 import type { MinusEintragInput } from "@/lib/storage"
 import { BaseDialog } from "../components/BaseDialog"
 import { Toggle } from "../components/Toggle"
+import { ThemeToggle } from "../components/ThemeToggle"
 
 const BERLIN = "Europe/Berlin"
 
@@ -48,7 +49,7 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "erscheinungsbild"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
@@ -693,6 +694,19 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Erscheinungsbild ──────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel="Erscheinungsbild"
+            symbol={<ErscheinungsbildIcon />}
+            offen={offen.has("erscheinungsbild")}
+            onToggle={() => toggle("erscheinungsbild")}
+          >
+            <div className="pt-1 pb-2">
+              <p className="text-xs sf-text-3 mb-3">Farbschema</p>
+              <ThemeToggle />
+            </div>
+          </AkkordeonAbschnitt>
+
           {/* ── Konto ────────────────────────────────────────────────────── */}
           <div className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
             <div className="flex items-center gap-3">
@@ -865,6 +879,15 @@ function SteuerIcon() {
       <path d="M3 13L13 3"/>
       <circle cx="4.5" cy="4.5" r="1.5"/>
       <circle cx="11.5" cy="11.5" r="1.5"/>
+    </svg>
+  )
+}
+
+function ErscheinungsbildIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="8" cy="8" r="3"/>
+      <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M11.2 4.8l-1.4 1.4M4.8 11.2l-1.4 1.4"/>
     </svg>
   )
 }

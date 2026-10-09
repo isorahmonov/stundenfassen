@@ -7,6 +7,7 @@ import type { User } from "firebase/auth"
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
+import { ThemeToggle } from "./ThemeToggle"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 import s from "./AuthGate.module.css"
 
@@ -57,7 +58,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user && !istOeffentlich) {
     return (
-      <div className="min-h-screen sf-page flex items-center justify-center px-4">
+      <div className="min-h-screen sf-page flex items-center justify-center px-4 relative">
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
         <div className={`${s.loginWrap} ${animSeen ? s.animVerkuerzt : ""}`}>
 
           {/* Intro: slot animation + app name */}
