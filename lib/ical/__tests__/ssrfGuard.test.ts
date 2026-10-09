@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { LookupAddress } from "node:dns"
 import {
   istPrivateIPv4,
   istPrivateIPv6,
@@ -216,7 +217,7 @@ describe("verbindungsLookup — all: false (einzelne Adresse)", () => {
     mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) => cb(null, "8.8.8.8", 4))
     let capturedErr: NodeJS.ErrnoException | null = null
     let capturedAddr = ""
-    verbindungsLookup("google.com", {}, (err, addr) => { capturedErr = err; capturedAddr = addr })
+    verbindungsLookup("google.com", {}, (err, addr) => { capturedErr = err; capturedAddr = addr as string })
     expect(capturedErr).toBeNull()
     expect(capturedAddr).toBe("8.8.8.8")
   })
@@ -237,21 +238,22 @@ describe("verbindungsLookup — all: false (einzelne Adresse)", () => {
 })
 
 describe("verbindungsLookup — all: true (Node autoSelectFamily, Standard in Node 21+)", () => {
-  // Node 24 ruft lookup mit { hints: 1024, all: true } auf — das hat der Aufruf-Test bestätigt.
-  // Ohne Fix: addrOrList ist LookupAddress[], cast zu string bricht → "Invalid IP address: undefined"
+  // Node 24 ruft lookup mit { hints: 1024, all: true } auf und erwartet (null, LookupAddress[]).
+  // Bug vor Fix: callback(null, first.address, first.family) → ERR_INVALID_ARG_TYPE in Node-Internals.
 
-  it("lässt öffentliche IPs durch, gibt erste Adresse zurück", () => {
+  it("lässt öffentliche IPs durch, gibt vollständiges Array zurück", () => {
     mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) =>
       cb(null, [{ address: "142.250.74.110", family: 4 }, { address: "2607:f8b0::1", family: 6 }]))
     let capturedErr: NodeJS.ErrnoException | null = null
-    let capturedAddr = ""
-    let capturedFamily = 0
-    verbindungsLookup("google.com", { all: true }, (err, addr, fam) => {
-      capturedErr = err; capturedAddr = addr; capturedFamily = fam
+    let capturedList: LookupAddress[] = []
+    verbindungsLookup("google.com", { all: true }, (err, addrOrList) => {
+      capturedErr = err
+      capturedList = addrOrList as LookupAddress[]
     })
     expect(capturedErr).toBeNull()
-    expect(capturedAddr).toBe("142.250.74.110")
-    expect(capturedFamily).toBe(4)
+    expect(capturedList).toHaveLength(2)
+    expect(capturedList[0]).toEqual({ address: "142.250.74.110", family: 4 })
+    expect(capturedList[1]).toEqual({ address: "2607:f8b0::1", family: 6 })
   })
 
   it("blockiert wenn private IPv4 in der Liste enthalten ist", () => {

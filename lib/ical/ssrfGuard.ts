@@ -25,6 +25,14 @@ const TLS_FEHLER_CODES = new Set([
   "ERR_TLS_CERT_ALTNAME_INVALID",
 ])
 
+// Bekannte TCP/DNS-Fehlercodes — vom Netz verursacht, nicht von unserem Code.
+const NETZ_FEHLER_CODES = new Set([
+  "ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT",
+  "EPIPE", "ECONNABORTED", "EAI_AGAIN", "EAI_FAIL",
+  "EAI_NONAME", "ENETUNREACH", "EHOSTUNREACH", "ENETDOWN",
+])
+
+
 export type IcalFehlerCode =
   | "STRUKTUR"
   | "DNS"
@@ -36,6 +44,7 @@ export type IcalFehlerCode =
   | "TIMEOUT"
   | "TLS_FEHLER"
   | "KEIN_VCALENDAR"
+  | "INTERN"
 
 export class SSRFFehler extends Error {
   readonly code: IcalFehlerCode
@@ -132,29 +141,32 @@ export function istPrivateIPv6(addr: string): boolean {
 export function verbindungsLookup(
   hostname: string,
   options: LookupOptions,
-  callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
+  // Dritte Überladungsform: string-Einzel- oder LookupAddress[]-Array je nach options.all
+  callback: (err: NodeJS.ErrnoException | null, address: string | LookupAddress[], family?: number) => void,
 ): void {
-  // Node 21+ (autoSelectFamily default-on) ruft lookup mit { all: true } auf.
-  // In diesem Fall liefert dns.lookup ein LookupAddress[]-Array, kein einzelner String.
+  // Node 20+ (autoSelectFamily default-on) ruft lookup mit { all: true } auf und erwartet
+  // den Callback mit (null, LookupAddress[]) — nicht (null, string, number).
+  // Bug vor dem Fix: callback(null, first.address, first.family) → ERR_INVALID_ARG_TYPE.
   if ((options as LookupAllOptions).all === true) {
     dns.lookup(hostname, options as LookupAllOptions, (err, addresses) => {
-      if (err) { callback(err, "", 4); return }
+      if (err) { callback(err, ""); return }
       for (const { address, family: fam } of addresses) {
         if (fam === 4 && istPrivateIPv4(address)) {
-          callback(Object.assign(new Error("SSRF_BLOCKED"), { code: "EBLOCKED" }), "", 4)
+          callback(Object.assign(new Error("SSRF_BLOCKED"), { code: "EBLOCKED" }), "")
           return
         }
         if (fam === 6 && istPrivateIPv6(address)) {
-          callback(Object.assign(new Error("SSRF_BLOCKED"), { code: "EBLOCKED" }), "", 6)
+          callback(Object.assign(new Error("SSRF_BLOCKED"), { code: "EBLOCKED" }), "")
           return
         }
       }
       const first = addresses[0]
       if (!first) {
-        callback(Object.assign(new Error("Hostname konnte nicht aufgelöst werden"), { code: "ENOTFOUND" }), "", 4)
+        callback(Object.assign(new Error("Hostname konnte nicht aufgelöst werden"), { code: "ENOTFOUND" }), "")
         return
       }
-      callback(null, first.address, first.family as number)
+      // Alle Adressen geprüft und öffentlich — vollständiges Array zurückgeben
+      callback(null, addresses)
     })
   } else {
     dns.lookup(hostname, options as LookupOneOptions, (err, address, family) => {
@@ -372,14 +384,17 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
         if (err.code === "EBLOCKED") {
           reject(new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP"))
         } else if (err.code && TLS_FEHLER_CODES.has(err.code)) {
-          // TLS-Fehler: Zertifikatsprüfung NICHT abschalten — Code intern loggen
           console.error("[ical] TLS_FEHLER:", err.code)
           reject(new SSRFFehler(
             "Das Portal hat ein ungültiges TLS-Zertifikat. Bitte den Kalender-Link prüfen.",
             "TLS_FEHLER",
           ))
-        } else {
+        } else if (NETZ_FEHLER_CODES.has(err.code ?? "")) {
           reject(new SSRFFehler("Das Portal ist nicht erreichbar.", "DNS"))
+        } else {
+          // Unerwarteter Programmfehler — nicht als Netzfehler ausgeben
+          console.error("[ical] INTERN:", err.constructor?.name ?? "Error", err.code ?? "(kein Code)", err.message.replace(/https?:\/\/[^\s"']+/g, "[URL]"))
+          reject(new SSRFFehler("Interner Fehler beim Kalenderabruf.", "INTERN"))
         }
       })
     })
