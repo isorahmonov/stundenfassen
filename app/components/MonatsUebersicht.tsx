@@ -16,6 +16,9 @@ import { AbgleichAnzeige } from "./AbgleichAnzeige"
 import { WarnungsAnzeige } from "./WarnungsAnzeige"
 import { PDFButton } from "./PDFButton"
 import { HeatmapAbschnitt } from "./HeatmapAbschnitt"
+import { KeinArbeitgeberKarte } from "./KeinArbeitgeberKarte"
+import { STRINGS } from "@/lib/ui-strings"
+import { withTimeout } from "@/lib/withTimeout"
 
 const MONATE = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -45,6 +48,7 @@ export default function MonatsUebersicht() {
   const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
   const [minusMinutenAktiv, setMinusMinutenAktiv] = useState<number | null>(null)
   const [laedt, setLaedt] = useState(true)
+  const [fehler, setFehler] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [verfHinweis, setVerfHinweis] = useState<string | null>(null)
 
@@ -91,14 +95,17 @@ export default function MonatsUebersicht() {
 
     async function laden() {
       setLaedt(true)
+      setFehler(null)
       try {
-        const [emps, cfg, schichten, abgleichListe, alleSchichten] = await Promise.all([
-          employersRepo.findAlle(),
-          settingsRepo.get(),
-          shiftsRepo.findByMonat(monat, jahr),
-          abgleichRepo.findByMonatJahr(monat, jahr),
-          shiftsRepo.findAlle(),
-        ])
+        const [emps, cfg, schichten, abgleichListe, alleSchichten] = await withTimeout(
+          Promise.all([
+            employersRepo.findAlle(),
+            settingsRepo.get(),
+            shiftsRepo.findByMonat(monat, jahr),
+            abgleichRepo.findByMonatJahr(monat, jahr),
+            shiftsRepo.findAlle(),
+          ])
+        )
         const jahresSch = alleSchichten.filter((s) => s.datum.startsWith(String(jahr)))
 
         if (abgebrochen) return
@@ -126,6 +133,8 @@ export default function MonatsUebersicht() {
         setAktivId((prev) =>
           prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
         )
+      } catch (e) {
+        if (!abgebrochen) setFehler(e instanceof Error ? e.message : String(e))
       } finally {
         if (!abgebrochen) setLaedt(false)
       }
@@ -162,7 +171,25 @@ export default function MonatsUebersicht() {
   if (laedt) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center">
-        <span className="text-sm text-stone-400">Lade…</span>
+        <span className="text-sm text-stone-400">{STRINGS.LAEDT}</span>
+      </div>
+    )
+  }
+
+  if (fehler) {
+    return (
+      <div className="min-h-screen sf-page flex items-center justify-center px-4">
+        <div className="mx-auto max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <p className="text-sm text-red-600 dark:text-red-400 mb-5 leading-snug">
+            {STRINGS.LADE_FEHLER_PREFIX} {fehler}
+          </p>
+          <button
+            onClick={() => setVersion((v) => v + 1)}
+            className="rounded-xl bg-stone-900 dark:bg-neutral-100 px-5 py-2 text-sm font-semibold text-white dark:text-neutral-900 active:scale-95 transition-all"
+          >
+            {STRINGS.ERNEUT_VERSUCHEN}
+          </button>
+        </div>
       </div>
     )
   }
@@ -311,9 +338,7 @@ export default function MonatsUebersicht() {
             />
           </>
         ) : (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)]">
-            <p className="text-sm text-stone-400">Keine Arbeitgeber vorhanden.</p>
-          </div>
+          <KeinArbeitgeberKarte />
         )}
 
         <HeatmapAbschnitt />

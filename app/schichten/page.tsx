@@ -9,6 +9,7 @@ import {
   shifts as shiftsRepo,
   geplanteSchichten as geplanteRepo,
 } from "@/lib/storage"
+import { KeinArbeitgeberKarte } from "@/app/components/KeinArbeitgeberKarte"
 import type { Employer, GeplanteSchicht } from "@/lib/types"
 import { aktuellerSonntagStr, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
@@ -53,6 +54,7 @@ export default function SchichtenPage() {
   const [neuOffen, setNeuOffen] = useState(false)
   const [fehler, setFehler] = useState("")
   const [version, setVersion] = useState(0)
+  const [geladen, setGeladen] = useState(false)
 
   // Wochenstruktur (So–Sa)
   const woche = wochenDaten(startSonntagStr, 1)[0]
@@ -84,6 +86,7 @@ export default function SchichtenPage() {
       setArbeitgeber(emps)
       setAlleGeplante(alle)
     } catch (e) { setFehler(String(e)) }
+    finally { setGeladen(true) }
   }
 
   useEffect(() => { ladeArchivMinuten() }, [startSonntagStr])
@@ -177,6 +180,13 @@ export default function SchichtenPage() {
         {fehler && (
           <div className="mb-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
             <p className="text-xs font-mono text-red-700 dark:text-red-300 break-all">{fehler}</p>
+          </div>
+        )}
+
+        {/* Kein Arbeitgeber */}
+        {geladen && arbeitgeber.length === 0 && !fehler && (
+          <div className="mt-4">
+            <KeinArbeitgeberKarte />
           </div>
         )}
 

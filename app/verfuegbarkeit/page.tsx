@@ -28,6 +28,7 @@ import {
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import { employers as employersRepo, geplanteSchichten as geplanteRepo, shifts as shiftsRepo } from "@/lib/storage"
 import { EinrichtungsDialog, sollDialogOeffnen } from "../components/EinrichtungsDialog"
+import { KeinArbeitgeberKarte } from "../components/KeinArbeitgeberKarte"
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ export default function VerfuegbarkeitPage() {
   const [anzahlWochen, setAnzahlWochen] = useState(2)
 
   const [alleAktiveArbeitgeber, setAlleAktiveArbeitgeber] = useState<Employer[]>([])
+  const [arbeitgeberGeladen, setArbeitgeberGeladen] = useState(false)
   const [selectedEmployerId, setSelectedEmployerId] = useState<string>("")
 
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
@@ -188,7 +190,8 @@ export default function VerfuegbarkeitPage() {
         setSelectedEmployerId(emps[0].id)
         if (sollDialogOeffnen(emps[0])) setEinrichtungsId(emps[0].id)
       }
-    }).catch(() => {})
+      setArbeitgeberGeladen(true)
+    }).catch(() => { setArbeitgeberGeladen(true) })
 
     apiGet("/api/ical")
       .then((d) => setKalender((d as { kalender: KalenderInfo[] }).kalender))
@@ -445,6 +448,13 @@ export default function VerfuegbarkeitPage() {
   return (
     <main className="min-h-screen sf-page">
       <div className="mx-auto max-w-2xl px-4 pt-6">
+
+        {/* Kein Arbeitgeber */}
+        {arbeitgeberGeladen && alleAktiveArbeitgeber.length === 0 && (
+          <div className="pt-10">
+            <KeinArbeitgeberKarte />
+          </div>
+        )}
 
         {/* ── Kopfzeile ─────────────────────────────────────────────────── */}
         <header className="mb-6">
