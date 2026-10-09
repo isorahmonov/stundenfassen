@@ -30,8 +30,12 @@ class EingabeFehler extends Error {}
 function fehlerAntwort(err: unknown): Response {
   if (err instanceof AuthFehler)
     return Response.json({ fehler: err.message }, { status: 401 })
-  if (err instanceof EingabeFehler || err instanceof SSRFFehler)
-    return Response.json({ fehler: (err as Error).message }, { status: 400 })
+  if (err instanceof SSRFFehler) {
+    console.error("[ical] code:", err.code) // Nie die URL — nur Code intern loggen
+    return Response.json({ fehler: err.message }, { status: 400 })
+  }
+  if (err instanceof EingabeFehler)
+    return Response.json({ fehler: err.message }, { status: 400 })
   console.error("[api/ical]", err)
   return Response.json({ fehler: "Interner Fehler" }, { status: 500 })
 }

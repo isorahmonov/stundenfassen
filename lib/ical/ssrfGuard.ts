@@ -12,10 +12,37 @@ const MAX_ANTWORT_BYTES = 5 * 1024 * 1024 // 5 MB
 const TIMEOUT_MS = 10_000
 const MAX_UMLEITUNGEN = 3
 
+// TLS-Fehlercodes, bei denen Zertifikatsprüfung NICHT abschaltet werden darf.
+// Stattdessen wird der Code ans Log weitergeleitet, damit der Nutzer entscheiden kann.
+const TLS_FEHLER_CODES = new Set([
+  "CERT_HAS_EXPIRED",
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  "UNABLE_TO_GET_ISSUER_CERT",
+  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+  "CERT_UNTRUSTED",
+  "DEPTH_ZERO_SELF_SIGNED_CERT",
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "ERR_TLS_CERT_ALTNAME_INVALID",
+])
+
+export type IcalFehlerCode =
+  | "STRUKTUR"
+  | "DNS"
+  | "PRIVATE_IP"
+  | "REDIRECT"
+  | "HTTP_STATUS"
+  | "CONTENT_TYPE"
+  | "ZU_GROSS"
+  | "TIMEOUT"
+  | "TLS_FEHLER"
+  | "KEIN_VCALENDAR"
+
 export class SSRFFehler extends Error {
-  constructor(message: string) {
+  readonly code: IcalFehlerCode
+  constructor(message: string, code: IcalFehlerCode = "STRUKTUR") {
     super(message)
     this.name = "SSRFFehler"
+    this.code = code
   }
 }
 
@@ -32,13 +59,13 @@ function normalisiereUrl(urlString: string): URL {
 
 function pruefeStruktur(url: URL): void {
   if (url.protocol !== "https:") {
-    throw new SSRFFehler("URL muss HTTPS verwenden (https://…)")
+    throw new SSRFFehler("URL muss HTTPS verwenden (https://…)", "STRUKTUR")
   }
   if (url.username || url.password) {
-    throw new SSRFFehler("URL darf keine Zugangsdaten enthalten")
+    throw new SSRFFehler("URL darf keine Zugangsdaten enthalten", "STRUKTUR")
   }
   if (url.port && url.port !== "443") {
-    throw new SSRFFehler("Nur der Standard-HTTPS-Port ist erlaubt")
+    throw new SSRFFehler("Nur der Standard-HTTPS-Port ist erlaubt", "STRUKTUR")
   }
 }
 
@@ -151,14 +178,14 @@ async function pruefeHostname(hostname: string): Promise<void> {
   // IPv4-Literal direkt prüfen (kein DNS nötig)
   if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
     if (istPrivateIPv4(hostname)) {
-      throw new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden")
+      throw new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP")
     }
     return
   }
   // IPv6-Literal in eckigen Klammern (URL-Syntax)
   if (hostname.startsWith("[") && hostname.endsWith("]")) {
     if (istPrivateIPv6(hostname.slice(1, -1))) {
-      throw new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden")
+      throw new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP")
     }
     return
   }
@@ -167,17 +194,17 @@ async function pruefeHostname(hostname: string): Promise<void> {
   try {
     adressen = await dnsLookupPromise(hostname, { all: true } as LookupAllOptions)
   } catch {
-    throw new SSRFFehler(`Host "${hostname}" konnte nicht aufgelöst werden`)
+    throw new SSRFFehler("Das Portal ist nicht erreichbar – der Server konnte nicht gefunden werden.", "DNS")
   }
   if (!adressen || adressen.length === 0) {
-    throw new SSRFFehler(`Host "${hostname}" konnte nicht aufgelöst werden`)
+    throw new SSRFFehler("Das Portal ist nicht erreichbar – der Server konnte nicht gefunden werden.", "DNS")
   }
   for (const { address, family } of adressen) {
     if (family === 4 && istPrivateIPv4(address)) {
-      throw new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden")
+      throw new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP")
     }
     if (family === 6 && istPrivateIPv6(address)) {
-      throw new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden")
+      throw new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP")
     }
   }
 }
@@ -211,7 +238,10 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
     }
 
     const timer = setTimeout(() => {
-      erledige(() => reject(new SSRFFehler("Dieser Kalender-Link antwortet nicht (Timeout)")))
+      erledige(() => reject(new SSRFFehler(
+        "Das Portal antwortet nicht (Zeitüberschreitung).",
+        "TIMEOUT",
+      )))
       req.destroy()
     }, TIMEOUT_MS)
 
@@ -222,7 +252,8 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
         path: url.pathname + url.search,
         method: "GET",
         headers: {
-          Accept: "text/calendar, */*",
+          "User-Agent": "stundenfassen/1.0 (iCal fetcher)",
+          Accept: "text/calendar, */*;q=0.8",
           "Accept-Encoding": "identity", // Komprimierung deaktiviert: Limit gilt für rohen Inhalt
           Host: url.hostname,
         },
@@ -234,17 +265,26 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400) {
           res.resume()
           if (verbleibend <= 0) {
-            erledige(() => reject(new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden (zu viele Weiterleitungen)")))
+            erledige(() => reject(new SSRFFehler(
+              "Der Kalender-Link führt über zu viele Weiterleitungen.",
+              "REDIRECT",
+            )))
             return
           }
           const location = res.headers.location as string | undefined
           if (!location) {
-            erledige(() => reject(new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden (ungültige Weiterleitung)")))
+            erledige(() => reject(new SSRFFehler(
+              "Der Kalender-Link führt zu einer ungültigen Weiterleitung.",
+              "REDIRECT",
+            )))
             return
           }
           let naechste: URL
           try { naechste = new URL(location, url) } catch {
-            erledige(() => reject(new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden")))
+            erledige(() => reject(new SSRFFehler(
+              "Der Kalender-Link führt zu einer ungültigen Weiterleitung.",
+              "REDIRECT",
+            )))
             return
           }
           try { pruefeStruktur(naechste) } catch (e) {
@@ -260,11 +300,26 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
 
         if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
           res.resume()
-          erledige(() => reject(new SSRFFehler(
-            "Dieser Kalender-Link konnte nicht geladen werden. Prüfe, ob es der öffentliche iCal-Link ist (endet meist auf .ics).",
-          )))
+          const status = res.statusCode ?? 0
+          let meldung: string
+          if (status === 401 || status === 403) {
+            meldung = "Das Portal erfordert eine Anmeldung – dieser Kalender-Link ist nicht öffentlich zugänglich."
+          } else if (status >= 400 && status < 500) {
+            meldung = "Das Portal hat die Anfrage abgelehnt – bitte den Kalender-Link prüfen."
+          } else {
+            meldung = "Das Portal ist derzeit nicht erreichbar."
+          }
+          erledige(() => reject(new SSRFFehler(meldung, "HTTP_STATUS")))
           return
         }
+
+        // Content-Type prüfen (Warnung, kein Abbruch — einige Server schicken text/plain)
+        const contentType = res.headers["content-type"] ?? ""
+        const hatFremdenContentType =
+          contentType.length > 0 &&
+          !contentType.includes("text/calendar") &&
+          !contentType.includes("text/plain") &&
+          !contentType.includes("application/octet-stream")
 
         // Streaming-Größenlimit: Abbruch sobald mehr als MAX_ANTWORT_BYTES ankommen
         let bytesGelesen = 0
@@ -274,7 +329,7 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
           if (abgeschlossen) return
           bytesGelesen += chunk.length
           if (bytesGelesen > MAX_ANTWORT_BYTES) {
-            erledige(() => reject(new SSRFFehler("Dieser Kalender-Link liefert zu viele Daten")))
+            erledige(() => reject(new SSRFFehler("Der Kalender-Link liefert zu viele Daten.", "ZU_GROSS")))
             req.destroy()
             return
           }
@@ -282,19 +337,31 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
         })
 
         res.on("end", () => {
-          const text = Buffer.concat(teile).toString("utf-8")
-          if (!text.trimStart().startsWith("BEGIN:VCALENDAR")) {
-            erledige(() => reject(new SSRFFehler(
-              "Dieser Link liefert keinen Kalender (iCal). Prüfe, ob es der öffentliche iCal-Link ist (endet meist auf .ics).",
-            )))
+          const rawText = Buffer.concat(teile).toString("utf-8")
+          // BOM (﻿) und führende Leerzeichen entfernen — trimStart() erfasst ﻿ nicht immer.
+          const text = rawText.replace(/^﻿/, "").trimStart()
+
+          if (!text.startsWith("BEGIN:VCALENDAR")) {
+            if (hatFremdenContentType) {
+              erledige(() => reject(new SSRFFehler(
+                "Das Portal hat keinen Kalender geliefert (möglicherweise ist eine Anmeldung nötig).",
+                "CONTENT_TYPE",
+              )))
+            } else {
+              erledige(() => reject(new SSRFFehler(
+                "Das Portal hat keinen Kalender geliefert – evtl. ist eine Anmeldung nötig oder der Link ist abgelaufen.",
+                "KEIN_VCALENDAR",
+              )))
+            }
             return
           }
-          erledige(() => resolve(text))
+          erledige(() => resolve(rawText))
         })
 
         res.on("error", () => {
           erledige(() => reject(new SSRFFehler(
-            "Dieser Kalender-Link konnte nicht geladen werden. Prüfe, ob es der öffentliche iCal-Link ist (endet meist auf .ics).",
+            "Das Portal ist nicht erreichbar.",
+            "DNS",
           )))
         })
       },
@@ -302,13 +369,17 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
 
     req.on("error", (err: NodeJS.ErrnoException) => {
       erledige(() => {
-        // EBLOCKED: von verbindungsLookup gesetzt (DNS-Rebinding-Schutz)
         if (err.code === "EBLOCKED") {
-          reject(new SSRFFehler("Dieser Kalender-Link konnte nicht geladen werden"))
-        } else {
+          reject(new SSRFFehler("Dieser Kalender-Link ist nicht erlaubt (interne Adresse).", "PRIVATE_IP"))
+        } else if (err.code && TLS_FEHLER_CODES.has(err.code)) {
+          // TLS-Fehler: Zertifikatsprüfung NICHT abschalten — Code intern loggen
+          console.error("[ical] TLS_FEHLER:", err.code)
           reject(new SSRFFehler(
-            "Dieser Kalender-Link konnte nicht geladen werden. Prüfe, ob es der öffentliche iCal-Link ist (endet meist auf .ics).",
+            "Das Portal hat ein ungültiges TLS-Zertifikat. Bitte den Kalender-Link prüfen.",
+            "TLS_FEHLER",
           ))
+        } else {
+          reject(new SSRFFehler("Das Portal ist nicht erreichbar.", "DNS"))
         }
       })
     })

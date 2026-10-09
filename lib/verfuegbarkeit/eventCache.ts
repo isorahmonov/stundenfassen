@@ -56,6 +56,19 @@ export function getStaleTermine(key: string): TerminRoh[] | null {
   }
 }
 
+/** Gibt den Zeitstempel eines Cache-Eintrags zurück (auch abgelaufen). */
+export function getStaleTimestamp(key: string): number | null {
+  const mem = MEM.get(key)
+  if (mem) return mem.timestamp
+  try {
+    const raw = localStorage.getItem(LS_PREFIX + key)
+    if (!raw) return null
+    return (JSON.parse(raw) as CacheEntry).timestamp
+  } catch {
+    return null
+  }
+}
+
 export function setCachedTermine(key: string, termine: TerminRoh[]) {
   const entry: CacheEntry = { termine, timestamp: Date.now() }
   MEM.set(key, entry)

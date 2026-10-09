@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import {
   istPrivateIPv4,
   istPrivateIPv6,
@@ -356,5 +356,123 @@ describe("holeSicherIcal — Redirect auf private IP blockiert", () => {
     })
     await expect(holeSicherIcal("https://legit.example.com/cal.ics"))
       .rejects.toBeInstanceOf(SSRFFehler)
+  })
+})
+
+// ─── BOM-Präfix ───────────────────────────────────────────────────────────────
+
+describe("holeSicherIcal — BOM-Präfix", () => {
+  it("akzeptiert iCal-Antwort mit UTF-8-BOM (\\uFEFF)", async () => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+    setupHttpsSuccess("﻿" + ICAL_BODY)
+    const result = await holeSicherIcal("https://legit.example.com/cal.ics")
+    expect(result).toContain("BEGIN:VCALENDAR")
+  })
+})
+
+// ─── HTML-Antwort → KEIN_VCALENDAR ───────────────────────────────────────────
+
+describe("holeSicherIcal — HTML-Antwort → KEIN_VCALENDAR", () => {
+  it("wirft SSRFFehler mit code KEIN_VCALENDAR bei HTML-Antwort", async () => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+    setupHttpsSuccess("<html><body>Bitte anmelden</body></html>")
+    const err = await holeSicherIcal("https://legit.example.com/cal.ics").catch((e) => e)
+    expect(err).toBeInstanceOf(SSRFFehler)
+    expect((err as SSRFFehler).code).toBe("KEIN_VCALENDAR")
+  })
+})
+
+// ─── 403 → HTTP_STATUS ───────────────────────────────────────────────────────
+
+describe("holeSicherIcal — 403/401 → HTTP_STATUS mit Anmeldungs-Meldung", () => {
+  it.each([401, 403])("wirft SSRFFehler mit code HTTP_STATUS und Anmeldungs-Meldung bei %i", async (status) => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+    const req = createMockRequest()
+    const res = createMockResponse(status)
+    mockHttpsRequest.mockImplementation((_opts: unknown, cb: (res: unknown) => void) => {
+      setTimeout(() => { cb(res) }, 0)
+      return req
+    })
+    const err = await holeSicherIcal("https://legit.example.com/cal.ics").catch((e) => e)
+    expect(err).toBeInstanceOf(SSRFFehler)
+    expect((err as SSRFFehler).code).toBe("HTTP_STATUS")
+    expect((err as SSRFFehler).message).toMatch(/Anmeldung/)
+  })
+})
+
+// ─── Timeout → TIMEOUT-Code ───────────────────────────────────────────────────
+
+describe("holeSicherIcal — Timeout", () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  it("wirft SSRFFehler mit code TIMEOUT nach 10 Sekunden ohne Antwort", async () => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+    const req = createMockRequest()
+    mockHttpsRequest.mockImplementation(() => req)
+
+    const promise = holeSicherIcal("https://legit.example.com/cal.ics")
+    // .catch VOR advanceTimersByTimeAsync anhängen — verhindert unhandled rejection
+    const caught = promise.catch((e: unknown) => e)
+    await vi.advanceTimersByTimeAsync(11_000)
+    const err = await caught
+    expect(err).toBeInstanceOf(SSRFFehler)
+    expect((err as SSRFFehler).code).toBe("TIMEOUT")
+  })
+})
+
+// ─── Redirect → REDIRECT-Code ────────────────────────────────────────────────
+
+describe("holeSicherIcal — Redirect-Schleife → REDIRECT-Code", () => {
+  it("wirft SSRFFehler mit code REDIRECT nach MAX_WEITERLEITUNGEN", async () => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+    // Immer 301 auf dieselbe URL — erschöpft alle erlaubten Redirects
+    mockHttpsRequest.mockImplementation((_opts: unknown, cb: (res: unknown) => void) => {
+      const req = createMockRequest()
+      const res = createMockResponse(301, { location: "https://legit.example.com/cal.ics" })
+      setTimeout(() => { cb(res); res._emit("end") }, 0)
+      return req
+    })
+    const err = await holeSicherIcal("https://legit.example.com/cal.ics").catch((e) => e)
+    expect(err).toBeInstanceOf(SSRFFehler)
+    expect((err as SSRFFehler).code).toBe("REDIRECT")
+  })
+})
+
+// ─── Isolation: fehlerhafter Kalender blockiert andere nicht ─────────────────
+
+describe("holeSicherIcal — Isolation (Promise.allSettled)", () => {
+  it("ein fehlschlagender Kalender lässt den zweiten Kalender erfolgreich durchlaufen", async () => {
+    mockDns([{ address: "185.93.201.100", family: 4 }])
+
+    let aufruf = 0
+    mockHttpsRequest.mockImplementation((_opts: unknown, cb: (res: unknown) => void) => {
+      const req = createMockRequest()
+      aufruf++
+      if (aufruf === 1) {
+        // Erster Aufruf: 403-Fehler
+        const res = createMockResponse(403)
+        setTimeout(() => { cb(res) }, 0)
+      } else {
+        // Zweiter Aufruf: gültiger iCal-Body
+        const res = createMockResponse(200)
+        setTimeout(() => {
+          cb(res)
+          res._emit("data", Buffer.from(ICAL_BODY))
+          res._emit("end")
+        }, 0)
+      }
+      return req
+    })
+
+    const ergebnisse = await Promise.allSettled([
+      holeSicherIcal("https://legit.example.com/cal1.ics"),
+      holeSicherIcal("https://legit.example.com/cal2.ics"),
+    ])
+
+    expect(ergebnisse[0].status).toBe("rejected")
+    expect((ergebnisse[0] as PromiseRejectedResult).reason).toBeInstanceOf(SSRFFehler)
+    expect(ergebnisse[1].status).toBe("fulfilled")
+    expect((ergebnisse[1] as PromiseFulfilledResult<string>).value).toContain("BEGIN:VCALENDAR")
   })
 })

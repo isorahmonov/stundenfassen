@@ -21,6 +21,7 @@ import {
   getCachedTermine,
   setCachedTermine,
   getStaleTermine,
+  getStaleTimestamp,
   loadSavedSelection,
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
@@ -160,6 +161,8 @@ export default function VerfuegbarkeitPage() {
   const [verfBlöcke, setVerfBlöcke] = useState<VerfuegbarkeitsBlock[]>([])
   const [laden, setLaden] = useState(false)
   const [fehler, setFehler] = useState("")
+  const [kalenderFehler, setKalenderFehler] = useState<Record<string, string>>({})
+  const [kalenderStaleStand, setKalenderStaleStand] = useState<Record<string, number>>({})
 
   const [ausgewaehlt, setAusgewaehlt] = useState<Set<string>>(new Set())
   const [archivListe, setArchivListe] = useState<ArchivEintrag[]>([])
@@ -221,6 +224,8 @@ export default function VerfuegbarkeitPage() {
   const berechneFetch = useCallback(async ({ force = false }: { force?: boolean } = {}) => {
     if (kalender.length === 0) return
     setFehler("")
+    setKalenderFehler({})
+    setKalenderStaleStand({})
 
     const wochen = wochenDaten(startSonntagStr, anzahlWochen)
     const von = wochen[0][0]
@@ -288,7 +293,7 @@ export default function VerfuegbarkeitPage() {
         setFehler("Schichten anderer Arbeitgeber konnten nicht geladen werden — Verfügbarkeit wird ohne diese Sperre berechnet.")
       }
 
-      const ergebnisse = await Promise.all(
+      const ergebnisseRaw = await Promise.allSettled(
         kalender.map(async (k) => {
           const cacheKey = `${k.id}_${von}_${bis}`
           const url = `/api/ical?id=${k.id}&von=${von}&bis=${bis}${force ? "&refresh=true" : ""}`
@@ -297,6 +302,29 @@ export default function VerfuegbarkeitPage() {
           return { k, roh: data.termine }
         }),
       )
+
+      const neueKalenderFehler: Record<string, string> = {}
+      const neueKalenderStaleStand: Record<string, number> = {}
+      const ergebnisse = ergebnisseRaw
+        .map((res, i) => {
+          if (res.status === "fulfilled") return res.value
+          const k = kalender[i]
+          const msg = res.reason instanceof Error
+            ? res.reason.message
+            : "Kalender konnte nicht geladen werden."
+          neueKalenderFehler[k.id] = msg
+          const cacheKey = `${k.id}_${von}_${bis}`
+          const stale = getStaleTermine(cacheKey)
+          if (stale !== null) {
+            const ts = getStaleTimestamp(cacheKey)
+            if (ts !== null) neueKalenderStaleStand[k.id] = ts
+            return { k, roh: stale }
+          }
+          return null
+        })
+        .filter((x): x is { k: KalenderInfo; roh: TerminRoh[] } => x !== null)
+      if (Object.keys(neueKalenderFehler).length > 0) setKalenderFehler(neueKalenderFehler)
+      if (Object.keys(neueKalenderStaleStand).length > 0) setKalenderStaleStand(neueKalenderStaleStand)
 
       const alleKalTermine: TerminMitStatus[] = []
       for (const { roh, k } of ergebnisse) {
@@ -526,6 +554,28 @@ export default function VerfuegbarkeitPage() {
         {fehler && (
           <div className="mb-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
             <p className="text-xs font-mono text-red-700 dark:text-red-300 break-all">{fehler}</p>
+          </div>
+        )}
+
+        {Object.keys(kalenderFehler).length > 0 && (
+          <div className="mb-4 space-y-2">
+            {Object.entries(kalenderFehler).map(([id, msg]) => {
+              const k = kalender.find((kal) => kal.id === id)
+              const ts = kalenderStaleStand[id]
+              const standStr = ts
+                ? new Date(ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+                : null
+              return (
+                <div key={id} className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
+                    {standStr
+                      ? `Kalender „${k?.name ?? id}" konnte nicht geladen werden – Stand: ${standStr}`
+                      : `Kalender „${k?.name ?? id}" konnte nicht geladen werden – ohne diesen Kalender berechnet`}
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{msg}</p>
+                </div>
+              )
+            })}
           </div>
         )}
 
