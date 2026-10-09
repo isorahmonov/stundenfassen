@@ -84,6 +84,7 @@ export default function ProfilSeite() {
 
   const [abmeldenOffen, setAbmeldenOffen] = useState(false)
   const [loeschenOffen, setLoeschenOffen] = useState(false)
+  const [exportOffen, setExportOffen] = useState(false)
   const nutzerEmail = auth.currentUser?.email ?? ""
 
   useEffect(() => { ladeKalender() }, [])
@@ -226,6 +227,27 @@ export default function ProfilSeite() {
     }
 
     await signOut(auth)
+  }
+
+  async function exportiereDaten(): Promise<void> {
+    const token = await getToken()
+    const res = await fetch("/api/konto/export", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}))
+      throw new Error((b as Record<string, string>).fehler ?? `Fehler ${res.status}`)
+    }
+    const blob = await res.blob()
+    const datum = new Date().toISOString().slice(0, 10)
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = blobUrl
+    a.download = `stundenfassen-export-${datum}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
   }
 
   async function ladeKalender() {
@@ -692,6 +714,12 @@ export default function ProfilSeite() {
                 Abmelden
               </button>
               <button
+                onClick={() => setExportOffen(true)}
+                className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 active:scale-[.99] transition-all"
+              >
+                Daten exportieren
+              </button>
+              <button
                 onClick={() => setLoeschenOffen(true)}
                 className="w-full rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-[.99] transition-all"
               >
@@ -725,6 +753,13 @@ export default function ProfilSeite() {
           email={nutzerEmail}
           onLoeschen={kontoLoeschen}
           onAbbrechen={() => setLoeschenOffen(false)}
+        />
+      )}
+
+      {exportOffen && (
+        <DatenExportDialog
+          onExportieren={exportiereDaten}
+          onAbbrechen={() => setExportOffen(false)}
         />
       )}
     </main>
@@ -971,6 +1006,94 @@ function KontoLoeschenDialog({
           >
             {laden ? "Wird gelöscht…" : "Konto löschen"}
           </button>
+        </div>
+      </div>
+    </BaseDialog>
+  )
+}
+
+// ─── DatenExportDialog ───────────────────────────────────────────────────────────
+
+function DatenExportDialog({
+  onExportieren,
+  onAbbrechen,
+}: {
+  onExportieren: () => Promise<void>
+  onAbbrechen: () => void
+}) {
+  const [fehler, setFehler] = useState("")
+  const [laden, setLaden] = useState(false)
+  const [fertig, setFertig] = useState(false)
+
+  async function handleExportieren() {
+    setLaden(true)
+    setFehler("")
+    try {
+      await onExportieren()
+      setFertig(true)
+    } catch (e) {
+      setFehler(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLaden(false)
+    }
+  }
+
+  return (
+    <BaseDialog onBackdropClick={laden ? undefined : onAbbrechen} maxWidth="max-w-sm">
+      <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
+        <h2 className="text-base font-bold sf-text">Daten exportieren</h2>
+
+        <div className="space-y-2">
+          <p className="text-sm sf-text-2 leading-relaxed">
+            Die Exportdatei enthält:
+          </p>
+          <ul className="text-sm sf-text-2 leading-relaxed list-disc list-inside space-y-0.5 pl-1">
+            <li>Schichten, Arbeitgeber, Einstellungen</li>
+            <li>Minusstunden, geplante Schichten, Abgleiche</li>
+            <li>E-Mail-Vorlagen</li>
+            <li>Gmail-Adresse (falls hinterlegt)</li>
+            <li>Kalender-Liste (Name, Farbe – keine URLs)</li>
+          </ul>
+          <p className="text-sm sf-text-2 leading-relaxed">
+            <span className="font-medium sf-text">Nicht enthalten:</span>{" "}
+            Passwörter und iCal-URLs. iCal-URLs enthalten persönliche
+            Authentifizierungstoken und werden nicht exportiert.
+          </p>
+          <p className="text-sm sf-text-2 leading-relaxed">
+            Die Datei enthält personenbezogene Daten — bitte sicher aufbewahren.
+          </p>
+        </div>
+
+        {fehler && (
+          <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">
+            {fehler}
+          </p>
+        )}
+
+        {fertig && (
+          <p className="text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40 rounded-lg px-3 py-2">
+            Export heruntergeladen.
+          </p>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            onClick={onAbbrechen}
+            disabled={laden}
+            className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
+          >
+            {fertig ? "Schließen" : "Abbrechen"}
+          </button>
+          {!fertig && (
+            <button
+              onClick={handleExportieren}
+              disabled={laden}
+              className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white active:scale-[.98] transition-all disabled:opacity-40"
+              style={{ backgroundColor: "#2563eb" }}
+            >
+              {laden ? "Wird erstellt…" : "Herunterladen"}
+            </button>
+          )}
         </div>
       </div>
     </BaseDialog>
