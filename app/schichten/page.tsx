@@ -10,6 +10,8 @@ import {
   geplanteSchichten as geplanteRepo,
 } from "@/lib/storage"
 import { KeinArbeitgeberKarte } from "@/app/components/KeinArbeitgeberKarte"
+import { STRINGS } from "@/lib/ui-strings"
+import { withTimeout } from "@/lib/withTimeout"
 import type { Employer, GeplanteSchicht } from "@/lib/types"
 import { aktuellerSonntagStr, toISODatum, wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
@@ -78,11 +80,13 @@ export default function SchichtenPage() {
   useEffect(() => { laden() }, [version])
 
   async function laden() {
+    setGeladen(false)
+    setFehler("")
     try {
-      const [emps, alle] = await Promise.all([
+      const [emps, alle] = await withTimeout(Promise.all([
         employersRepo.findAktive(),
         geplanteRepo.findAlle(),
-      ])
+      ]))
       setArbeitgeber(emps)
       setAlleGeplante(alle)
     } catch (e) { setFehler(String(e)) }

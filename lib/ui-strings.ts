@@ -9,4 +9,6 @@ export const STRINGS = {
   KEIN_ARBEITGEBER_TEXT: "Lege zuerst einen Arbeitgeber an, um diese Seite zu nutzen.",
   KEIN_ARBEITGEBER_CTA: "Arbeitgeber anlegen →",
   LADE_FEHLER_PREFIX: "Fehler:",
+  AUTH_LAEDT_FEHLER: "Anmeldung dauert zu lange — App neu laden.",
+  AUTH_NEU_LADEN: "App neu laden",
 } as const
