@@ -7,6 +7,7 @@ import type { User } from "firebase/auth"
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
@@ -49,10 +50,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-stone-900 dark:text-neutral-100 mb-1">
-              Stundenfassen
+              {APP_NAME}
             </h1>
             <p className="text-sm text-stone-500 dark:text-neutral-400">
-              Zeiterfassung für Studentenjobs
+              {APP_TAGLINE}
             </p>
           </div>
 

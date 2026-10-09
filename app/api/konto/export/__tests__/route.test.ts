@@ -157,7 +157,7 @@ describe("Erfolgspfad", () => {
     expect(cd).toMatch(/attachment/)
     const heute = new Date().toISOString().slice(0, 10)
     expect(cd).toContain(heute)
-    expect(cd).toMatch(/stundenfassen-export-\d{4}-\d{2}-\d{2}\.json/)
+    expect(cd).toMatch(/shiftslot-export-\d{4}-\d{2}-\d{2}\.json/)
   })
 
   it("Content-Type ist application/json", async () => {

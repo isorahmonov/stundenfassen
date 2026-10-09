@@ -13,6 +13,7 @@ import {
   formatWochentag,
 } from "@/lib/calc/format"
 import type { Bundesland } from "@/lib/types"
+import { APP_NAME } from "@/lib/brand"
 
 const MONATE = [
   "Januar","Februar","März","April","Mai","Juni",
@@ -100,7 +101,7 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
   }
 
   return (
-    <Document title={`${employer.name} – ${MONATE[monat - 1]} ${jahr}`} author="Stundenfassen">
+    <Document title={`${employer.name} – ${MONATE[monat - 1]} ${jahr}`} author={APP_NAME}>
       <Page size="A4" style={s.page}>
         {/* Header */}
         <View style={s.header}>
@@ -108,7 +109,7 @@ export function MonatsPDF({ employer, monat, jahr, schichten, settings, bundesla
             <Text style={s.title}>{employer.name}</Text>
             <Text style={s.subtitle}>{MONATE[monat - 1]} {jahr}</Text>
           </View>
-          <Text style={{ fontSize: 8, color: "#a8a29e", marginTop: 4 }}>Stundenfassen</Text>
+          <Text style={{ fontSize: 8, color: "#a8a29e", marginTop: 4 }}>{APP_NAME}</Text>
         </View>
 
         {/* Akzent-Balken in Employer-Farbe */}

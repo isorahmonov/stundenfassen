@@ -309,7 +309,7 @@ function SchrittPdf({ form, set }: { form: FormDaten; set: SetFn }) {
           PDF-Fußzeile <span className="font-normal text-stone-400 dark:text-neutral-500">optional</span>
         </label>
         <input type="text" value={form.fusszeilenText} onChange={e => set("fusszeilenText", e.target.value)}
-          placeholder="z. B. Stundenfassen" className={INPUT} />
+          placeholder="z. B. Shiftslot" className={INPUT} />
       </div>
     </div>
   )

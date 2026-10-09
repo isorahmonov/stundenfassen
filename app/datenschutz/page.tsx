@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { LEGAL, assertKeinePlatzhalter } from "@/lib/legal"
+import { APP_NAME } from "@/lib/brand"
 
-export const metadata = { title: "Datenschutz – Stundenfassen" }
+export const metadata = { title: `Datenschutz – ${APP_NAME}` }
 
 // Drittlandübermittlung-Formulierung: Vor Veröffentlichung juristisch prüfen,
 // ob SCC, EU-US DPF oder beides zutrifft und aktuell gültig ist.

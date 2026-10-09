@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { LEGAL, assertKeinePlatzhalter } from "@/lib/legal"
+import { APP_NAME } from "@/lib/brand"
 
-export const metadata = { title: "Impressum – Stundenfassen" }
+export const metadata = { title: `Impressum – ${APP_NAME}` }
 
 export default function ImpressumSeite() {
   assertKeinePlatzhalter()

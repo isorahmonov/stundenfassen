@@ -243,7 +243,7 @@ export default function ProfilSeite() {
     const blobUrl = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = blobUrl
-    a.download = `stundenfassen-export-${datum}.json`
+    a.download = `shiftslot-export-${datum}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

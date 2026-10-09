@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next"
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Stundenfassen",
-    short_name: "Stundenfassen",
-    description: "Zeiterfassung für Studentenjobs",
+    name: APP_NAME,
+    short_name: APP_NAME,
+    description: APP_TAGLINE,
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

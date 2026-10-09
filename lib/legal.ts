@@ -17,7 +17,7 @@ export function assertKeinePlatzhalter(): void {
 
   const namen = fehlend.map(([k]) => k).join(", ")
   const meldung =
-    `[Stundenfassen] lib/legal.ts: Platzhalter nicht ersetzt: ${namen}. ` +
+    `[Shiftslot] lib/legal.ts: Platzhalter nicht ersetzt: ${namen}. ` +
     `Trage die echten Werte ein, bevor du deployest.`
 
   // Auf Vercel: Build-Abbruch — verhindert versehentliches Deployen mit Platzhaltern.

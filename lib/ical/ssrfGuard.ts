@@ -264,7 +264,7 @@ async function holePerHttps(url: URL, verbleibend: number): Promise<string> {
         path: url.pathname + url.search,
         method: "GET",
         headers: {
-          "User-Agent": "stundenfassen/1.0 (iCal fetcher)",
+          "User-Agent": "shiftslot/1.0 (iCal fetcher)",
           Accept: "text/calendar, */*;q=0.8",
           "Accept-Encoding": "identity", // Komprimierung deaktiviert: Limit gilt für rohen Inhalt
           Host: url.hostname,

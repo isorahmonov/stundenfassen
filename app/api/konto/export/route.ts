@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(json, {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="stundenfassen-export-${datum}.json"`,
+        "Content-Disposition": `attachment; filename="shiftslot-export-${datum}.json"`,
         "Cache-Control": "no-store",
       },
     })

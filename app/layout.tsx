@@ -3,17 +3,18 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { AuthGate } from "./components/AuthGate"
 import { ServiceWorkerRegistrar } from "./components/ServiceWorkerRegistrar"
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Stundenfassen",
-  description: "Zeiterfassung für Studentenjobs",
+  title: APP_NAME,
+  description: APP_TAGLINE,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "Stundenfassen",
+    title: APP_NAME,
     statusBarStyle: "black-translucent",
   },
   icons: {

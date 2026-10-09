@@ -6,6 +6,7 @@ import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { feiertagName } from "@/lib/calc/holidays"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
+import { APP_NAME } from "@/lib/brand"
 
 type KwSystem = "tkmaxx" | "iso" | "keine"
 
@@ -24,7 +25,6 @@ function berechneKw(datum: string, kwSystem: KwSystem, kwAnker?: string): number
   return null
 }
 
-const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
 const WOCHENTAGE_LANG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
 const MONATE_LANG = [
   "Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -230,9 +230,9 @@ export function VerfuegbarkeitPDF({
         })}
 
         {/* Fußzeile */}
-        {(fusszeilenText !== undefined ? fusszeilenText : "Stundenfassen") ? (
+        {(fusszeilenText !== undefined ? fusszeilenText : APP_NAME) ? (
           <View style={s.footer} fixed>
-            <Text style={s.footerText}>{fusszeilenText ?? "Stundenfassen"}</Text>
+            <Text style={s.footerText}>{fusszeilenText ?? APP_NAME}</Text>
           </View>
         ) : null}
       </Page>
