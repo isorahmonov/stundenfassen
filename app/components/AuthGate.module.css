@@ -1,0 +1,165 @@
+/* ── Layout ─────────────────────────────────────────────────── */
+
+.loginWrap {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.introWrap {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* ── Slot bar ───────────────────────────────────────────────── */
+
+.slotWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+  /* allow flyBlock to overflow during slide-in */
+  overflow: visible;
+  animation: ssBarFadeIn 0.2s ease both;
+  animation-delay: 0.05s;
+}
+
+.slotBar {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.block {
+  width: 32px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.c1 { background: #5b7cf6; }
+.c2 { background: #f0953d; }
+.c4 { background: #47b78a; }
+.c5 { background: #e5636b; }
+
+.slotItem {
+  position: relative;
+  width: 32px;
+  height: 22px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.slotGhost {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  border: 1.5px dashed var(--sf-border-2);
+}
+
+.flyBlock {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: #a66ef5;
+  animation: ssFlyIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.45s;
+}
+
+/* ── App name & tagline ─────────────────────────────────────── */
+
+.appName {
+  font-size: clamp(2rem, 8vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--sf-text);
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  animation: ssFadeUp 0.35s ease both;
+  animation-delay: 0.95s;
+}
+
+.tagline {
+  font-size: 0.875rem;
+  color: var(--sf-text-2);
+  line-height: 1.5;
+  margin: 0;
+  animation: ssFadeUp 0.35s ease both;
+  animation-delay: 1.25s;
+}
+
+/* ── Login card ─────────────────────────────────────────────── */
+
+.loginCard {
+  animation: ssFadeUp 0.3s ease both;
+  animation-delay: 1.55s;
+}
+
+/* ── Login button subtle breath ─────────────────────────────── */
+
+.loginBtn {
+  animation: ssBreathe 3.5s ease-in-out 2.2s infinite;
+}
+
+/* ── Abbreviated (seen this session) ────────────────────────── */
+
+.animVerkuerzt .slotWrap {
+  animation-delay: 0s;
+  animation-duration: 0.08s;
+}
+
+.animVerkuerzt .flyBlock {
+  animation-delay: 0.08s;
+  animation-duration: 0.22s;
+}
+
+.animVerkuerzt .appName {
+  animation-delay: 0.3s;
+  animation-duration: 0.18s;
+}
+
+.animVerkuerzt .tagline {
+  animation-delay: 0.42s;
+  animation-duration: 0.18s;
+}
+
+.animVerkuerzt .loginCard {
+  animation-delay: 0.52s;
+  animation-duration: 0.18s;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+
+@keyframes ssBarFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ssFlyIn {
+  0%   { transform: translateX(160px); opacity: 0; }
+  18%  { opacity: 1; }
+  100% { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes ssFadeUp {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes ssBreathe {
+  0%,  100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
+  50%        { box-shadow: 0 3px 14px rgba(0, 0, 0, 0.11); }
+}
+
+/* ── Reduced motion: show final state immediately ───────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .slotWrap,
+  .flyBlock,
+  .appName,
+  .tagline,
+  .loginCard,
+  .loginBtn {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

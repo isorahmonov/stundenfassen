@@ -8,6 +8,7 @@ import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
+import s from "./AuthGate.module.css"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
@@ -15,6 +16,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [fehler, setFehler] = useState("")
+  const [animSeen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    try { return sessionStorage.getItem("sf_login_anim") === "1" } catch { return false }
+  })
   const pathname = usePathname()
   const istOeffentlich = OEFFENTLICHE_PFADE.includes(pathname)
 
@@ -24,6 +29,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       setLaden(false)
     })
     return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    try { sessionStorage.setItem("sf_login_anim", "1") } catch {
+      // ignore — PWA/private browsing
+    }
   }, [])
 
   async function handleGoogleLogin() {
@@ -47,47 +58,62 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (!user && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-stone-900 dark:text-neutral-100 mb-1">
-              {APP_NAME}
-            </h1>
-            <p className="text-sm text-stone-500 dark:text-neutral-400">
-              {APP_TAGLINE}
-            </p>
+        <div className={`${s.loginWrap} ${animSeen ? s.animVerkuerzt : ""}`}>
+
+          {/* Intro: slot animation + app name */}
+          <div className={s.introWrap}>
+            <div className={s.slotWrap} aria-hidden="true">
+              <div className={s.slotBar}>
+                <div className={`${s.block} ${s.c1}`} />
+                <div className={`${s.block} ${s.c2}`} />
+                <div className={s.slotItem}>
+                  <div className={s.slotGhost} />
+                  <div className={s.flyBlock} />
+                </div>
+                <div className={`${s.block} ${s.c4}`} />
+                <div className={`${s.block} ${s.c5}`} />
+              </div>
+            </div>
+
+            <h1 className={s.appName}>{APP_NAME}</h1>
+            <p className={s.tagline}>{APP_TAGLINE}</p>
           </div>
 
-          <div className="sf-card rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.04)]">
-            {fehler && (
-              <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2 mb-4">
-                {fehler}
+          {/* Login card */}
+          <div className={s.loginCard}>
+            <div className="sf-card rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.04)]">
+              {fehler && (
+                <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2 mb-4">
+                  {fehler}
+                </p>
+              )}
+              <button
+                onClick={handleGoogleLogin}
+                className={`w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-medium text-stone-700 dark:text-neutral-200 hover:bg-stone-50 dark:hover:bg-neutral-750 active:scale-[.99] transition-all ${s.loginBtn}`}
+              >
+                <GoogleIcon />
+                Mit Google anmelden
+              </button>
+              <p className="text-xs text-stone-400 dark:text-neutral-500 text-center mt-4 leading-relaxed">
+                Mit der Anmeldung akzeptierst du die{" "}
+                <Link href="/datenschutz" className="underline hover:text-stone-600 dark:hover:text-neutral-300">
+                  Datenschutzerklärung
+                </Link>
+                .
               </p>
-            )}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-medium text-stone-700 dark:text-neutral-200 hover:bg-stone-50 dark:hover:bg-neutral-750 active:scale-[.99] transition-all"
-            >
-              <GoogleIcon />
-              Mit Google anmelden
-            </button>
-            <p className="text-xs text-stone-400 dark:text-neutral-500 text-center mt-4 leading-relaxed">
-              Mit der Anmeldung akzeptierst du die{" "}
-              <Link href="/datenschutz" className="underline hover:text-stone-600 dark:hover:text-neutral-300">
-                Datenschutzerklärung
+            </div>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <Link href="/datenschutz" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
+                Datenschutz
               </Link>
-              .
-            </p>
+              <span className="text-xs text-stone-300 dark:text-neutral-600">·</span>
+              <Link href="/impressum" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
+                Impressum
+              </Link>
+            </div>
           </div>
 
-          <div className="flex justify-center gap-4 mt-6">
-            <Link href="/datenschutz" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
-              Datenschutz
-            </Link>
-            <span className="text-xs text-stone-300 dark:text-neutral-600">·</span>
-            <Link href="/impressum" className="text-xs text-stone-400 dark:text-neutral-500 hover:underline">
-              Impressum
-            </Link>
-          </div>
         </div>
       </div>
     )
