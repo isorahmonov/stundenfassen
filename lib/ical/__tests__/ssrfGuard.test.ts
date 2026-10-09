@@ -214,7 +214,7 @@ describe("validiereUndNormalisiereIcalUrl", () => {
 
 describe("verbindungsLookup — all: false (einzelne Adresse)", () => {
   it("lässt öffentliche IPv4 durch", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) => cb(null, "8.8.8.8", 4))
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, address: string, family: number) => void) => cb(null, "8.8.8.8", 4))
     let capturedErr: NodeJS.ErrnoException | null = null
     let capturedAddr = ""
     verbindungsLookup("google.com", {}, (err, addr) => { capturedErr = err; capturedAddr = addr as string })
@@ -223,14 +223,14 @@ describe("verbindungsLookup — all: false (einzelne Adresse)", () => {
   })
 
   it("blockiert private IPv4 mit EBLOCKED", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) => cb(null, "10.0.0.1", 4))
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, address: string, family: number) => void) => cb(null, "10.0.0.1", 4))
     let capturedCode = ""
     verbindungsLookup("internal.local", {}, (err) => { capturedCode = (err as NodeJS.ErrnoException)?.code ?? "" })
     expect(capturedCode).toBe("EBLOCKED")
   })
 
   it("blockiert private IPv6 (::1) mit EBLOCKED", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) => cb(null, "::1", 6))
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, address: string, family: number) => void) => cb(null, "::1", 6))
     let capturedCode = ""
     verbindungsLookup("loopback.local", {}, (err) => { capturedCode = (err as NodeJS.ErrnoException)?.code ?? "" })
     expect(capturedCode).toBe("EBLOCKED")
@@ -242,7 +242,7 @@ describe("verbindungsLookup — all: true (Node autoSelectFamily, Standard in No
   // Bug vor Fix: callback(null, first.address, first.family) → ERR_INVALID_ARG_TYPE in Node-Internals.
 
   it("lässt öffentliche IPs durch, gibt vollständiges Array zurück", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) =>
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, addresses: LookupAddress[]) => void) =>
       cb(null, [{ address: "142.250.74.110", family: 4 }, { address: "2607:f8b0::1", family: 6 }]))
     let capturedErr: NodeJS.ErrnoException | null = null
     let capturedList: LookupAddress[] = []
@@ -257,7 +257,7 @@ describe("verbindungsLookup — all: true (Node autoSelectFamily, Standard in No
   })
 
   it("blockiert wenn private IPv4 in der Liste enthalten ist", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) =>
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, addresses: LookupAddress[]) => void) =>
       cb(null, [{ address: "185.93.201.100", family: 4 }, { address: "10.0.0.1", family: 4 }]))
     let capturedCode = ""
     verbindungsLookup("rebind.example.com", { all: true }, (err) => {
@@ -267,7 +267,7 @@ describe("verbindungsLookup — all: true (Node autoSelectFamily, Standard in No
   })
 
   it("blockiert wenn private IPv6 (::1) in der Liste enthalten ist", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) =>
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, addresses: LookupAddress[]) => void) =>
       cb(null, [{ address: "2001:db8::1", family: 6 }, { address: "::1", family: 6 }]))
     let capturedCode = ""
     verbindungsLookup("rebind6.example.com", { all: true }, (err) => {
@@ -277,7 +277,7 @@ describe("verbindungsLookup — all: true (Node autoSelectFamily, Standard in No
   })
 
   it("gibt ENOTFOUND zurück bei leerer Adressliste", () => {
-    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: Function) => cb(null, []))
+    mockDnsSync.mockImplementation((_h: unknown, _o: unknown, cb: (err: NodeJS.ErrnoException | null, addresses: LookupAddress[]) => void) => cb(null, []))
     let capturedCode = ""
     verbindungsLookup("empty.example.com", { all: true }, (err) => {
       capturedCode = (err as NodeJS.ErrnoException)?.code ?? ""

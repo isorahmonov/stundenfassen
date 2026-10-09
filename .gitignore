@@ -42,8 +42,10 @@ next-env.d.ts
 
 # lokale Werkzeuge und persönliche Dateien
 graphify-out/
+video-out/
 STATUS.md
 scripts/migrate-*
+scripts/promo-video*
 *.backup.json
 employer-backup-*.json
 tsconfig.scripts.json
