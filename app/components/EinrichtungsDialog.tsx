@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BaseDialog } from "./BaseDialog"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import type { Bundesland, Employer, VerfuegbarkeitsEinstellungenArbeitgeber } from "@/lib/types"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { employers as employersRepo } from "@/lib/storage"
@@ -490,7 +491,7 @@ export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen, onNac
           <button onClick={bestaetigen} disabled={laden}
             className="rounded-xl px-4 py-2 text-sm font-semibold text-white active:scale-95 transition-all disabled:opacity-60"
             style={{ backgroundColor: "#2563eb" }}>
-            {laden ? "Speichert…" : "Bestätigen"}
+            {laden ? <ShiftslotLoader size="sm" label="Speichert…" /> : "Bestätigen"}
           </button>
         ) : (
           <button onClick={weiter}

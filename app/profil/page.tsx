@@ -12,6 +12,7 @@ import type { MinusEintragInput } from "@/lib/storage"
 import { BaseDialog } from "../components/BaseDialog"
 import { Toggle } from "../components/Toggle"
 import { ThemeToggle } from "../components/ThemeToggle"
+import { ShiftslotLoader } from "../components/ShiftslotLoader"
 
 const BERLIN = "Europe/Berlin"
 
@@ -689,7 +690,7 @@ export default function ProfilSeite() {
                 disabled={steuerLaden}
                 className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.99] transition-all disabled:opacity-40"
               >
-                {steuerLaden ? "Speichert…" : "Speichern"}
+                {steuerLaden ? <ShiftslotLoader size="sm" label="Speichert…" /> : "Speichern"}
               </button>
             </div>
           </AkkordeonAbschnitt>
@@ -1027,7 +1028,7 @@ function KontoLoeschenDialog({
             disabled={!bestaetigt || laden}
             className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[.98] transition-all disabled:opacity-40"
           >
-            {laden ? "Wird gelöscht…" : "Konto löschen"}
+            {laden ? <ShiftslotLoader size="sm" label="Wird gelöscht…" /> : "Konto löschen"}
           </button>
         </div>
       </div>
@@ -1114,7 +1115,7 @@ function DatenExportDialog({
               className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white active:scale-[.98] transition-all disabled:opacity-40"
               style={{ backgroundColor: "#2563eb" }}
             >
-              {laden ? "Wird erstellt…" : "Herunterladen"}
+              {laden ? <ShiftslotLoader size="sm" label="Wird erstellt…" /> : "Herunterladen"}
             </button>
           )}
         </div>
@@ -1330,7 +1331,7 @@ function TerminPruefer({
         </div>
         <button onClick={ladTermine} disabled={laden}
           className="rounded-lg bg-stone-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-medium sf-text hover:bg-stone-200 dark:hover:bg-neutral-700 disabled:opacity-50">
-          {laden ? "Lädt…" : "Laden"}
+          {laden ? <ShiftslotLoader size="sm" label="Lädt…" /> : "Laden"}
         </button>
       </div>
 

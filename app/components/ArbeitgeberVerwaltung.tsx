@@ -6,6 +6,7 @@ import type { Bundesland, Employer, EmployerArt } from "@/lib/types"
 import { employers as employersRepo } from "@/lib/storage"
 import { formatEuroCent } from "@/lib/calc/format"
 import { EinrichtungsDialog, sollDialogOeffnen } from "./EinrichtungsDialog"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 
 const ART_LABEL: Record<EmployerArt, string> = {
   werkstudent: "Werkstudent",
@@ -148,7 +149,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
         </header>
 
         {laedt ? (
-          <p className="text-center text-sm text-stone-400 dark:text-neutral-500">Lade…</p>
+          <div className="flex justify-center py-4"><ShiftslotLoader size="md" /></div>
         ) : (
           <div className="flex flex-col gap-3">
             {/* Formular neuer Arbeitgeber */}
@@ -464,7 +465,7 @@ function ArbeitgeberForm({
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-100 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400 disabled:opacity-60"
           style={{ backgroundColor: form.farbe }}
         >
-          {laden ? "Speichert…" : "Speichern"}
+          {laden ? <ShiftslotLoader size="sm" label="Speichert…" /> : "Speichern"}
         </button>
       </div>
     </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { pdf } from "@react-pdf/renderer"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland, Employer, EmailVorlage } from "@/lib/types"
@@ -415,7 +416,7 @@ export default function EmailVerfuegbarkeitButtonInner({
                 disabled={!kannSenden}
                 className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
               >
-                {laden ? "Sendet…" : "✉ Senden"}
+                {laden ? <ShiftslotLoader size="sm" label="Sendet…" /> : "✉ Senden"}
               </button>
             </div>
           )}

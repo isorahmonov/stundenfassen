@@ -9,6 +9,7 @@ import { auth, googleProvider } from "@/lib/firebase/client"
 import { TabBar } from "./TabBar"
 import { ThemeToggle } from "./ThemeToggle"
 import { ShiftslotLogo } from "./ShiftslotLogo"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 import { STRINGS } from "@/lib/ui-strings"
 import s from "./AuthGate.module.css"
@@ -78,7 +79,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (laden && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center">
-        <span className="text-sm text-stone-400 dark:text-neutral-500">{STRINGS.LAEDT}</span>
+        <ShiftslotLoader size="lg" />
       </div>
     )
   }

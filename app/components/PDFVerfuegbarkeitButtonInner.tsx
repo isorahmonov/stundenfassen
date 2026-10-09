@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { pdf } from "@react-pdf/renderer"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland, Employer } from "@/lib/types"
@@ -107,7 +108,7 @@ export default function PDFVerfuegbarkeitButtonInner({
         disabled={laden || ausgewaehlt.length === 0}
         className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/40 active:scale-95 transition-all duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        {laden ? "Erstelle PDF…" : "↓ PDF erstellen"}
+        {laden ? <ShiftslotLoader size="sm" label="Erstelle PDF…" /> : "↓ PDF erstellen"}
       </button>
 
       {zeigeWarnung && (

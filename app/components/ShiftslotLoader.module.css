@@ -1,0 +1,48 @@
+.loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.spinning {
+  display: inline-flex;
+  flex-shrink: 0;
+  transform-origin: center;
+  animation: loaderSpin 3.2s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+}
+
+.label {
+  font-size: 0.8125rem;
+  color: inherit;
+  line-height: 1.4;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* rotate one full turn (37.5 % of cycle = 1.2 s), then hold */
+@keyframes loaderSpin {
+  0%    { transform: rotate(0deg); }
+  37.5% { transform: rotate(360deg); }
+  100%  { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: loaderPulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes loaderPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

@@ -2,6 +2,7 @@
 
 // Direkter Import — diese Datei wird nur client-seitig geladen (via dynamic in PDFButton)
 import { PDFDownloadLink } from "@react-pdf/renderer"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import type { Abgleich, Employer, Settings, Shift } from "@/lib/types"
 import type { Bundesland } from "@/lib/types"
 import { MonatsPDF } from "./MonatsPDF"
@@ -34,7 +35,7 @@ export default function PDFButtonInner(props: PDFButtonProps) {
     >
       {({ loading }) => (
         <span className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:bg-stone-50 hover:border-stone-300 active:scale-95 transition-all duration-100 cursor-pointer select-none">
-          {loading ? "…" : "↓ PDF"}
+          {loading ? <ShiftslotLoader size="sm" /> : "↓ PDF"}
         </span>
       )}
     </PDFDownloadLink>

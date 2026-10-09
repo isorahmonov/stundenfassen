@@ -17,6 +17,7 @@ import { WarnungsAnzeige } from "./WarnungsAnzeige"
 import { PDFButton } from "./PDFButton"
 import { HeatmapAbschnitt } from "./HeatmapAbschnitt"
 import { KeinArbeitgeberKarte } from "./KeinArbeitgeberKarte"
+import { ShiftslotLoader } from "./ShiftslotLoader"
 import { STRINGS } from "@/lib/ui-strings"
 import { withTimeout } from "@/lib/withTimeout"
 
@@ -171,7 +172,7 @@ export default function MonatsUebersicht() {
   if (laedt) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center">
-        <span className="text-sm text-stone-400">{STRINGS.LAEDT}</span>
+        <ShiftslotLoader size="lg" />
       </div>
     )
   }
