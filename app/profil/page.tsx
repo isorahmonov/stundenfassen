@@ -898,6 +898,8 @@ function KalenderFormular({
   const [status, setStatus] = useState<"LOCKED" | "FLEXIBLE">(initial?.defaultStatus ?? "LOCKED")
   const [url, setUrl] = useState("")
 
+  const istGooglePublic = url.includes("calendar.google.com") && url.includes("/public/")
+
   function submit(e: React.FormEvent) {
     e.preventDefault()
     const daten: KalenderFormDaten = { name, farbe, defaultStatus: status }
@@ -940,8 +942,13 @@ function KalenderFormular({
           <p className="text-xs sf-text-3 mt-1">URL nur ausfüllen wenn du sie ändern möchtest.</p>
         ) : (
           <p className="text-xs sf-text-3 mt-1">
-            Google: Kalender-Einstellungen → &quot;Geheime Adresse im iCal-Format&quot; · Uni-Portal/Outlook: iCal- oder ICS-Export.
-            Behandle den Link wie ein Passwort — er enthält oft einen geheimen Token.
+            iCal-Link (Kalender-Export). Bei Google: &quot;Geheime Adresse im iCal-Format&quot;. Bei Uni-Portalen: der iCal-Export-Link.
+            Die Adresse ist wie ein Passwort.
+          </p>
+        )}
+        {istGooglePublic && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
+            Das ist die öffentliche Adresse. Sie funktioniert nur, wenn dein Kalender öffentlich ist. Sonst nimm die geheime Adresse (…/private-…/basic.ics).
           </p>
         )}
       </div>
