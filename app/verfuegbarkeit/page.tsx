@@ -26,7 +26,8 @@ import {
   saveSelection,
 } from "@/lib/verfuegbarkeit/eventCache"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
-import { employers as employersRepo, geplanteSchichten as geplanteRepo, shifts as shiftsRepo } from "@/lib/storage"
+import { employers as employersRepo, geplanteSchichten as geplanteRepo, settings as settingsRepo, shifts as shiftsRepo } from "@/lib/storage"
+import type { Locale } from "@/lib/i18n"
 import { EinrichtungsDialog, sollDialogOeffnen } from "../components/EinrichtungsDialog"
 import { KeinArbeitgeberKarte } from "../components/KeinArbeitgeberKarte"
 import { useLang, useT } from "@/app/components/LangProvider"
@@ -177,6 +178,8 @@ export default function VerfuegbarkeitPage() {
   const [einrichtungsId, setEinrichtungsId] = useState<string | null>(null)
   const einrichtungsEmployer = einrichtungsId ? alleAktiveArbeitgeber.find((e) => e.id === einrichtungsId) : undefined
 
+  const [dokSprache, setDokSprache] = useState<Locale>("de")
+
   const [zuletztAktualisiert, setZuletztAktualisiert] = useState<Date | null>(null)
   const letzterRefreshRef = useRef(0)
   const berechneFetchRef = useRef<(opts?: { force?: boolean }) => Promise<void>>(async () => {})
@@ -202,6 +205,8 @@ export default function VerfuegbarkeitPage() {
       .catch((e) => setFehler(String(e)))
 
     geplanteRepo.findAlle().then(setGeplanteSchichtenListe).catch(() => {})
+
+    settingsRepo.get().then((s) => { if (s?.dokSprache) setDokSprache(s.dokSprache) }).catch(() => {})
   }, [])
 
   useEffect(() => { ladeArchiv() }, [])
@@ -620,6 +625,7 @@ export default function VerfuegbarkeitPage() {
                 employer={selectedEmployer}
                 onNachExport={nachExport}
                 onEinrichten={selectedEmployerId ? () => setEinrichtungsId(selectedEmployerId) : undefined}
+                locale={dokSprache}
               />
               <EmailVerfuegbarkeitButton
                 startSonntagStr={startSonntagStr}
@@ -629,6 +635,7 @@ export default function VerfuegbarkeitPage() {
                 employer={selectedEmployer}
                 onNachExport={nachExport}
                 onEinrichten={selectedEmployerId ? () => setEinrichtungsId(selectedEmployerId) : undefined}
+                locale={dokSprache}
               />
             </div>
           </div>

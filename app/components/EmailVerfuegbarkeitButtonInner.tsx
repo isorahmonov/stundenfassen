@@ -6,12 +6,14 @@ import { ShiftslotLoader } from "./ShiftslotLoader"
 import { VerfuegbarkeitPDF } from "./VerfuegbarkeitPDF"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { Bundesland, Employer, EmailVorlage } from "@/lib/types"
+import type { Locale } from "@/lib/i18n"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo } from "@/lib/storage"
 import { auth } from "@/lib/firebase/client"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { BaseDialog } from "./BaseDialog"
+import { useT } from "@/app/components/LangProvider"
 
 export interface EmailVerfuegbarkeitProps {
   startSonntagStr: string
@@ -21,6 +23,7 @@ export interface EmailVerfuegbarkeitProps {
   employer: Employer | null
   onNachExport: () => Promise<void>
   onEinrichten?: () => void
+  locale?: Locale
 }
 
 async function blobZuBase64(blob: Blob): Promise<string> {
@@ -60,6 +63,7 @@ function istGueltigeEmailListe(eingabe: string): boolean {
 // ─── Erfolgsansicht ───────────────────────────────────────────────────────────
 
 function ErfolgView({ an, cc, onSchliessen }: { an: string; cc: string; onSchliessen: () => void }) {
+  const t = useT()
   const [sichtbar, setSichtbar] = useState(false)
   const [sekunden, setSekunden] = useState(5)
   const ref = useRef(onSchliessen)
@@ -92,7 +96,7 @@ function ErfolgView({ an, cc, onSchliessen }: { an: string; cc: string; onSchlie
         </div>
       </div>
       <div className={`text-center transition-all duration-300 delay-200 ${sichtbar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-        <p className="text-sm font-semibold sf-text mb-1">Gesendet!</p>
+        <p className="text-sm font-semibold sf-text mb-1">{t("GESENDET")}</p>
         <p className="text-xs sf-text-2">An: {an}</p>
         {cc && <p className="text-xs sf-text-2">CC: {cc}</p>}
       </div>
@@ -100,7 +104,7 @@ function ErfolgView({ an, cc, onSchliessen }: { an: string; cc: string; onSchlie
         onClick={onSchliessen}
         className={`text-xs sf-text-3 hover:sf-text transition-all duration-300 delay-300 ${sichtbar ? "opacity-100" : "opacity-0"}`}
       >
-        Schließen ({sekunden}s)
+        {t("SCHLIESSEN_COUNTDOWN").replace("{{s}}", sekunden.toString())}
       </button>
     </div>
   )
@@ -116,7 +120,9 @@ export default function EmailVerfuegbarkeitButtonInner({
   employer,
   onNachExport,
   onEinrichten,
+  locale = "de",
 }: EmailVerfuegbarkeitProps) {
+  const t = useT()
   const [dialogOffen, setDialogOffen] = useState(false)
   const [zeigeWarnung, setZeigeWarnung] = useState(false)
   const [laden, setLaden] = useState(false)
@@ -207,6 +213,7 @@ export default function EmailVerfuegbarkeitButtonInner({
           mitarbeiterName={mitarbeiterName}
           personalnummer={personalnummer || undefined}
           fusszeilenText={einst.pdf?.fusszeilenText}
+          locale={locale}
         />,
       ).toBlob()
 
@@ -257,18 +264,17 @@ export default function EmailVerfuegbarkeitButtonInner({
         disabled={ausgewaehlt.length === 0}
         className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-300 shadow-sm hover:bg-stone-50 dark:hover:bg-neutral-700 active:scale-95 transition-all duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        ✉ Per E-Mail
+        {t("EMAIL_PER_EMAIL_BTN")}
       </button>
 
       {zeigeWarnung && (
         <BaseDialog maxWidth="max-w-sm" onBackdropClick={() => setZeigeWarnung(false)}>
           <div className="flex-shrink-0 px-6 pt-6 pb-4">
-            <h2 className="text-base font-bold sf-text">Verfügbarkeit nicht eingerichtet</h2>
+            <h2 className="text-base font-bold sf-text">{t("VERFUEG_WARN_TITEL")}</h2>
           </div>
           <div className="flex-1 overflow-y-auto px-6 pb-4">
             <p className="text-sm sf-text-2 leading-relaxed">
-              Du hast die Verfügbarkeit für diesen Arbeitgeber noch nicht eingerichtet.
-              Es gelten Standardwerte (06:00–20:30, Mo–Sa, keine festen Sperrzeiten).
+              {t("VERFUEG_WARN_TEXT")}
             </p>
           </div>
           <div
@@ -279,13 +285,13 @@ export default function EmailVerfuegbarkeitButtonInner({
               onClick={() => { setZeigeWarnung(false); onEinrichten?.() }}
               className="rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
             >
-              Jetzt einrichten
+              {t("JETZT_EINRICHTEN")}
             </button>
             <button
               onClick={() => { setZeigeWarnung(false); oeffneEmailDialog() }}
               className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.98] transition-all"
             >
-              Trotzdem fortfahren
+              {t("TROTZDEM_FORTFAHREN")}
             </button>
           </div>
         </BaseDialog>
@@ -298,7 +304,7 @@ export default function EmailVerfuegbarkeitButtonInner({
         >
           {/* Header */}
           <div className="flex-shrink-0 flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100 dark:border-white/5">
-            <h2 className="text-sm font-semibold sf-text">Per E-Mail senden</h2>
+            <h2 className="text-sm font-semibold sf-text">{t("EMAIL_PER_EMAIL_BTN")}</h2>
             <button
               onClick={() => { if (!laden) schliesseDialog() }}
               disabled={laden}
@@ -313,16 +319,16 @@ export default function EmailVerfuegbarkeitButtonInner({
             ) : vorlagen.length === 0 ? (
               <div className="px-5 pb-5 pt-4">
                 <p className="text-sm sf-text-2 text-center py-4">
-                  Bitte zuerst eine Vorlage im{" "}
-                  <a href="/profil" className="text-blue-600 dark:text-blue-400 underline">Profil-Tab</a>
-                  {" "}anlegen.
+                  {t("EMAIL_VORLAGE_VOR")}{" "}
+                  <a href="/profil" className="text-blue-600 dark:text-blue-400 underline">{t("EMAIL_VORLAGE_LINK")}</a>
+                  {" "}{t("EMAIL_VORLAGE_NACH")}
                 </p>
               </div>
             ) : (
               <div className="px-5 pt-4 pb-4 space-y-4">
                 {vorlagen.length > 1 && (
                   <div>
-                    <label className="block text-xs sf-text-2 mb-1">Vorlage</label>
+                    <label className="block text-xs sf-text-2 mb-1">{t("VORLAGE_DIALOG_LABEL")}</label>
                     <select
                       value={aktivVorlageId}
                       onChange={(e) => waehleVorlage(e.target.value)}
@@ -336,7 +342,7 @@ export default function EmailVerfuegbarkeitButtonInner({
                 )}
 
                 <div>
-                  <label className="block text-xs sf-text-2 mb-1">An</label>
+                  <label className="block text-xs sf-text-2 mb-1">{t("AN_LABEL")}</label>
                   <input
                     type="text"
                     value={empfaenger}
@@ -362,15 +368,15 @@ export default function EmailVerfuegbarkeitButtonInner({
                     }`}
                   />
                   {ccFehler && (
-                    <p className="text-xs text-red-500 mt-1">Ungültige E-Mail-Adresse(n) — Komma zwischen mehreren.</p>
+                    <p className="text-xs text-red-500 mt-1">{t("CC_FEHLER")}</p>
                   )}
                 </div>
 
                 {aktivVorlage && (
                   <div className="rounded-xl bg-stone-50 dark:bg-neutral-800/50 p-3 space-y-2">
-                    <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Vorschau</p>
+                    <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">{t("VORSCHAU_LABEL")}</p>
                     <p className="text-xs sf-text">
-                      <span className="font-medium">Betreff:</span>{" "}{vorschauBetreff}
+                      <span className="font-medium">{t("BETREFF_LABEL")}</span>{" "}{vorschauBetreff}
                     </p>
                     <pre className="text-xs sf-text-2 whitespace-pre-wrap font-sans leading-relaxed border-t border-stone-200 dark:border-neutral-700 pt-2">
                       {vorschauText}
@@ -383,10 +389,10 @@ export default function EmailVerfuegbarkeitButtonInner({
 
                 {fehler === "KEIN_EMAIL_KONTO" ? (
                   <div className="text-xs bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl px-3 py-2.5">
-                    <p className="text-amber-800 dark:text-amber-300 font-medium mb-0.5">Kein E-Mail-Konto hinterlegt</p>
+                    <p className="text-amber-800 dark:text-amber-300 font-medium mb-0.5">{t("KEIN_EMAIL_KONTO_TITEL")}</p>
                     <p className="text-amber-700 dark:text-amber-400">
-                      Bitte zuerst eigenes Gmail-Konto im{" "}
-                      <a href="/profil" className="underline font-medium">Profil-Tab einrichten →</a>
+                      {t("KEIN_EMAIL_KONTO_VOR")}{" "}
+                      <a href="/profil" className="underline font-medium">{t("KEIN_EMAIL_KONTO_LINK")}</a>
                     </p>
                   </div>
                 ) : fehler ? (
@@ -409,14 +415,14 @@ export default function EmailVerfuegbarkeitButtonInner({
                 disabled={laden}
                 className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
               >
-                Abbrechen
+                {t("ABBRECHEN")}
               </button>
               <button
                 onClick={senden}
                 disabled={!kannSenden}
                 className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
               >
-                {laden ? <ShiftslotLoader size="sm" label="Sendet…" /> : "✉ Senden"}
+                {laden ? <ShiftslotLoader size="sm" label={t("SENDET_LABEL")} /> : t("SENDEN_BTN")}
               </button>
             </div>
           )}

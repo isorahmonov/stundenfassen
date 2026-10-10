@@ -48,7 +48,7 @@ export default function MonatsUebersicht() {
   const [settingsBundesland, setSettingsBundesland] = useState<Bundesland>("HH")
   const [abgleichMap, setAbgleichMap] = useState<Map<string, Abgleich>>(new Map())
   const [jahresSchichten, setJahresSchichten] = useState<Shift[]>([])
-  const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal">>(FALLBACK_SETTINGS)
+  const [settings, setSettings] = useState<Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal" | "dokSprache">>(FALLBACK_SETTINGS)
   const [minusMinutenAktiv, setMinusMinutenAktiv] = useState<number | null>(null)
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState<string | null>(null)
@@ -114,7 +114,7 @@ export default function MonatsUebersicht() {
         if (abgebrochen) return
 
         const aktiveEmps = emps.filter((e) => !e.archiviert)
-        const geladeneSettings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal"> =
+        const geladeneSettings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal" | "dokSprache"> =
           cfg ?? FALLBACK_SETTINGS
 
 
@@ -311,6 +311,7 @@ export default function MonatsUebersicht() {
                 bundesland={bundesland}
                 abgleich={aktivId ? (abgleichMap.get(aktivId) ?? null) : null}
                 minusMinuten={minusMinutenAktiv ?? undefined}
+                locale={settings.dokSprache ?? "de"}
               />
             </div>
 

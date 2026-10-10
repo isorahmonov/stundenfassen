@@ -15,7 +15,7 @@ import { ThemeToggle } from "../components/ThemeToggle"
 import { ShiftslotLoader } from "../components/ShiftslotLoader"
 import { useLang, useT } from "@/app/components/LangProvider"
 import { LOCALES } from "@/lib/i18n"
-import type { UiStrings } from "@/lib/i18n"
+import type { Locale, UiStrings } from "@/lib/i18n"
 import { CHANGELOG } from "@/lib/changelog"
 import { APP_VERSION, APP_DOMAINS } from "@/lib/brand"
 
@@ -55,7 +55,7 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "sprache" | "erscheinungsbild" | "neuigkeiten"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "sprache" | "dosprache" | "erscheinungsbild" | "neuigkeiten"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
@@ -84,6 +84,9 @@ export default function ProfilSeite() {
   })
   const [steuerLaden, setSteuerLaden] = useState(false)
 
+  const [dokSprache, setDokSprache] = useState<Locale>("de")
+  const [dokSpracheLaden, setDokSpracheLaden] = useState(false)
+
   const [emailKonfiguriert, setEmailKonfiguriert] = useState(false)
   const [emailGmailUser, setEmailGmailUser] = useState("")
   const [emailFormOffen, setEmailFormOffen] = useState(false)
@@ -103,7 +106,10 @@ export default function ProfilSeite() {
   useEffect(() => { ladeEmailConfig() }, [])
   useEffect(() => {
     settingsRepo.get().then(s => {
-      if (s) setSteuerDaten({ steuerklasse: s.steuerklasse, kirchensteuer: s.kirchensteuer })
+      if (s) {
+        setSteuerDaten({ steuerklasse: s.steuerklasse, kirchensteuer: s.kirchensteuer })
+        if (s.dokSprache) setDokSprache(s.dokSprache)
+      }
     }).catch(() => {})
   }, [])
 
@@ -175,6 +181,15 @@ export default function ProfilSeite() {
       await settingsRepo.save(steuerDaten)
     } catch (e) { setFehler(String(e)) }
     finally { setSteuerLaden(false) }
+  }
+
+  async function speichernDokSprache(val: Locale) {
+    setDokSpracheLaden(true)
+    try {
+      await settingsRepo.save({ steuerklasse: steuerDaten.steuerklasse, kirchensteuer: steuerDaten.kirchensteuer, dokSprache: val })
+      setDokSprache(val)
+    } catch (e) { setFehler(String(e)) }
+    finally { setDokSpracheLaden(false) }
   }
 
   async function abmelden() {
@@ -723,6 +738,38 @@ export default function ProfilSeite() {
                     >
                       <span className="font-semibold">{l.toUpperCase()}</span>
                       <span className={`text-xs ${locale === l ? "text-blue-100" : "sf-text-3"}`}>{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </AkkordeonAbschnitt>
+
+          {/* ── Dokumentensprache ────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel={t("DOK_SPRACHE_LABEL")}
+            symbol={<SpracheIcon />}
+            badge={dokSprache.toUpperCase()}
+            offen={offen.has("dosprache")}
+            onToggle={() => toggle("dosprache")}
+          >
+            <div className="pt-3 pb-1">
+              <div className="flex gap-2 flex-wrap">
+                {(LOCALES as readonly string[]).map((l) => {
+                  const label = l === "de" ? "Deutsch" : l === "en" ? "English" : l === "ru" ? "Русский" : "Français"
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => speichernDokSprache(l as Locale)}
+                      disabled={dokSpracheLaden}
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors disabled:opacity-40 ${
+                        dokSprache === l
+                          ? "bg-blue-600 text-white"
+                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      <span className="font-semibold">{l.toUpperCase()}</span>
+                      <span className={`text-xs ${dokSprache === l ? "text-blue-100" : "sf-text-3"}`}>{label}</span>
                     </button>
                   )
                 })}
@@ -1540,18 +1587,30 @@ function MinusFormular({
 
 // ─── VorlageFormular ────────────────────────────────────────────────────────────
 
-const DEFAULT_VORLAGE = {
-  name: "Standard",
-  betreff: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
-  text: `Sehr geehrte Damen und Herren,
-
-anbei erhalten Sie meine Verfügbarkeit für den Zeitraum {{zeitraum_von}} bis {{zeitraum_bis}}.
-
-Mit freundlichen Grüßen,
-{{name}}
-Personalnummer: {{personalnummer}}`,
-  empfaenger: "",
-  cc: "",
+function defaultVorlage(locale: Locale) {
+  const map: Record<Locale, { name: string; betreff: string; text: string }> = {
+    de: {
+      name: "Standard",
+      betreff: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
+      text: "Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie meine Verfügbarkeit für den Zeitraum {{zeitraum_von}} bis {{zeitraum_bis}}.\n\nMit freundlichen Grüßen,\n{{name}}\nPersonalnummer: {{personalnummer}}",
+    },
+    en: {
+      name: "Standard",
+      betreff: "Availability {{zeitraum_von}} – {{zeitraum_bis}}",
+      text: "Dear Sir or Madam,\n\nPlease find attached my availability for the period {{zeitraum_von}} to {{zeitraum_bis}}.\n\nKind regards,\n{{name}}\nEmployee number: {{personalnummer}}",
+    },
+    ru: {
+      name: "Стандарт",
+      betreff: "Доступность {{zeitraum_von}} – {{zeitraum_bis}}",
+      text: "Уважаемые дамы и господа,\n\nПрилагаю свою доступность за период {{zeitraum_von}} – {{zeitraum_bis}}.\n\nС уважением,\n{{name}}\nТабельный номер: {{personalnummer}}",
+    },
+    fr: {
+      name: "Standard",
+      betreff: "Disponibilité {{zeitraum_von}} – {{zeitraum_bis}}",
+      text: "Madame, Monsieur,\n\nVeuillez trouver ci-joint mes disponibilités pour la période du {{zeitraum_von}} au {{zeitraum_bis}}.\n\nCordialement,\n{{name}}\nNuméro de matricule : {{personalnummer}}",
+    },
+  }
+  return { ...map[locale], empfaenger: "", cc: "" }
 }
 
 function VorlageFormular({
@@ -1566,7 +1625,8 @@ function VorlageFormular({
   onAbbrechen: () => void
 }) {
   const t = useT()
-  const start = initial ?? DEFAULT_VORLAGE
+  const { locale } = useLang()
+  const start = initial ?? defaultVorlage(locale)
   const [name, setName] = useState(start.name)
   const [betreff, setBetreff] = useState(start.betreff)
   const [text, setText] = useState(start.text)
@@ -1605,7 +1665,7 @@ function VorlageFormular({
       <div>
         <p className="text-xs sf-text-2 mb-1">{t("VORLAGE_BETREFF")}</p>
         <input type="text" required value={betreff} onChange={(e) => setBetreff(e.target.value)}
-          placeholder="Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}" className={inputKlasse} />
+          placeholder={t("VORLAGE_PH_BETREFF")} className={inputKlasse} />
       </div>
       <div>
         <p className="text-xs sf-text-2 mb-1">{t("VORLAGE_TEXT")}</p>

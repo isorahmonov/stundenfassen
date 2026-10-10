@@ -5,12 +5,9 @@ import { PDFDownloadLink } from "@react-pdf/renderer"
 import { ShiftslotLoader } from "./ShiftslotLoader"
 import type { Abgleich, Employer, Settings, Shift } from "@/lib/types"
 import type { Bundesland } from "@/lib/types"
+import type { Locale } from "@/lib/i18n"
+import { pdfStrings } from "@/lib/pdf/pdfStrings"
 import { MonatsPDF } from "./MonatsPDF"
-
-const MONATE = [
-  "Januar","Februar","März","April","Mai","Juni",
-  "Juli","August","September","Oktober","November","Dezember",
-]
 
 export interface PDFButtonProps {
   employer: Employer
@@ -21,15 +18,17 @@ export interface PDFButtonProps {
   bundesland: Bundesland
   abgleich: Abgleich | null
   minusMinuten?: number
+  locale?: Locale
 }
 
 export default function PDFButtonInner(props: PDFButtonProps) {
-  const { employer, monat, jahr } = props
-  const dateiname = `${employer.name.replace(/\s+/g, "-")}_${MONATE[monat - 1]}-${jahr}.pdf`
+  const { employer, monat, jahr, locale = "de" } = props
+  const str = pdfStrings[locale]
+  const dateiname = `${employer.name.replace(/\s+/g, "-")}_${str.monate[monat - 1]}-${jahr}.pdf`
 
   return (
     <PDFDownloadLink
-      document={<MonatsPDF {...props} />}
+      document={<MonatsPDF {...props} locale={locale} />}
       fileName={dateiname}
       style={{ textDecoration: "none" }}
     >

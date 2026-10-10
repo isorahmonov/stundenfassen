@@ -85,6 +85,7 @@ export type SettingsDoc = {
   steuerklasse: Settings["steuerklasse"]
   kirchensteuer: boolean
   kurzfristigPauschal?: boolean
+  dokSprache?: Settings["dokSprache"]
 }
 
 export const toSettings = (d: SettingsDoc): Settings => ({
@@ -93,6 +94,7 @@ export const toSettings = (d: SettingsDoc): Settings => ({
   steuerklasse: d.steuerklasse,
   kirchensteuer: d.kirchensteuer,
   ...(d.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
+  ...(d.dokSprache ? { dokSprache: d.dokSprache } : {}),
 })
 
 // ── MinusEintrag ─────────────────────────────────────────────────────────────

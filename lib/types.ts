@@ -1,5 +1,7 @@
 // Zentrale Datenmodell-Typen für Arbeitgeber, Schichten und Einstellungen.
 
+import type { Locale } from "@/lib/i18n"
+
 export type EmployerArt =
   | "werkstudent"
   | "kurzfristig"
@@ -74,6 +76,8 @@ export interface Settings {
   /** Aus Firestore gelesen für ältere Datensätze; wird nicht mehr neu geschrieben.
    *  Gilt als Rückfall, solange kein employer.kurzfristigPauschal gesetzt ist. */
   kurzfristigPauschal?: boolean;
+  /** Sprache für generierte Dokumente (PDFs, E-Mails) */
+  dokSprache?: Locale;
 }
 
 export interface MinusEintrag {

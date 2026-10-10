@@ -13,6 +13,7 @@ export class SettingsRepository implements ISettingsRepository {
     const data: SettingsDoc = {
       steuerklasse: input.steuerklasse,
       kirchensteuer: input.kirchensteuer,
+      ...(input.dokSprache ? { dokSprache: input.dokSprache } : {}),
     }
     await setDoc(userDoc("settings", "default"), data, { merge: true })
     return toSettings(data)

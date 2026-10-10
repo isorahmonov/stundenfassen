@@ -1,11 +1,14 @@
 // React-PDF-Dokument für den Verfügbarkeitsnachweis.
 // Wird nur client-seitig gerendert (via PDFVerfuegbarkeitButton).
+import "@/lib/pdf/fonts"
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import type { Bundesland, MinusEintrag } from "@/lib/types"
 import type { VerfuegbarkeitsBlock } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { feiertagName } from "@/lib/calc/holidays"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
+import type { Locale } from "@/lib/i18n"
+import { pdfStrings } from "@/lib/pdf/pdfStrings"
 import { APP_NAME } from "@/lib/brand"
 
 type KwSystem = "tkmaxx" | "iso" | "keine"
@@ -25,12 +28,6 @@ function berechneKw(datum: string, kwSystem: KwSystem, kwAnker?: string): number
   return null
 }
 
-const WOCHENTAGE_LANG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
-const MONATE_LANG = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember",
-]
-
 function parseDatum(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number)
   // Mittag Lokalzeit — vermeidet Randeffekte bei Zeitzonenumrechnung
@@ -42,9 +39,9 @@ function formatDatumKurz(iso: string): string {
   return `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y}`
 }
 
-function formatDatumLang(iso: string): string {
+function formatDatumLang(iso: string, monate: string[]): string {
   const [y, m, d] = iso.split("-").map(Number)
-  return `${d}. ${MONATE_LANG[m - 1]} ${y}`
+  return `${d}. ${monate[m - 1]} ${y}`
 }
 
 function blockKey(b: VerfuegbarkeitsBlock): string {
@@ -52,19 +49,19 @@ function blockKey(b: VerfuegbarkeitsBlock): string {
 }
 
 const s = StyleSheet.create({
-  page: { padding: 40, fontFamily: "Helvetica", fontSize: 9, color: "#1c1917" },
+  page: { padding: 40, fontFamily: "NotoSans", fontSize: 9, color: "#1c1917" },
   header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
   headerLeft: { flex: 1 },
-  headerTitle: { fontSize: 14, fontFamily: "Helvetica-Bold", marginBottom: 4 },
+  headerTitle: { fontSize: 14, fontFamily: "NotoSans", fontWeight: 700, marginBottom: 4 },
   headerMeta: { fontSize: 9, color: "#57534e" },
   minusBox: { alignItems: "flex-end" as const },
-  minusLabel: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#dc2626", textTransform: "uppercase" as const, marginBottom: 3 },
+  minusLabel: { fontSize: 7, fontFamily: "NotoSans", fontWeight: 700, color: "#dc2626", textTransform: "uppercase" as const, marginBottom: 3 },
   minusZeile: { fontSize: 7, color: "#dc2626", marginBottom: 1 },
-  minusGesamt: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#dc2626", marginTop: 3 },
+  minusGesamt: { fontSize: 7, fontFamily: "NotoSans", fontWeight: 700, color: "#dc2626", marginTop: 3 },
   accentBar: { height: 2, backgroundColor: "#2563eb", borderRadius: 1, marginBottom: 20 },
   wocheContainer: { marginBottom: 20 },
   wocheKopf: {
-    fontSize: 10, fontFamily: "Helvetica-Bold",
+    fontSize: 10, fontFamily: "NotoSans", fontWeight: 700,
     marginBottom: 8, color: "#1c1917",
   },
   table: { borderRadius: 3, overflow: "hidden" },
@@ -79,9 +76,9 @@ const s = StyleSheet.create({
   },
   rowFeiertag: { backgroundColor: "#fef2f2" },
   rowSonntag: { backgroundColor: "#f5f5f4" },
-  thWt: { width: 65, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
-  thDatum: { width: 70, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
-  thZeit: { flex: 1, fontSize: 7, color: "#78716c", fontFamily: "Helvetica-Bold" },
+  thWt: { width: 65, fontSize: 7, color: "#78716c", fontFamily: "NotoSans", fontWeight: 700 },
+  thDatum: { width: 70, fontSize: 7, color: "#78716c", fontFamily: "NotoSans", fontWeight: 700 },
+  thZeit: { flex: 1, fontSize: 7, color: "#78716c", fontFamily: "NotoSans", fontWeight: 700 },
   tdWt: { width: 65, fontSize: 8 },
   tdDatum: { width: 70, fontSize: 8, color: "#57534e" },
   tdZeit: { flex: 1, fontSize: 8 },
@@ -90,7 +87,7 @@ const s = StyleSheet.create({
     flexDirection: "row", justifyContent: "flex-end",
     paddingTop: 6, marginTop: 2,
   },
-  summeText: { fontSize: 8, fontFamily: "Helvetica-Bold" },
+  summeText: { fontSize: 8, fontFamily: "NotoSans", fontWeight: 700 },
   footer: { position: "absolute", bottom: 30, left: 40, right: 40 },
   footerText: { fontSize: 7, color: "#a8a29e", textAlign: "center" },
 })
@@ -107,6 +104,7 @@ interface Props {
   mitarbeiterName: string
   personalnummer?: string
   fusszeilenText?: string
+  locale?: Locale
 }
 
 export function VerfuegbarkeitPDF({
@@ -121,27 +119,29 @@ export function VerfuegbarkeitPDF({
   mitarbeiterName,
   personalnummer,
   fusszeilenText,
+  locale = "de",
 }: Props) {
+  const str = pdfStrings[locale]
   const ausgewaehlteKeys = new Set(ausgewaehlt.map(blockKey))
   const wochen = wochenDaten(startSonntagStr, anzahlWochen)
 
   return (
-    <Document title="Verfügbarkeit" author={mitarbeiterName}>
+    <Document title={str.verfuegbarkeit} author={mitarbeiterName}>
       <Page size="A4" style={s.page}>
         {/* Kopf */}
         <View style={s.header}>
           <View style={s.headerLeft}>
-            <Text style={s.headerTitle}>Verfügbarkeit</Text>
-            <Text style={s.headerMeta}>Mitarbeiter: {mitarbeiterName}</Text>
+            <Text style={s.headerTitle}>{str.verfuegbarkeit}</Text>
+            <Text style={s.headerMeta}>{str.mitarbeiter}: {mitarbeiterName}</Text>
             {personalnummer && (
-              <Text style={s.headerMeta}>Personalnummer: {personalnummer}</Text>
+              <Text style={s.headerMeta}>{str.personalnummer}: {personalnummer}</Text>
             )}
           </View>
           {minusEintraege.length > 0 && (
             <View style={s.minusBox}>
-              <Text style={s.minusLabel}>Minus-Konto</Text>
+              <Text style={s.minusLabel}>{str.minusKontoVerfueg}</Text>
               <Text style={s.minusGesamt}>
-                {"−"}{(minusEintraege.reduce((s, e) => s + e.minuten, 0) / 60).toFixed(1).replace(".", ",")} Std.
+                {"−"}{(minusEintraege.reduce((acc, e) => acc + e.minuten, 0) / 60).toFixed(1).replace(".", ",")} {str.std}.
               </Text>
             </View>
           )}
@@ -163,25 +163,25 @@ export function VerfuegbarkeitPDF({
 
           const wocheMin = ausgewaehlt
             .filter((b) => b.datum >= sonntag && b.datum <= samstag)
-            .reduce((s, b) => s + b.dauerMin, 0)
+            .reduce((acc, b) => acc + b.dauerMin, 0)
           const wocheStunden = (wocheMin / 60).toFixed(1).replace(".", ",")
 
           return (
             <View key={sonntag} style={s.wocheContainer} wrap={false}>
               <Text style={s.wocheKopf}>
-                {kwNr !== null ? `KW ${kwNr} · ` : ""}
+                {kwNr !== null ? `${str.kwPrefix} ${kwNr} · ` : ""}
                 {wochenStart === "montag"
-                  ? `${formatDatumLang(wocheDaten[1])} bis ${formatDatumLang(wocheDaten[0])}`
-                  : `${formatDatumLang(sonntag)} bis ${formatDatumLang(samstag)}`
+                  ? `${formatDatumLang(wocheDaten[1], str.monate)} bis ${formatDatumLang(wocheDaten[0], str.monate)}`
+                  : `${formatDatumLang(sonntag, str.monate)} bis ${formatDatumLang(samstag, str.monate)}`
                 }
               </Text>
 
               <View style={s.table}>
                 {/* Tabellenkopf */}
                 <View style={s.tableHead}>
-                  <Text style={s.thWt}>Wochentag</Text>
-                  <Text style={s.thDatum}>Datum</Text>
-                  <Text style={s.thZeit}>Verfügbare Zeit</Text>
+                  <Text style={s.thWt}>{str.wochentag}</Text>
+                  <Text style={s.thDatum}>{str.datum}</Text>
+                  <Text style={s.thZeit}>{str.verfuegbareZeit}</Text>
                 </View>
 
                 {/* Zeilen in Anzeigereihenfolge */}
@@ -204,13 +204,13 @@ export function VerfuegbarkeitPDF({
                         feiertag ? s.rowFeiertag : istSo ? s.rowSonntag : {},
                       ]}
                     >
-                      <Text style={s.tdWt}>{WOCHENTAGE_LANG[idx]}</Text>
+                      <Text style={s.tdWt}>{str.wochentangeLang[idx]}</Text>
                       <Text style={[s.tdDatum, feiertag ? { color: "#dc2626" } : {}]}>
                         {formatDatumKurz(datum)}
                         {feiertag ? ` (${feiertag})` : ""}
                       </Text>
                       {nichtVerfuegbar ? (
-                        <Text style={s.tdNv}>nicht verfügbar</Text>
+                        <Text style={s.tdNv}>{str.nichtVerfuegbar}</Text>
                       ) : (
                         <Text style={s.tdZeit}>
                           {tagesBlöcke.map((b) => `${b.start}–${b.ende}`).join(" · ")}
@@ -223,7 +223,7 @@ export function VerfuegbarkeitPDF({
 
               {/* Wochensumme */}
               <View style={s.summeRow}>
-                <Text style={s.summeText}>Summe: {wocheStunden} Std</Text>
+                <Text style={s.summeText}>{str.summe}: {wocheStunden} {str.std}</Text>
               </View>
             </View>
           )

@@ -351,6 +351,32 @@ export interface UiStrings {
   MONAT_KEINE_SCHICHTEN: string
   MONAT_SCHICHTEN_EINZEL: string
   MONAT_SCHICHTEN_N: string
+  // Verfügbarkeit buttons / dialogs
+  VERFUEG_WARN_TITEL: string
+  VERFUEG_WARN_TEXT: string
+  TROTZDEM_FORTFAHREN: string
+  PDF_ERSTELLEN_BTN: string
+  PDF_LAEDT_BTN: string
+  EMAIL_PER_EMAIL_BTN: string
+  GESENDET: string
+  SCHLIESSEN_COUNTDOWN: string
+  EMAIL_VORLAGE_VOR: string
+  EMAIL_VORLAGE_LINK: string
+  EMAIL_VORLAGE_NACH: string
+  VORLAGE_DIALOG_LABEL: string
+  AN_LABEL: string
+  VORSCHAU_LABEL: string
+  BETREFF_LABEL: string
+  KEIN_EMAIL_KONTO_TITEL: string
+  KEIN_EMAIL_KONTO_VOR: string
+  KEIN_EMAIL_KONTO_LINK: string
+  CC_FEHLER: string
+  SENDET_LABEL: string
+  SENDEN_BTN: string
+  // Profil — Dokumentensprache
+  DOK_SPRACHE_LABEL: string
+  // E-Mail Vorlage — Betreff-Platzhalter
+  VORLAGE_PH_BETREFF: string
 }
 
 export const translations: Record<Locale, UiStrings> = {
@@ -670,6 +696,29 @@ export const translations: Record<Locale, UiStrings> = {
     MONAT_KEINE_SCHICHTEN: "Keine Schichten in diesem Monat",
     MONAT_SCHICHTEN_EINZEL: "1 Schicht",
     MONAT_SCHICHTEN_N: "{{n}} Schichten",
+    VERFUEG_WARN_TITEL: "Verfügbarkeit nicht eingerichtet",
+    VERFUEG_WARN_TEXT: "Für diesen Arbeitgeber ist die Verfügbarkeitsansicht noch nicht eingerichtet. Trotzdem fortfahren?",
+    TROTZDEM_FORTFAHREN: "Trotzdem fortfahren",
+    PDF_ERSTELLEN_BTN: "↓ PDF erstellen",
+    PDF_LAEDT_BTN: "Erstelle PDF…",
+    EMAIL_PER_EMAIL_BTN: "✉ Per E-Mail",
+    GESENDET: "Gesendet!",
+    SCHLIESSEN_COUNTDOWN: "Schließen ({{s}}s)",
+    EMAIL_VORLAGE_VOR: "Bitte zuerst eine Vorlage im",
+    EMAIL_VORLAGE_LINK: "Profil-Tab",
+    EMAIL_VORLAGE_NACH: "anlegen.",
+    VORLAGE_DIALOG_LABEL: "Vorlage",
+    AN_LABEL: "An",
+    VORSCHAU_LABEL: "Vorschau",
+    BETREFF_LABEL: "Betreff:",
+    KEIN_EMAIL_KONTO_TITEL: "Kein E-Mail-Konto hinterlegt",
+    KEIN_EMAIL_KONTO_VOR: "Bitte zuerst eigenes Gmail-Konto im",
+    KEIN_EMAIL_KONTO_LINK: "Profil-Tab einrichten →",
+    CC_FEHLER: "Ungültige E-Mail-Adresse(n) — Komma zwischen mehreren.",
+    SENDET_LABEL: "Sendet…",
+    SENDEN_BTN: "✉ Senden",
+    DOK_SPRACHE_LABEL: "Dokumentensprache",
+    VORLAGE_PH_BETREFF: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   en: {
     LAEDT: "Loading…",
@@ -987,6 +1036,29 @@ export const translations: Record<Locale, UiStrings> = {
     MONAT_KEINE_SCHICHTEN: "No shifts this month",
     MONAT_SCHICHTEN_EINZEL: "1 shift",
     MONAT_SCHICHTEN_N: "{{n}} shifts",
+    VERFUEG_WARN_TITEL: "Availability not set up",
+    VERFUEG_WARN_TEXT: "Availability view is not yet configured for this employer. Continue anyway?",
+    TROTZDEM_FORTFAHREN: "Continue anyway",
+    PDF_ERSTELLEN_BTN: "↓ Create PDF",
+    PDF_LAEDT_BTN: "Creating PDF…",
+    EMAIL_PER_EMAIL_BTN: "✉ Send by e-mail",
+    GESENDET: "Sent!",
+    SCHLIESSEN_COUNTDOWN: "Close ({{s}}s)",
+    EMAIL_VORLAGE_VOR: "Please first create a template in the",
+    EMAIL_VORLAGE_LINK: "Profile tab",
+    EMAIL_VORLAGE_NACH: ".",
+    VORLAGE_DIALOG_LABEL: "Template",
+    AN_LABEL: "To",
+    VORSCHAU_LABEL: "Preview",
+    BETREFF_LABEL: "Subject:",
+    KEIN_EMAIL_KONTO_TITEL: "No e-mail account linked",
+    KEIN_EMAIL_KONTO_VOR: "Please first set up your Gmail account in the",
+    KEIN_EMAIL_KONTO_LINK: "Profile tab →",
+    CC_FEHLER: "Invalid e-mail address(es) — separate multiple with a comma.",
+    SENDET_LABEL: "Sending…",
+    SENDEN_BTN: "✉ Send",
+    DOK_SPRACHE_LABEL: "Document language",
+    VORLAGE_PH_BETREFF: "Availability {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   ru: {
     LAEDT: "Загрузка…",
@@ -1304,6 +1376,29 @@ export const translations: Record<Locale, UiStrings> = {
     MONAT_KEINE_SCHICHTEN: "В этом месяце нет смен",
     MONAT_SCHICHTEN_EINZEL: "1 смена",
     MONAT_SCHICHTEN_N: "{{n}} смен",
+    VERFUEG_WARN_TITEL: "Доступность не настроена",
+    VERFUEG_WARN_TEXT: "Для этого работодателя доступность ещё не настроена. Продолжить всё равно?",
+    TROTZDEM_FORTFAHREN: "Продолжить",
+    PDF_ERSTELLEN_BTN: "↓ Создать PDF",
+    PDF_LAEDT_BTN: "Создаю PDF…",
+    EMAIL_PER_EMAIL_BTN: "✉ По e-mail",
+    GESENDET: "Отправлено!",
+    SCHLIESSEN_COUNTDOWN: "Закрыть ({{s}}с)",
+    EMAIL_VORLAGE_VOR: "Сначала создайте шаблон во вкладке",
+    EMAIL_VORLAGE_LINK: "Профиль",
+    EMAIL_VORLAGE_NACH: ".",
+    VORLAGE_DIALOG_LABEL: "Шаблон",
+    AN_LABEL: "Кому",
+    VORSCHAU_LABEL: "Предпросмотр",
+    BETREFF_LABEL: "Тема:",
+    KEIN_EMAIL_KONTO_TITEL: "E-mail аккаунт не привязан",
+    KEIN_EMAIL_KONTO_VOR: "Сначала настройте Gmail во вкладке",
+    KEIN_EMAIL_KONTO_LINK: "Профиль →",
+    CC_FEHLER: "Недействительный e-mail — несколько адресов разделяйте запятой.",
+    SENDET_LABEL: "Отправка…",
+    SENDEN_BTN: "✉ Отправить",
+    DOK_SPRACHE_LABEL: "Язык документов",
+    VORLAGE_PH_BETREFF: "Доступность {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   fr: {
     LAEDT: "Chargement…",
@@ -1621,6 +1716,29 @@ export const translations: Record<Locale, UiStrings> = {
     MONAT_KEINE_SCHICHTEN: "Aucun quart ce mois-ci",
     MONAT_SCHICHTEN_EINZEL: "1 quart",
     MONAT_SCHICHTEN_N: "{{n}} quarts",
+    VERFUEG_WARN_TITEL: "Disponibilité non configurée",
+    VERFUEG_WARN_TEXT: "La vue disponibilité n'est pas encore configurée pour cet employeur. Continuer quand même ?",
+    TROTZDEM_FORTFAHREN: "Continuer quand même",
+    PDF_ERSTELLEN_BTN: "↓ Créer PDF",
+    PDF_LAEDT_BTN: "Création PDF…",
+    EMAIL_PER_EMAIL_BTN: "✉ Par e-mail",
+    GESENDET: "Envoyé !",
+    SCHLIESSEN_COUNTDOWN: "Fermer ({{s}}s)",
+    EMAIL_VORLAGE_VOR: "Veuillez d'abord créer un modèle dans l'onglet",
+    EMAIL_VORLAGE_LINK: "Profil",
+    EMAIL_VORLAGE_NACH: ".",
+    VORLAGE_DIALOG_LABEL: "Modèle",
+    AN_LABEL: "À",
+    VORSCHAU_LABEL: "Aperçu",
+    BETREFF_LABEL: "Objet :",
+    KEIN_EMAIL_KONTO_TITEL: "Aucun compte e-mail enregistré",
+    KEIN_EMAIL_KONTO_VOR: "Veuillez d'abord configurer votre compte Gmail dans l'onglet",
+    KEIN_EMAIL_KONTO_LINK: "Profil →",
+    CC_FEHLER: "Adresse(s) e-mail invalide(s) — séparez plusieurs adresses par une virgule.",
+    SENDET_LABEL: "Envoi…",
+    SENDEN_BTN: "✉ Envoyer",
+    DOK_SPRACHE_LABEL: "Langue des documents",
+    VORLAGE_PH_BETREFF: "Disponibilité {{zeitraum_von}} – {{zeitraum_bis}}",
   },
 }
 
