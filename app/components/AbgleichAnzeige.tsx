@@ -6,6 +6,7 @@ import { vergleicheAbgleich, type MonatsSumme } from "@/lib/calc/aggregate"
 import type { Ampel } from "@/lib/calc/warnings"
 import { formatEuroCent, formatStundenDezimal } from "@/lib/calc/format"
 import { abgleich as abgleichRepo } from "@/lib/storage"
+import { useT } from "./LangProvider"
 
 const AMPEL_DOT: Record<Ampel, string> = {
   gruen: "bg-emerald-500",
@@ -59,6 +60,7 @@ export function AbgleichAnzeige({
   jahr: number
   onGeaendert: () => void
 }) {
+  const t = useT()
   const [formOffen, setFormOffen] = useState(false)
   const [stunden, setStunden] = useState("")
   const [betrag, setBetrag] = useState("")
@@ -111,7 +113,7 @@ export function AbgleichAnzeige({
           onClick={formOffen ? () => setFormOffen(false) : oeffneForm}
           className="text-xs font-medium text-stone-400 dark:text-neutral-500 hover:text-stone-700 dark:hover:text-neutral-300 transition-colors"
         >
-          {formOffen ? "Abbrechen" : hatDaten ? "Bearbeiten" : "Eintragen"}
+          {formOffen ? t("ABBRECHEN") : hatDaten ? t("BEARBEITEN") : t("EINTRAGEN")}
         </button>
       </div>
 
@@ -151,7 +153,7 @@ export function AbgleichAnzeige({
             disabled={speichert || (!stunden && !betrag)}
             className="w-full rounded-xl bg-stone-800 dark:bg-neutral-200 text-white dark:text-neutral-900 text-sm font-semibold py-2 disabled:opacity-40 active:scale-[.99] transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
           >
-            {speichert ? "Speichert…" : "Speichern"}
+            {speichert ? t("SPEICHERT") : t("SPEICHERN")}
           </button>
         </form>
       )}

@@ -1361,7 +1361,7 @@ function KalenderFormular({
     <form onSubmit={submit} className="space-y-3">
       <div className="flex gap-2">
         <input value={name} onChange={(e) => setName(e.target.value)}
-          placeholder="Name (z.B. HAW Stundenplan)" required
+          placeholder={t("KAL_PLACEHOLDER_NAME")} required
           className={`flex-1 ${inputKlasse}`} />
         <input type="color" value={farbe} onChange={(e) => setFarbe(e.target.value)}
           className="w-10 h-10 rounded-xl border border-stone-200 dark:border-neutral-700 cursor-pointer p-0.5 sf-input" />

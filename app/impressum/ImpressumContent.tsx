@@ -20,6 +20,13 @@ export function ImpressumContent() {
         </div>
 
         <h1 className="text-xl font-bold sf-text">{s.title}</h1>
+        <p className="text-xs sf-text-3">{s.standLine}</p>
+
+        {s.govNote && (
+          <div className="sf-card rounded-xl px-4 py-3 border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-950/30">
+            <p className="text-xs sf-text-2 leading-relaxed">{s.govNote}</p>
+          </div>
+        )}
 
         <section className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
           <h2 className="text-sm font-semibold sf-text">{s.ddgHeading}</h2>

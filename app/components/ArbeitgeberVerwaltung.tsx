@@ -360,7 +360,7 @@ function ArbeitgeberForm({
             value={form.farbe}
             onChange={(e) => set("farbe", e.target.value)}
             className="w-10 h-10 rounded-full cursor-pointer border-0 p-0.5 bg-transparent"
-            aria-label="Farbe"
+            aria-label={t("ARIA_FARBE")}
           />
         </div>
         <div className="flex-1">

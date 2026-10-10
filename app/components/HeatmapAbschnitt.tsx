@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useT } from "./LangProvider"
 import { employers as employersRepo, shifts as shiftsRepo } from "@/lib/storage"
 import type { Employer, Shift } from "@/lib/types"
 
@@ -82,6 +83,7 @@ function datumKurz(iso: string): string {
 // ─── Komponente ───────────────────────────────────────────────────────────────
 
 export function HeatmapAbschnitt() {
+  const t = useT()
   const heute = new Date()
   const [monat, setMonat] = useState(heute.getMonth() + 1)
   const [jahr, setJahr] = useState(heute.getFullYear())
@@ -167,13 +169,13 @@ export function HeatmapAbschnitt() {
         <button
           onClick={prevMonat}
           className="w-11 h-11 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
-          aria-label="Vormonat"
+          aria-label={t("ARIA_VORMONAT")}
         >‹</button>
         <h2 className="text-sm font-semibold sf-text">{MONATE[monat - 1]} {jahr}</h2>
         <button
           onClick={nextMonat}
           className="w-11 h-11 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 dark:hover:bg-white/10 active:scale-90 transition-all"
-          aria-label="Nächster Monat"
+          aria-label={t("ARIA_NAECHSTER_MONAT")}
         >›</button>
       </div>
 

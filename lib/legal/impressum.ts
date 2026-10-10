@@ -8,6 +8,8 @@ export type ImpressumStrings = {
   ddgHeading: string
   ddgIntro: string
   emailLabel: string
+  standLine: string
+  govNote: string
 }
 
 const CONTENT: Record<Locale, ImpressumStrings> = {
@@ -20,6 +22,8 @@ const CONTENT: Record<Locale, ImpressumStrings> = {
     ddgIntro:
       "Verantwortlich für den Inhalt dieser Website und der Applikation im Sinne von § 5 DDG:",
     emailLabel: "E-Mail",
+    standLine: "Stand: 10. Oktober 2026",
+    govNote: "",
   },
   en: {
     title: "Legal notice",
@@ -30,6 +34,8 @@ const CONTENT: Record<Locale, ImpressumStrings> = {
     ddgIntro:
       "Responsible for the content of this website and the application within the meaning of § 5 DDG:",
     emailLabel: "Email",
+    standLine: "Last updated: 10 October 2026",
+    govNote: "This is a translation of the German original. In the event of discrepancies, the German version prevails.",
   },
   ru: {
     title: "Выходные данные",
@@ -40,6 +46,8 @@ const CONTENT: Record<Locale, ImpressumStrings> = {
     ddgIntro:
       "Ответственный за содержание данного сайта и приложения в соответствии с § 5 DDG:",
     emailLabel: "Электронная почта",
+    standLine: "Актуально на: 10 октября 2026 г.",
+    govNote: "Настоящая политика конфиденциальности является переводом немецкого оригинала. В случае расхождений немецкая версия имеет преимущественную силу.",
   },
   fr: {
     title: "Mentions légales",
@@ -50,6 +58,8 @@ const CONTENT: Record<Locale, ImpressumStrings> = {
     ddgIntro:
       "Responsable du contenu de ce site web et de l'application au sens du § 5 DDG :",
     emailLabel: "E-mail",
+    standLine: "Mis à jour le : 10 octobre 2026",
+    govNote: "Il s'agit d'une traduction de l'original allemand. En cas de divergences, la version allemande fait foi.",
   },
 }
 

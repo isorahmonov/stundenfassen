@@ -202,7 +202,7 @@ export default function MonatsUebersicht() {
       <div className="mx-auto max-w-2xl px-4 pt-10 pb-24">
         {/* Monatsnavigation */}
         <header className="flex items-center justify-between mb-8">
-          <NavButton onClick={zumVormonat} label="Vormonat">‹</NavButton>
+          <NavButton onClick={zumVormonat} label={t("ARIA_VORMONAT")}>‹</NavButton>
           <h1 className="text-base font-semibold tracking-tight text-stone-900 dark:text-neutral-100 select-none">
             {monatName(monat, locale)} {jahr}
           </h1>
@@ -210,15 +210,15 @@ export default function MonatsUebersicht() {
             <Link
               href="/profil/arbeitgeber"
               className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 hover:text-stone-700 active:scale-90 transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
-              aria-label="Arbeitgeber verwalten"
-              title="Arbeitgeber"
+              aria-label={t("AG_VERWALTEN")}
+              title={t("ARBEITGEBER_LABEL")}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <circle cx="8" cy="5" r="2.5"/>
                 <path d="M2.5 14c0-2.76 2.46-5 5.5-5s5.5 2.24 5.5 5"/>
               </svg>
             </Link>
-            <NavButton onClick={zumNaechstenMonat} label="Nächster Monat">›</NavButton>
+            <NavButton onClick={zumNaechstenMonat} label={t("ARIA_NAECHSTER_MONAT")}>›</NavButton>
           </div>
         </header>
 
@@ -238,7 +238,7 @@ export default function MonatsUebersicht() {
 
         {/* Arbeitgeber-Tabs */}
         {summen.length > 0 && (
-          <nav role="tablist" aria-label="Arbeitgeber" className="flex gap-2 mb-6 flex-wrap">
+          <nav role="tablist" aria-label={t("ARBEITGEBER_LABEL")} className="flex gap-2 mb-6 flex-wrap">
             {summen.map(({ employer }) => {
               const istAktiv = employer.id === aktivId
               return (

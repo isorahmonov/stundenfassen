@@ -49,6 +49,22 @@ New keys added to `DatenschutzStrings` in `lib/legal/datenschutz.ts`. All 4 loca
 
 **Note:** `govNote` is an empty string for DE and must remain so. EN/RU/FR: native-speaker review recommended before publication — legal "prevails" language varies by jurisdiction.
 
+## i18n: remaining aria/placeholder strings + impressum parity (2026-10-10)
+
+New keys added to `lib/i18n.ts` UiStrings interface + all 4 locales. New fields in `lib/legal/impressum.ts`.
+
+| Key | DE | EN | RU | FR |
+|---|---|---|---|---|
+| `EINTRAGEN` | "Eintragen" | "Enter" | "Ввести" | "Saisir" |
+| `ARIA_VORMONAT` | "Vormonat" | "Previous month" | "Предыдущий месяц" | "Mois précédent" |
+| `ARIA_NAECHSTER_MONAT` | "Nächster Monat" | "Next month" | "Следующий месяц" | "Mois suivant" |
+| `ARIA_FARBE` | "Farbe" | "Color" | "Цвет" | "Couleur" |
+| `KAL_PLACEHOLDER_NAME` | "Name (z.B. HAW Stundenplan)" | "Name (e.g. University timetable)" | "Название (напр. расписание ВУЗа)" | "Nom (ex. emploi du temps)" |
+
+**Impressum parity:** `standLine` and `govNote` added to `ImpressumStrings` with same values as Datenschutz. govNote is empty for DE; EN/RU/FR contain the translation-disclaimer text.
+
+**Note:** RU/FR for `EINTRAGEN`, `ARIA_*`, `KAL_PLACEHOLDER_NAME` — native-speaker review recommended.
+
 ## 2.0 bullet items (historical, shown in Profil → Neuigkeiten)
 
 | Key | Notes |

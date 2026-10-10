@@ -108,6 +108,7 @@ export interface UiStrings {
   KAL_FORM_URL_HINT_NEU: string
   KAL_FORM_PUBLIC_WARNUNG: string
   KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG: string
+  KAL_PLACEHOLDER_NAME: string
   // Arbeitgeber section
   AG_VERWALTEN: string
   ZURUECK: string
@@ -188,6 +189,11 @@ export interface UiStrings {
   BEARBEITEN: string
   SCHLIESSEN: string
   ANLEGEN: string
+  EINTRAGEN: string
+  // Accessibility
+  ARIA_VORMONAT: string
+  ARIA_NAECHSTER_MONAT: string
+  ARIA_FARBE: string
   OPTIONAL: string
   // AbmeldenDialog
   ABMELDEN_FRAGE: string
@@ -475,6 +481,7 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_FORM_URL_HINT_NEU: "iCal-Link (Kalender-Export). Bei Google: „Geheime Adresse im iCal-Format”. Bei Uni-Portalen: der iCal-Export-Link. Die Adresse ist wie ein Passwort.",
     KAL_FORM_PUBLIC_WARNUNG: "Das ist die öffentliche Adresse. Sie funktioniert nur, wenn dein Kalender öffentlich ist. Sonst nimm die geheime Adresse (…/private-…/basic.ics).",
     KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG: "Neue URL (leer lassen = unverändert)",
+    KAL_PLACEHOLDER_NAME: "Name (z.B. HAW Stundenplan)",
     AG_VERWALTEN: "Arbeitgeber verwalten",
     ZURUECK: "Zurück",
     AG_NEU_ARIA: "Neuer Arbeitgeber",
@@ -547,6 +554,10 @@ export const translations: Record<Locale, UiStrings> = {
     BEARBEITEN: "Bearbeiten",
     SCHLIESSEN: "Schließen",
     ANLEGEN: "Anlegen",
+    EINTRAGEN: "Eintragen",
+    ARIA_VORMONAT: "Vormonat",
+    ARIA_NAECHSTER_MONAT: "Nächster Monat",
+    ARIA_FARBE: "Farbe",
     OPTIONAL: "optional",
     ABMELDEN_FRAGE: "Wirklich abmelden?",
     ABMELDEN_BESTAETIGUNG: "Du wirst als {email} abgemeldet. Lokale Daten (Kalender-Cache, Auswahl) werden gelöscht.",
@@ -815,6 +826,7 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_FORM_URL_HINT_NEU: "iCal link (calendar export). For Google: \"Secret address in iCal format\". For university portals: the iCal export link. The address is like a password.",
     KAL_FORM_PUBLIC_WARNUNG: "This is the public address. It only works if your calendar is public. Otherwise use the secret address (…/private-…/basic.ics).",
     KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG: "New URL (leave blank = keep current)",
+    KAL_PLACEHOLDER_NAME: "Name (e.g. University timetable)",
     AG_VERWALTEN: "Manage employers",
     ZURUECK: "Back",
     AG_NEU_ARIA: "New employer",
@@ -887,6 +899,10 @@ export const translations: Record<Locale, UiStrings> = {
     BEARBEITEN: "Edit",
     SCHLIESSEN: "Close",
     ANLEGEN: "Create",
+    EINTRAGEN: "Enter",
+    ARIA_VORMONAT: "Previous month",
+    ARIA_NAECHSTER_MONAT: "Next month",
+    ARIA_FARBE: "Color",
     OPTIONAL: "optional",
     ABMELDEN_FRAGE: "Sign out?",
     ABMELDEN_BESTAETIGUNG: "You will be signed out as {email}. Local data (calendar cache, selection) will be deleted.",
@@ -1155,6 +1171,7 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_FORM_URL_HINT_NEU: "Ссылка iCal (экспорт календаря). Для Google: «Секретный адрес в формате iCal». Для порталов вузов: ссылка на экспорт iCal. Адрес — как пароль.",
     KAL_FORM_PUBLIC_WARNUNG: "Это публичный адрес. Он работает только если ваш календарь публичный. Иначе используйте секретный адрес (…/private-…/basic.ics).",
     KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG: "Новый URL (оставьте пустым = без изменений)",
+    KAL_PLACEHOLDER_NAME: "Название (напр. расписание ВУЗа)",
     AG_VERWALTEN: "Управление работодателями",
     ZURUECK: "Назад",
     AG_NEU_ARIA: "Новый работодатель",
@@ -1227,6 +1244,10 @@ export const translations: Record<Locale, UiStrings> = {
     BEARBEITEN: "Редактировать",
     SCHLIESSEN: "Закрыть",
     ANLEGEN: "Создать",
+    EINTRAGEN: "Ввести",
+    ARIA_VORMONAT: "Предыдущий месяц",
+    ARIA_NAECHSTER_MONAT: "Следующий месяц",
+    ARIA_FARBE: "Цвет",
     OPTIONAL: "необязательно",
     ABMELDEN_FRAGE: "Выйти из аккаунта?",
     ABMELDEN_BESTAETIGUNG: "Вы выйдете как {email}. Локальные данные (кеш календаря, выборка) будут удалены.",
@@ -1495,6 +1516,7 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_FORM_URL_HINT_NEU: "Lien iCal (export du calendrier). Pour Google : « Adresse secrète au format iCal ». Pour les portails universitaires : le lien d'export iCal. L'adresse est comme un mot de passe.",
     KAL_FORM_PUBLIC_WARNUNG: "Il s'agit de l'adresse publique. Elle ne fonctionne que si votre calendrier est public. Sinon, utilisez l'adresse secrète (…/private-…/basic.ics).",
     KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG: "Nouvelle URL (laisser vide = inchangée)",
+    KAL_PLACEHOLDER_NAME: "Nom (ex. emploi du temps)",
     AG_VERWALTEN: "Gérer les employeurs",
     ZURUECK: "Retour",
     AG_NEU_ARIA: "Nouvel employeur",
@@ -1567,6 +1589,10 @@ export const translations: Record<Locale, UiStrings> = {
     BEARBEITEN: "Modifier",
     SCHLIESSEN: "Fermer",
     ANLEGEN: "Créer",
+    EINTRAGEN: "Saisir",
+    ARIA_VORMONAT: "Mois précédent",
+    ARIA_NAECHSTER_MONAT: "Mois suivant",
+    ARIA_FARBE: "Couleur",
     OPTIONAL: "facultatif",
     ABMELDEN_FRAGE: "Se déconnecter ?",
     ABMELDEN_BESTAETIGUNG: "Vous serez déconnecté en tant que {email}. Les données locales (cache calendrier, sélection) seront supprimées.",
