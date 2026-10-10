@@ -11,7 +11,7 @@ import { ThemeToggle } from "./ThemeToggle"
 import { ShiftslotLogo } from "./ShiftslotLogo"
 import { ShiftslotLoader } from "./ShiftslotLoader"
 import { APP_NAME } from "@/lib/brand"
-import { LOCALES, type Locale } from "@/lib/i18n"
+import { LOCALES, type Locale, type UiStrings } from "@/lib/i18n"
 import { useLang, useT } from "./LangProvider"
 import s from "./AuthGate.module.css"
 
@@ -71,8 +71,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     try {
       await signInWithPopup(auth, googleProvider)
     } catch (e: unknown) {
-      const msg = e instanceof Error ? `${e.name}: ${e.message}` : JSON.stringify(e)
-      setFehler(msg)
+      console.error(e)
+      const code = (e as { code?: string }).code ?? ""
+      if (code !== "auth/popup-closed-by-user") {
+        setFehler(t(authFehlerKey(code)))
+      }
     } finally {
       setIsSigningIn(false)
     }
@@ -107,8 +110,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   if (!user && !istOeffentlich) {
     return (
       <div className="min-h-screen sf-page flex items-center justify-center px-4 relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
+        <div className="absolute top-0 left-0 right-0 px-4 pt-4 z-10 flex justify-end pointer-events-none">
+          <div className="pointer-events-auto">
+            <ThemeToggle />
+          </div>
         </div>
         <div className={`${s.loginWrap} ${animSeen ? s.animVerkuerzt : ""}`}>
 
@@ -190,6 +195,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       <TabBar />
     </>
   )
+}
+
+function authFehlerKey(code: string): keyof UiStrings {
+  switch (code) {
+    case "auth/unauthorized-domain":      return "AUTH_FEHLER_DOMAIN"
+    case "auth/popup-blocked":            return "AUTH_FEHLER_POPUP_BLOCKIERT"
+    case "auth/network-request-failed":   return "AUTH_FEHLER_NETZWERK"
+    case "auth/cancelled-popup-request":  return "AUTH_FEHLER_ABGEBROCHEN"
+    default:                              return "AUTH_FEHLER_ALLGEMEIN"
+  }
 }
 
 function LangSelector() {

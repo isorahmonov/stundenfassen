@@ -19,9 +19,22 @@ export interface UiStrings {
   KEIN_ARBEITGEBER_TITEL: string
   KEIN_ARBEITGEBER_TEXT: string
   KEIN_ARBEITGEBER_CTA: string
+  // Theme toggle
+  THEME_ARIA_LABEL: string
+  THEME_SYSTEM: string
+  THEME_LIGHT: string
+  THEME_DARK: string
+  THEME_SYSTEM_ARIA: string
+  THEME_LIGHT_ARIA: string
+  THEME_DARK_ARIA: string
   // Auth / login screen
   AUTH_LAEDT_FEHLER: string
   AUTH_NEU_LADEN: string
+  AUTH_FEHLER_DOMAIN: string
+  AUTH_FEHLER_POPUP_BLOCKIERT: string
+  AUTH_FEHLER_NETZWERK: string
+  AUTH_FEHLER_ABGEBROCHEN: string
+  AUTH_FEHLER_ALLGEMEIN: string
   ANMELDEN_LAEUFT: string
   MIT_GOOGLE_ANMELDEN: string
   ANMELDUNG_ZUSTIMMUNG_PRAEFIX: string
@@ -85,8 +98,20 @@ export const translations: Record<Locale, UiStrings> = {
     KEIN_ARBEITGEBER_TITEL: "Kein Arbeitgeber angelegt",
     KEIN_ARBEITGEBER_TEXT: "Lege zuerst einen Arbeitgeber an, um diese Seite zu nutzen.",
     KEIN_ARBEITGEBER_CTA: "Arbeitgeber anlegen →",
+    THEME_ARIA_LABEL: "Farbschema",
+    THEME_SYSTEM: "Auto",
+    THEME_LIGHT: "Hell",
+    THEME_DARK: "Dunkel",
+    THEME_SYSTEM_ARIA: "Systemfarbe",
+    THEME_LIGHT_ARIA: "Helles Design",
+    THEME_DARK_ARIA: "Dunkles Design",
     AUTH_LAEDT_FEHLER: "Anmeldung dauert zu lange — App neu laden.",
     AUTH_NEU_LADEN: "App neu laden",
+    AUTH_FEHLER_DOMAIN: "Diese Domain ist für die Anmeldung nicht freigegeben.",
+    AUTH_FEHLER_POPUP_BLOCKIERT: "Das Anmelde-Fenster wurde blockiert. Bitte erlaube Popups für diese Seite und versuche es erneut.",
+    AUTH_FEHLER_NETZWERK: "Keine Netzwerkverbindung. Bitte überprüfe deine Internetverbindung.",
+    AUTH_FEHLER_ABGEBROCHEN: "Anmeldung abgebrochen. Bitte versuche es erneut.",
+    AUTH_FEHLER_ALLGEMEIN: "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
     ANMELDEN_LAEUFT: "Anmelden…",
     MIT_GOOGLE_ANMELDEN: "Mit Google anmelden",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "Mit der Anmeldung akzeptierst du die",
@@ -145,8 +170,20 @@ export const translations: Record<Locale, UiStrings> = {
     KEIN_ARBEITGEBER_TITEL: "No employer added",
     KEIN_ARBEITGEBER_TEXT: "Add an employer first to use this page.",
     KEIN_ARBEITGEBER_CTA: "Add employer →",
+    THEME_ARIA_LABEL: "Color scheme",
+    THEME_SYSTEM: "Auto",
+    THEME_LIGHT: "Light",
+    THEME_DARK: "Dark",
+    THEME_SYSTEM_ARIA: "System theme",
+    THEME_LIGHT_ARIA: "Light theme",
+    THEME_DARK_ARIA: "Dark theme",
     AUTH_LAEDT_FEHLER: "Sign-in is taking too long — reload the app.",
     AUTH_NEU_LADEN: "Reload app",
+    AUTH_FEHLER_DOMAIN: "This domain is not authorized for sign-in.",
+    AUTH_FEHLER_POPUP_BLOCKIERT: "The sign-in window was blocked. Please allow pop-ups for this site and try again.",
+    AUTH_FEHLER_NETZWERK: "No network connection. Please check your internet.",
+    AUTH_FEHLER_ABGEBROCHEN: "Sign-in was cancelled. Please try again.",
+    AUTH_FEHLER_ALLGEMEIN: "Sign-in failed. Please try again.",
     ANMELDEN_LAEUFT: "Signing in…",
     MIT_GOOGLE_ANMELDEN: "Sign in with Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "By signing in, you agree to our",
@@ -205,8 +242,20 @@ export const translations: Record<Locale, UiStrings> = {
     KEIN_ARBEITGEBER_TITEL: "Работодатель не добавлен",
     KEIN_ARBEITGEBER_TEXT: "Сначала добавьте работодателя, чтобы использовать эту страницу.",
     KEIN_ARBEITGEBER_CTA: "Добавить работодателя →",
+    THEME_ARIA_LABEL: "Цветовая схема",
+    THEME_SYSTEM: "Авто",
+    THEME_LIGHT: "Светлая",
+    THEME_DARK: "Тёмная",
+    THEME_SYSTEM_ARIA: "Системная тема",
+    THEME_LIGHT_ARIA: "Светлая тема",
+    THEME_DARK_ARIA: "Тёмная тема",
     AUTH_LAEDT_FEHLER: "Вход занимает слишком долго — перезагрузите приложение.",
     AUTH_NEU_LADEN: "Перезагрузить",
+    AUTH_FEHLER_DOMAIN: "Этот домен не разрешён для входа.",
+    AUTH_FEHLER_POPUP_BLOCKIERT: "Окно входа заблокировано. Разрешите всплывающие окна для этого сайта и попробуйте снова.",
+    AUTH_FEHLER_NETZWERK: "Нет подключения к сети. Проверьте интернет-соединение.",
+    AUTH_FEHLER_ABGEBROCHEN: "Вход отменён. Попробуйте ещё раз.",
+    AUTH_FEHLER_ALLGEMEIN: "Вход не выполнен. Попробуйте ещё раз.",
     ANMELDEN_LAEUFT: "Вход…",
     MIT_GOOGLE_ANMELDEN: "Войти через Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "Регистрируясь, вы принимаете",
@@ -265,8 +314,20 @@ export const translations: Record<Locale, UiStrings> = {
     KEIN_ARBEITGEBER_TITEL: "Aucun employeur ajouté",
     KEIN_ARBEITGEBER_TEXT: "Ajoutez d'abord un employeur pour utiliser cette page.",
     KEIN_ARBEITGEBER_CTA: "Ajouter un employeur →",
+    THEME_ARIA_LABEL: "Thème",
+    THEME_SYSTEM: "Auto",
+    THEME_LIGHT: "Clair",
+    THEME_DARK: "Sombre",
+    THEME_SYSTEM_ARIA: "Thème système",
+    THEME_LIGHT_ARIA: "Thème clair",
+    THEME_DARK_ARIA: "Thème sombre",
     AUTH_LAEDT_FEHLER: "La connexion prend trop de temps — rechargez l'application.",
     AUTH_NEU_LADEN: "Recharger",
+    AUTH_FEHLER_DOMAIN: "Ce domaine n'est pas autorisé pour la connexion.",
+    AUTH_FEHLER_POPUP_BLOCKIERT: "La fenêtre de connexion a été bloquée. Autorisez les fenêtres contextuelles pour ce site et réessayez.",
+    AUTH_FEHLER_NETZWERK: "Pas de connexion réseau. Vérifiez votre connexion internet.",
+    AUTH_FEHLER_ABGEBROCHEN: "Connexion annulée. Veuillez réessayer.",
+    AUTH_FEHLER_ALLGEMEIN: "Échec de la connexion. Veuillez réessayer.",
     ANMELDEN_LAEUFT: "Connexion…",
     MIT_GOOGLE_ANMELDEN: "Se connecter avec Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "En vous connectant, vous acceptez la",

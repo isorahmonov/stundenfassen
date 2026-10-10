@@ -20,6 +20,10 @@
   cursor: pointer;
   white-space: nowrap;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: background 0.12s ease, color 0.1s ease, box-shadow 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -28,6 +32,30 @@
   background: var(--sf-card);
   color: var(--sf-text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+}
+
+/* icon hidden above narrow breakpoint; label shown */
+.icon {
+  display: none;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.label {
+  display: inline;
+}
+
+@media (max-width: 479px) {
+  .segment {
+    padding: 5px 9px;
+  }
+  .icon {
+    display: flex;
+    align-items: center;
+  }
+  .label {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
