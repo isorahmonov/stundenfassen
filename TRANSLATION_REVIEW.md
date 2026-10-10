@@ -32,6 +32,23 @@ Keys added for the 2.1.0 "What's new" announcement (all 4 locales: DE, EN, RU, F
 
 Note: bullet 8 (expired sessions / auto-logout) was dropped — feature not implemented in codebase.
 
+## Datenschutz page – GROUP C update (2026-10-10)
+
+New keys added to `DatenschutzStrings` in `lib/legal/datenschutz.ts`. All 4 locales (DE/EN/RU/FR).
+
+| Key | DE | EN | RU | FR |
+|---|---|---|---|---|
+| `standLine` | "Stand: 10. Oktober 2026" | "Last updated: 10 October 2026" | "Актуально на: 10 октября 2026 г." | "Mis à jour le : 10 octobre 2026" |
+| `govNote` | _(empty)_ | "This is a translation of the German original. In the event of discrepancies, the German version prevails." | "Настоящая политика конфиденциальности является переводом немецкого оригинала. В случае расхождений немецкая версия имеет преимущественную силу." | "Il s'agit d'une traduction de l'original allemand. En cas de divergences, la version allemande fait foi." |
+| `s2settingsHeading` | "Nutzereinstellungen" | "User preferences" | "Пользовательские настройки" | "Préférences utilisateur" |
+| `s2settingsBody` | Theme + dokSprache + lastSeen in Firestore; sf_lang localStorage only | same | same | same |
+| `s7item3desc` | sf_theme — Darstellungsthema, Firestore-sync | appearance theme, Firestore-sync | тема оформления, Firestore-sync | thème d'affichage, Firestore-sync |
+| `s7item4desc` | sf_lang — UI-Sprache, nur lokal | UI language preference, local only | языковые настройки, только локально | préférence de langue, local uniquement |
+| `s7item5desc` | sf_seen_version — letzte App-Version, Firestore-sync | last seen app version, Firestore-sync | последняя версия, Firestore-sync | dernière version, Firestore-sync |
+| `s7fontsNote` | Selbst gehostete Schriften, kein CDN | Self-hosted fonts, no CDN | Самостоятельно размещённые шрифты, CDN отсутствует | Polices auto-hébergées, aucun CDN |
+
+**Note:** `govNote` is an empty string for DE and must remain so. EN/RU/FR: native-speaker review recommended before publication — legal "prevails" language varies by jurisdiction.
+
 ## 2.0 bullet items (historical, shown in Profil → Neuigkeiten)
 
 | Key | Notes |

@@ -20,6 +20,13 @@ export function DatenschutzContent() {
         </div>
 
         <h1 className="text-xl font-bold sf-text">{s.title}</h1>
+        <p className="text-xs sf-text-3">{s.standLine}</p>
+
+        {s.govNote && (
+          <div className="sf-card rounded-xl px-4 py-3 border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-950/30">
+            <p className="text-xs sf-text-2 leading-relaxed">{s.govNote}</p>
+          </div>
+        )}
 
         {/* 1 */}
         <section className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-2">
@@ -58,6 +65,11 @@ export function DatenschutzContent() {
           <div className="space-y-1">
             <h3 className="text-xs font-semibold sf-text uppercase tracking-wide">{s.s2logsHeading}</h3>
             <p className="text-sm sf-text-2 leading-relaxed">{s.s2logsBody}</p>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold sf-text uppercase tracking-wide">{s.s2settingsHeading}</h3>
+            <p className="text-sm sf-text-2 leading-relaxed">{s.s2settingsBody}</p>
           </div>
         </section>
 
@@ -118,9 +130,19 @@ export function DatenschutzContent() {
             <li>
               <span className="font-mono text-xs">sf_sel_*</span>{" – "}{s.s7item2desc}
             </li>
+            <li>
+              <span className="font-mono text-xs">sf_theme</span>{" – "}{s.s7item3desc}
+            </li>
+            <li>
+              <span className="font-mono text-xs">sf_lang</span>{" – "}{s.s7item4desc}
+            </li>
+            <li>
+              <span className="font-mono text-xs">sf_seen_version</span>{" – "}{s.s7item5desc}
+            </li>
           </ul>
           <p className="text-sm sf-text-2 leading-relaxed">{s.s7body2}</p>
           <p className="text-sm sf-text-2 leading-relaxed">{s.s7body3}</p>
+          <p className="text-sm sf-text-2 leading-relaxed">{s.s7fontsNote}</p>
         </section>
 
         {/* 8 */}

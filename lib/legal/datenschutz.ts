@@ -21,8 +21,13 @@ export type DatenschutzStrings = {
   s4calendarHeading: string; s4calendarBody: string
   s5heading: string; s5body: string
   s6heading: string; s6body: string; s6body2: string; s6body3: string
+  standLine: string
+  govNote: string
+  s2settingsHeading: string; s2settingsBody: string
   s7heading: string; s7intro: string
   s7item1desc: string; s7item2desc: string
+  s7item3desc: string; s7item4desc: string; s7item5desc: string
+  s7fontsNote: string
   s7body2: string; s7body3: string
   s8heading: string; s8body1: string; s8body1post: string; s8body2: string; s8body3: string
 }
@@ -100,6 +105,19 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s8body2:
       "Du kannst dein Konto und alle gespeicherten Daten jederzeit selbst in der App unter Profil → Konto löschen.",
     s8body3: "Du hast außerdem das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.",
+    standLine: "Stand: 10. Oktober 2026",
+    govNote: "",
+    s2settingsHeading: "Nutzereinstellungen",
+    s2settingsBody:
+      "Einige Nutzereinstellungen werden in Firestore gespeichert, um sie geräteübergreifend zu synchronisieren: Darstellungsthema (hell/dunkel/automatisch) und die zuletzt gesehene Changelog-Version. Die Dokumentensprache für PDF-Exporte wird ebenfalls in Firestore gespeichert. Die UI-Sprachauswahl wird ausschließlich lokal im Browser gespeichert (localStorage, Schlüssel sf_lang).",
+    s7item3desc:
+      "Darstellungsthema (hell/dunkel/automatisch); wird beim Einloggen aus Firestore geladen und beim Ändern dorthin synchronisiert.",
+    s7item4desc:
+      "UI-Spracheinstellung; wird nur lokal gespeichert, nicht in Firestore.",
+    s7item5desc:
+      "Zuletzt gesehene App-Version (steuert den \"Was ist neu\"-Dialog); wird auch in Firestore synchronisiert.",
+    s7fontsNote:
+      "Die App verwendet ausschließlich selbst gehostete Schriftarten (Geist, Geist Mono für die Oberfläche; NotoSans für PDFs). Es werden keine Anfragen an externe Schriftarten-Dienste gestellt.",
   },
 
   en: {
@@ -167,6 +185,20 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
       "You can delete your account and all stored data at any time in the app under Profile → Delete account.",
     s8body3:
       "You also have the right to lodge a complaint with a data protection supervisory authority.",
+    standLine: "Last updated: 10 October 2026",
+    govNote:
+      "This is a translation of the German original. In the event of discrepancies, the German version prevails.",
+    s2settingsHeading: "User preferences",
+    s2settingsBody:
+      "Certain user preferences are stored in Firestore to synchronise them across devices: appearance theme (light/dark/auto) and the last seen changelog version. The document language for PDF exports is also stored in Firestore. The UI language selection is stored exclusively in the browser's local storage (localStorage key sf_lang) and is not written to Firestore.",
+    s7item3desc:
+      "appearance theme (light/dark/auto); loaded from Firestore on login and synced there when changed.",
+    s7item4desc:
+      "UI language preference; stored locally only, not written to Firestore.",
+    s7item5desc:
+      "last seen app version (controls the \"What's new\" dialog); also synced to Firestore.",
+    s7fontsNote:
+      "The app uses only self-hosted fonts (Geist, Geist Mono for the UI; NotoSans for PDFs). No requests are made to external font CDNs.",
   },
 
   ru: {
@@ -235,6 +267,20 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
       "Вы можете удалить свой аккаунт и все сохранённые данные в любое время в приложении в разделе Профиль → Удалить аккаунт.",
     s8body3:
       "Вы также имеете право подать жалобу в орган надзора за защитой данных.",
+    standLine: "Актуально на: 10 октября 2026 г.",
+    govNote:
+      "Настоящая политика конфиденциальности является переводом немецкого оригинала. В случае расхождений немецкая версия имеет преимущественную силу.",
+    s2settingsHeading: "Пользовательские настройки",
+    s2settingsBody:
+      "Некоторые пользовательские настройки хранятся в Firestore для синхронизации между устройствами: тема оформления (светлая/тёмная/авто) и последняя просмотренная версия журнала изменений. Язык документа для экспорта PDF также хранится в Firestore. Языковые настройки интерфейса хранятся исключительно в локальном хранилище браузера (localStorage, ключ sf_lang) и не записываются в Firestore.",
+    s7item3desc:
+      "тема оформления (светлая/тёмная/авто); загружается из Firestore при входе и синхронизируется туда при изменении.",
+    s7item4desc:
+      "языковые настройки интерфейса; хранится только локально, в Firestore не записывается.",
+    s7item5desc:
+      "последняя просмотренная версия приложения (управляет диалогом «Что нового»); также синхронизируется с Firestore.",
+    s7fontsNote:
+      "Приложение использует исключительно самостоятельно размещённые шрифты (Geist, Geist Mono — для интерфейса; NotoSans — для PDF). Запросы к внешним CDN шрифтов не выполняются.",
   },
 
   fr: {
@@ -303,6 +349,20 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
       "Vous pouvez supprimer votre compte et toutes les données stockées à tout moment dans l'application sous Profil → Supprimer le compte.",
     s8body3:
       "Vous avez également le droit de déposer une réclamation auprès d'une autorité de contrôle de la protection des données.",
+    standLine: "Mis à jour le : 10 octobre 2026",
+    govNote:
+      "Il s'agit d'une traduction de l'original allemand. En cas de divergences, la version allemande fait foi.",
+    s2settingsHeading: "Préférences utilisateur",
+    s2settingsBody:
+      "Certaines préférences utilisateur sont stockées dans Firestore afin de les synchroniser entre appareils : le thème d'affichage (clair/sombre/auto) et la dernière version du journal des modifications consultée. La langue des documents pour les exports PDF est également stockée dans Firestore. La sélection de la langue de l'interface est stockée exclusivement dans le stockage local du navigateur (localStorage, clé sf_lang) et n'est pas écrite dans Firestore.",
+    s7item3desc:
+      "thème d'affichage (clair/sombre/auto) ; chargé depuis Firestore à la connexion et synchronisé lors d'un changement.",
+    s7item4desc:
+      "préférence de langue de l'interface ; stockée localement uniquement, non écrite dans Firestore.",
+    s7item5desc:
+      "dernière version de l'application consultée (contrôle la boîte de dialogue « Nouveautés ») ; également synchronisée avec Firestore.",
+    s7fontsNote:
+      "L'application utilise uniquement des polices auto-hébergées (Geist, Geist Mono pour l'interface ; NotoSans pour les PDF). Aucune requête n'est effectuée vers des CDN de polices externes.",
   },
 }
 
