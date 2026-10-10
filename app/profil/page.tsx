@@ -15,6 +15,9 @@ import { ThemeToggle } from "../components/ThemeToggle"
 import { ShiftslotLoader } from "../components/ShiftslotLoader"
 import { useLang, useT } from "@/app/components/LangProvider"
 import { LOCALES } from "@/lib/i18n"
+import type { UiStrings } from "@/lib/i18n"
+import { CHANGELOG } from "@/lib/changelog"
+import { APP_VERSION, APP_DOMAINS } from "@/lib/brand"
 
 const BERLIN = "Europe/Berlin"
 
@@ -52,7 +55,7 @@ async function api(path: string, init?: RequestInit): Promise<unknown> {
   return res.json()
 }
 
-type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "sprache" | "erscheinungsbild"
+type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "steuer" | "sprache" | "erscheinungsbild" | "neuigkeiten"
 
 // ─── Hauptkomponente ──────────────────────────────────────────────────────────
 
@@ -740,6 +743,36 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Neuigkeiten ──────────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            titel={t("SEKTION_NEUIGKEITEN")}
+            symbol={<NeuigkeitenIcon />}
+            offen={offen.has("neuigkeiten")}
+            onToggle={() => toggle("neuigkeiten")}
+          >
+            <div className="pt-3 pb-1 space-y-5">
+              {CHANGELOG.map((eintrag) => (
+                <div key={eintrag.version}>
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-2">
+                    {t("UPD_VERSION_PREFIX")} {eintrag.version}
+                    <span className="ml-2 font-normal normal-case text-stone-400 dark:text-neutral-500">{eintrag.date}</span>
+                  </p>
+                  <ul className="space-y-2">
+                    {eintrag.itemKeys.map((key) => {
+                      const text = t(key as keyof UiStrings).replace("{url}", APP_DOMAINS.current[0])
+                      return (
+                        <li key={key} className="flex items-start gap-2">
+                          <span className="w-1 h-1 rounded-full bg-stone-400 dark:bg-neutral-500 flex-shrink-0 mt-2" />
+                          <span className="text-sm sf-text-2 leading-relaxed">{text}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </AkkordeonAbschnitt>
+
           {/* ── Konto ────────────────────────────────────────────────────── */}
           <div className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
             <div className="flex items-center gap-3">
@@ -781,6 +814,7 @@ export default function ProfilSeite() {
                   {t("IMPRESSUM")}
                 </Link>
               </div>
+              <p className="text-center text-xs sf-text-3 opacity-50">{APP_VERSION}</p>
             </div>
           </div>
 
@@ -941,6 +975,15 @@ function KontoIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="8" cy="5.5" r="2.5"/>
       <path d="M2.5 13.5c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5"/>
+    </svg>
+  )
+}
+
+function NeuigkeitenIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="8" cy="8" r="6"/>
+      <path d="M8 5v3l2 2"/>
     </svg>
   )
 }
