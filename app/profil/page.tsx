@@ -13,7 +13,7 @@ import { BaseDialog } from "../components/BaseDialog"
 import { Toggle } from "../components/Toggle"
 import { ThemeToggle } from "../components/ThemeToggle"
 import { ShiftslotLoader } from "../components/ShiftslotLoader"
-import { useLang } from "@/app/components/LangProvider"
+import { useLang, useT } from "@/app/components/LangProvider"
 import { LOCALES } from "@/lib/i18n"
 
 const BERLIN = "Europe/Berlin"
@@ -58,6 +58,7 @@ type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "
 
 export default function ProfilSeite() {
   const { locale, setLocale } = useLang()
+  const t = useT()
   const [offen, setOffen] = useState<Set<Sektion>>(new Set())
 
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
@@ -141,7 +142,7 @@ export default function ProfilSeite() {
   }
 
   async function entfernenEmailConfig() {
-    if (!confirm("E-Mail-Konto wirklich entfernen?")) return
+    if (!confirm(t("EMAIL_ENTFERNEN_FRAGE"))) return
     setEmailLaden(true)
     try {
       await api("/api/email-config", { method: "DELETE" })
@@ -200,9 +201,7 @@ export default function ProfilSeite() {
         err.code === "auth/popup-blocked" ||
         err.code === "auth/cancelled-popup-request"
       ) {
-        throw new Error(
-          "Das Anmelde-Popup wurde blockiert. Bitte öffne die App im Browser (Safari → Teilen → In Browser öffnen) und versuche es erneut.",
-        )
+        throw new Error(t("AUTH_REAUTH_POPUP_BLOCKIERT"))
       }
       throw e
     }
@@ -292,7 +291,7 @@ export default function ProfilSeite() {
       <div className="mx-auto max-w-lg px-4 pt-10 pb-10">
 
         <header className="mb-8">
-          <h1 className="text-xl font-bold sf-text">Profil</h1>
+          <h1 className="text-xl font-bold sf-text">{t("PROFIL_TITEL")}</h1>
         </header>
 
         {fehler && (
@@ -305,7 +304,7 @@ export default function ProfilSeite() {
 
           {/* ── Kalender ───────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Kalender"
+            titel={t("SEKTION_KALENDER")}
             symbol={<KalenderIcon />}
             badge={kalender.length > 0 ? String(kalender.length) : undefined}
             offen={offen.has("kalender")}
@@ -313,12 +312,12 @@ export default function ProfilSeite() {
           >
             <div className="space-y-3 pt-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Kalender verwalten</p>
+                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">{t("KAL_VERWALTEN")}</p>
                 <button
                   onClick={() => setNeuKalenderOffen((o) => !o)}
                   className="w-7 h-7 flex items-center justify-center rounded-full text-white text-lg font-light active:scale-90 transition-all"
                   style={{ backgroundColor: "#2563eb" }}
-                  aria-label="Neuen Kalender hinzufügen"
+                  aria-label={t("KAL_NEU_ARIA")}
                 >+</button>
               </div>
 
@@ -331,10 +330,10 @@ export default function ProfilSeite() {
 
               {kalender.length === 0 && !neuKalenderOffen && (
                 <div className="rounded-xl p-6 text-center bg-stone-50 dark:bg-neutral-800/50">
-                  <p className="text-sm sf-text-2 mb-1">Noch keine Kalender.</p>
+                  <p className="text-sm sf-text-2 mb-1">{t("KAL_NOCH_KEINE")}</p>
                   <button onClick={() => setNeuKalenderOffen(true)}
                     className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                    Ersten anlegen →
+                    {t("KAL_ERSTEN_ANLEGEN")}
                   </button>
                 </div>
               )}
@@ -345,7 +344,7 @@ export default function ProfilSeite() {
                   kalender={k}
                   onAktualisieren={(d) => aktualisiereKalender(k.id, d).catch((e) => setFehler(String(e)))}
                   onLoeschen={() => {
-                    if (confirm(`„${k.name}" wirklich löschen?`))
+                    if (confirm(t("KAL_LOESCHEN_FRAGE").replace("{name}", k.name)))
                       loescheKalender(k.id).catch((e) => setFehler(String(e)))
                   }}
                 />
@@ -355,7 +354,7 @@ export default function ProfilSeite() {
 
           {/* ── Arbeitgeber ─────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Arbeitgeber"
+            titel={t("SEKTION_ARBEITGEBER")}
             symbol={<ArbeitgeberIcon />}
             badge={arbeitgeberAnzahl > 0 ? String(arbeitgeberAnzahl) : undefined}
             offen={offen.has("arbeitgeber")}
@@ -366,7 +365,7 @@ export default function ProfilSeite() {
                 href="/profil/arbeitgeber"
                 className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-4 py-3.5 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors active:scale-[.99]"
               >
-                <span className="text-sm font-medium sf-text">Arbeitgeber verwalten</span>
+                <span className="text-sm font-medium sf-text">{t("AG_VERWALTEN")}</span>
                 <span className="text-stone-400 dark:text-neutral-500 text-lg leading-none">›</span>
               </Link>
             </div>
@@ -374,7 +373,7 @@ export default function ProfilSeite() {
 
           {/* ── Minusstunden ────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Minusstunden"
+            titel={t("SEKTION_MINUSSTUNDEN")}
             symbol={<MinusIcon />}
             badge={minus.length > 0 ? String(minus.length) : undefined}
             offen={offen.has("minus")}
@@ -382,12 +381,12 @@ export default function ProfilSeite() {
           >
             <div className="space-y-3 pt-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Einträge</p>
+                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">{t("MINUS_EINTRAEGE")}</p>
                 <button
                   onClick={() => setMinusFormOffen((o) => !o)}
                   className="w-7 h-7 flex items-center justify-center rounded-full text-white text-lg font-light active:scale-90 transition-all"
                   style={{ backgroundColor: "#dc2626" }}
-                  aria-label="Minusstunden eintragen"
+                  aria-label={t("MINUS_NEU_ARIA")}
                 >+</button>
               </div>
 
@@ -407,10 +406,10 @@ export default function ProfilSeite() {
 
               {minus.length === 0 && !minusFormOffen && (
                 <div className="rounded-xl p-6 text-center bg-stone-50 dark:bg-neutral-800/50">
-                  <p className="text-sm sf-text-2 mb-1">Keine Minusstunden eingetragen.</p>
+                  <p className="text-sm sf-text-2 mb-1">{t("MINUS_KEINE")}</p>
                   <button onClick={() => setMinusFormOffen(true)}
                     className="text-sm font-medium text-red-600 dark:text-red-400 hover:underline">
-                    Ersten eintragen →
+                    {t("MINUS_ERSTEN_EINTRAGEN")}
                   </button>
                 </div>
               )}
@@ -443,14 +442,14 @@ export default function ProfilSeite() {
                     </div>
                     <button
                       onClick={() => {
-                        if (confirm("Eintrag löschen?"))
+                        if (confirm(t("MINUS_LOESCHEN_FRAGE")))
                           minusRepo.remove(e.id)
                             .then(() => setMinusVersion((v) => v + 1))
                             .catch((err) => setFehler(String(err)))
                       }}
                       className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
                     >
-                      Löschen
+                      {t("LOESCHEN")}
                     </button>
                   </div>
                 )
@@ -459,7 +458,7 @@ export default function ProfilSeite() {
               {/* PDF-Toggle pro Arbeitgeber */}
               {arbeitgeber.length > 0 && (
                 <div className="border-t border-stone-100 dark:border-white/5 pt-3 mt-1">
-                  <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide mb-2">PDF-Anzeige</p>
+                  <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide mb-2">{t("MINUS_PDF_ANZEIGE")}</p>
                   <div className="space-y-2">
                     {arbeitgeber.map((emp) => (
                       <div key={emp.id} className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
@@ -468,11 +467,11 @@ export default function ProfilSeite() {
                           <span className="text-sm sf-text">{emp.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs sf-text-3">Minusstunden im PDF</span>
+                          <span className="text-xs sf-text-3">{t("MINUS_PDF_LABEL")}</span>
                           <Toggle
                             checked={emp.minusImPDFAnzeigen !== false}
                             onChange={() => toggleMinusImPDF(emp)}
-                            label="Minusstunden im PDF anzeigen"
+                            label={t("MINUS_PDF_ARIA")}
                           />
                         </div>
                       </div>
@@ -485,7 +484,7 @@ export default function ProfilSeite() {
 
           {/* ── E-Mail-Vorlagen ──────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="E-Mail-Vorlagen"
+            titel={t("SEKTION_EMAIL_VORLAGEN")}
             symbol={<MailIcon />}
             badge={vorlagen.length > 0 ? String(vorlagen.length) : undefined}
             offen={offen.has("email")}
@@ -493,12 +492,12 @@ export default function ProfilSeite() {
           >
             <div className="space-y-3 pt-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Vorlagen</p>
+                <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">{t("VORLAGE_HEADER")}</p>
                 <button
                   onClick={() => { setNeuVorlageOffen(true); setBearbeitenVorlageId(null) }}
                   className="w-7 h-7 flex items-center justify-center rounded-full text-white text-lg font-light active:scale-90 transition-all"
                   style={{ backgroundColor: "#2563eb" }}
-                  aria-label="Neue Vorlage"
+                  aria-label={t("VORLAGE_NEU_ARIA")}
                 >+</button>
               </div>
 
@@ -517,10 +516,10 @@ export default function ProfilSeite() {
 
               {vorlagen.length === 0 && !neuVorlageOffen && (
                 <div className="rounded-xl p-6 text-center bg-stone-50 dark:bg-neutral-800/50">
-                  <p className="text-sm sf-text-2 mb-1">Noch keine Vorlagen.</p>
+                  <p className="text-sm sf-text-2 mb-1">{t("VORLAGE_NOCH_KEINE")}</p>
                   <button onClick={() => setNeuVorlageOffen(true)}
                     className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                    Erste anlegen →
+                    {t("VORLAGE_ERSTE_ANLEGEN")}
                   </button>
                 </div>
               )}
@@ -548,15 +547,15 @@ export default function ProfilSeite() {
                       <button
                         onClick={() => { setBearbeitenVorlageId(v.id); setNeuVorlageOffen(false) }}
                         className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors"
-                      >Bearbeiten</button>
+                      >{t("VORLAGE_BEARBEITEN")}</button>
                       <span className="text-stone-200 dark:text-neutral-700">·</span>
                       <button
                         onClick={() => {
-                          if (confirm(`„${v.name}" löschen?`))
+                          if (confirm(t("VORLAGE_LOESCHEN_FRAGE").replace("{name}", v.name)))
                             emailVorlageRepo.remove(v.id).then(ladeVorlagen).catch((e) => setFehler(String(e)))
                         }}
                         className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors"
-                      >Löschen</button>
+                      >{t("LOESCHEN")}</button>
                     </div>
                   </div>
                 )
@@ -564,7 +563,7 @@ export default function ProfilSeite() {
 
               <div className="rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
                 <p className="text-xs sf-text-3">
-                  Platzhalter:{" "}
+                  {t("VORLAGE_PLATZHALTER")}{" "}
                   {["{{name}}", "{{personalnummer}}", "{{zeitraum_von}}", "{{zeitraum_bis}}"].map((p) => (
                     <code key={p} className="inline-block mx-0.5 px-1.5 py-0.5 rounded bg-stone-200 dark:bg-neutral-700 text-xs font-mono">{p}</code>
                   ))}
@@ -575,7 +574,7 @@ export default function ProfilSeite() {
 
           {/* ── E-Mail-Versand (Konto) ──────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="E-Mail-Versand"
+            titel={t("SEKTION_EMAIL_VERSAND")}
             symbol={<EmailKontoIcon />}
             badge={emailKonfiguriert ? "✓" : undefined}
             offen={offen.has("emailKonto")}
@@ -583,40 +582,39 @@ export default function ProfilSeite() {
           >
             <div className="pt-3 space-y-3">
               <p className="text-xs sf-text-3 leading-relaxed">
-                Verfügbarkeiten werden über dein eigenes Gmail-Konto versendet.
-                Du benötigst ein{" "}
+                {t("EMAIL_VERSAND_VOR_LINK")}{" "}
                 <a
                   href="https://myaccount.google.com/apppasswords"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 dark:text-blue-400 underline"
                 >
-                  App-Passwort
+                  {t("EMAIL_VERSAND_LINK")}
                 </a>
-                {" "}(2FA aktivieren → myaccount.google.com/apppasswords).
+                {" "}{t("EMAIL_VERSAND_NACH_LINK")}
               </p>
 
               {emailKonfiguriert && !emailFormOffen ? (
                 <div className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
                   <div>
-                    <p className="text-xs sf-text-2 mb-0.5">Gmail-Adresse</p>
+                    <p className="text-xs sf-text-2 mb-0.5">{t("EMAIL_GMAIL_ADRESSE")}</p>
                     <p className="text-sm font-medium sf-text">{emailGmailUser}</p>
                   </div>
                   <div>
-                    <p className="text-xs sf-text-2 mb-0.5">App-Passwort</p>
+                    <p className="text-xs sf-text-2 mb-0.5">{t("EMAIL_APP_PASSWORT")}</p>
                     <p className="text-sm sf-text font-mono tracking-widest">••••••••••••••••</p>
                   </div>
                   <div className="flex gap-3 pt-1 border-t border-stone-100 dark:border-white/5">
                     <button
                       onClick={() => setEmailFormOffen(true)}
                       className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors"
-                    >Ändern</button>
+                    >{t("EMAIL_AENDERN")}</button>
                     <span className="text-stone-200 dark:text-neutral-700">·</span>
                     <button
                       onClick={entfernenEmailConfig}
                       disabled={emailLaden}
                       className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors disabled:opacity-40"
-                    >Entfernen</button>
+                    >{t("EMAIL_ENTFERNEN")}</button>
                   </div>
                 </div>
               ) : (
@@ -633,14 +631,14 @@ export default function ProfilSeite() {
 
           {/* ── Steuer-Einstellungen ────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Steuer-Einstellungen"
+            titel={t("SEKTION_STEUER")}
             symbol={<SteuerIcon />}
             offen={offen.has("steuer")}
             onToggle={() => toggle("steuer")}
           >
             <div className="pt-3 space-y-4">
               <div>
-                <p className="text-xs sf-text-2 mb-2">Steuerklasse</p>
+                <p className="text-xs sf-text-2 mb-2">{t("STEUER_KLASSE")}</p>
                 <div className="flex gap-2">
                   {([1, 2, 3, 4, 5, 6] as Steuerklasse[]).map((k) => (
                     <button
@@ -659,17 +657,17 @@ export default function ProfilSeite() {
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-sm sf-text">Kirchensteuer</p>
+                <p className="text-sm sf-text">{t("STEUER_KIRCHENSTEUER")}</p>
                 <Toggle
                   checked={steuerDaten.kirchensteuer}
                   onChange={(v) => setSteuerDaten((d) => ({ ...d, kirchensteuer: v }))}
-                  label="Kirchensteuer"
+                  label={t("STEUER_KIRCHENSTEUER")}
                 />
               </div>
 
               {arbeitgeber.filter((e) => e.art === "kurzfristig").length > 0 && (
                 <div>
-                  <p className="text-xs sf-text-2 mb-2">Lohnsteuer pauschal 25 % (§40a EStG)</p>
+                  <p className="text-xs sf-text-2 mb-2">{t("STEUER_PAUSCHAL")}</p>
                   <div className="space-y-2">
                     {arbeitgeber.filter((e) => e.art === "kurzfristig").map((emp) => (
                       <div key={emp.id} className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
@@ -680,7 +678,7 @@ export default function ProfilSeite() {
                         <Toggle
                           checked={emp.kurzfristigPauschal ?? false}
                           onChange={() => toggleKurzfristigPauschal(emp)}
-                          label={`Lohnsteuer pauschal 25% für ${emp.name}`}
+                          label={t("STEUER_PAUSCHAL") + " – " + emp.name}
                         />
                       </div>
                     ))}
@@ -693,14 +691,14 @@ export default function ProfilSeite() {
                 disabled={steuerLaden}
                 className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.99] transition-all disabled:opacity-40"
               >
-                {steuerLaden ? <ShiftslotLoader size="sm" label="Speichert…" /> : "Speichern"}
+                {steuerLaden ? <ShiftslotLoader size="sm" label={t("SPEICHERT")} /> : t("SPEICHERN")}
               </button>
             </div>
           </AkkordeonAbschnitt>
 
           {/* ── Sprache ──────────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Sprache"
+            titel={t("SEKTION_SPRACHE")}
             symbol={<SpracheIcon />}
             badge={locale.toUpperCase()}
             offen={offen.has("sprache")}
@@ -731,13 +729,13 @@ export default function ProfilSeite() {
 
           {/* ── Erscheinungsbild ──────────────────────────────────────────── */}
           <AkkordeonAbschnitt
-            titel="Erscheinungsbild"
+            titel={t("SEKTION_ERSCHEINUNGSBILD")}
             symbol={<ErscheinungsbildIcon />}
             offen={offen.has("erscheinungsbild")}
             onToggle={() => toggle("erscheinungsbild")}
           >
             <div className="pt-1 pb-2">
-              <p className="text-xs sf-text-3 mb-3">Farbschema</p>
+              <p className="text-xs sf-text-3 mb-3">{t("FARBSCHEMA")}</p>
               <ThemeToggle />
             </div>
           </AkkordeonAbschnitt>
@@ -748,11 +746,11 @@ export default function ProfilSeite() {
               <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-neutral-800 text-stone-500 dark:text-neutral-400 flex-shrink-0">
                 <KontoIcon />
               </span>
-              <span className="text-sm font-semibold sf-text">Konto</span>
+              <span className="text-sm font-semibold sf-text">{t("SEKTION_KONTO")}</span>
             </div>
             <div className="border-t border-stone-100 dark:border-white/5 pt-3 space-y-3">
               <div>
-                <p className="text-xs sf-text-3 mb-0.5">Angemeldet als</p>
+                <p className="text-xs sf-text-3 mb-0.5">{t("ANGEMELDET_ALS")}</p>
                 <p className="text-sm sf-text font-medium break-all">{nutzerEmail || "–"}</p>
               </div>
               <button
@@ -760,27 +758,27 @@ export default function ProfilSeite() {
                 className="w-full rounded-xl px-4 py-2.5 text-sm font-medium text-white active:scale-[.99] transition-all"
                 style={{ backgroundColor: "#2563eb" }}
               >
-                Abmelden
+                {t("ABMELDEN")}
               </button>
               <button
                 onClick={() => setExportOffen(true)}
                 className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 active:scale-[.99] transition-all"
               >
-                Daten exportieren
+                {t("DATEN_EXPORTIEREN")}
               </button>
               <button
                 onClick={() => setLoeschenOffen(true)}
                 className="w-full rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-[.99] transition-all"
               >
-                Konto löschen
+                {t("KONTO_LOESCHEN_BTN")}
               </button>
               <div className="flex justify-center gap-4 pt-1">
                 <Link href="/datenschutz" className="text-xs sf-text-3 hover:underline">
-                  Datenschutz
+                  {t("DATENSCHUTZ")}
                 </Link>
                 <span className="text-xs sf-text-3">·</span>
                 <Link href="/impressum" className="text-xs sf-text-3 hover:underline">
-                  Impressum
+                  {t("IMPRESSUM")}
                 </Link>
               </div>
             </div>
@@ -958,14 +956,14 @@ function AbmeldenDialog({
   onBestaetigen: () => void
   onAbbrechen: () => void
 }) {
+  const t = useT()
   return (
     <BaseDialog onBackdropClick={onAbbrechen} maxWidth="max-w-sm">
       <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-        <h2 className="text-base font-bold sf-text mb-1">Wirklich abmelden?</h2>
+        <h2 className="text-base font-bold sf-text mb-1">{t("ABMELDEN_FRAGE")}</h2>
         {email && (
           <p className="text-sm sf-text-2 mb-4 break-all">
-            Du wirst als <span className="font-medium sf-text">{email}</span> abgemeldet.
-            Lokale Daten (Kalender-Cache, Auswahl) werden gelöscht.
+            {t("ABMELDEN_BESTAETIGUNG").replace("{email}", email)}
           </p>
         )}
         <div className="flex gap-2">
@@ -973,14 +971,14 @@ function AbmeldenDialog({
             onClick={onAbbrechen}
             className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
           >
-            Abbrechen
+            {t("ABBRECHEN")}
           </button>
           <button
             onClick={onBestaetigen}
             className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white active:scale-[.98] transition-all"
             style={{ backgroundColor: "#2563eb" }}
           >
-            Abmelden
+            {t("ABMELDEN")}
           </button>
         </div>
       </div>
@@ -999,11 +997,12 @@ function KontoLoeschenDialog({
   onLoeschen: () => Promise<void>
   onAbbrechen: () => void
 }) {
+  const t = useT()
   const [eingabe, setEingabe] = useState("")
   const [fehler, setFehler] = useState("")
   const [laden, setLaden] = useState(false)
 
-  const bestaetigt = eingabe === email || eingabe === "LÖSCHEN"
+  const bestaetigt = eingabe === email || eingabe === t("KONTO_LOESCHEN_WORT")
 
   async function handleBestaetigen() {
     if (!bestaetigt) return
@@ -1021,33 +1020,33 @@ function KontoLoeschenDialog({
     <BaseDialog onBackdropClick={laden ? undefined : onAbbrechen} maxWidth="max-w-sm">
       <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
         <div>
-          <h2 className="text-base font-bold sf-text mb-2">Konto unwiderruflich löschen?</h2>
+          <h2 className="text-base font-bold sf-text mb-2">{t("KONTO_LOESCHEN_TITEL")}</h2>
           <p className="text-sm sf-text-2 leading-relaxed mb-1.5">
-            Diese Aktion kann nicht rückgängig gemacht werden. Gelöscht werden:
+            {t("KONTO_LOESCHEN_WARNUNG")}
           </p>
           <ul className="text-sm sf-text-2 leading-relaxed list-disc list-inside space-y-0.5 pl-1">
-            <li>Alle Schichten, Arbeitgeber und Einstellungen</li>
-            <li>E-Mail-Vorlagen und Abrechnungsabgleiche</li>
-            <li>Geplante Schichten und Minusstunden-Einträge</li>
-            <li>Kalender-URLs (inkl. Token) und iCal-Cache</li>
-            <li>Gmail-Zugangsdaten</li>
-            <li>Dein Google-Konto-Zugang zu dieser App</li>
+            <li>{t("KONTO_LOESCHEN_ITEM1")}</li>
+            <li>{t("KONTO_LOESCHEN_ITEM2")}</li>
+            <li>{t("KONTO_LOESCHEN_ITEM3")}</li>
+            <li>{t("KONTO_LOESCHEN_ITEM4")}</li>
+            <li>{t("KONTO_LOESCHEN_ITEM5")}</li>
+            <li>{t("KONTO_LOESCHEN_ITEM6")}</li>
           </ul>
         </div>
 
         <p className="text-sm sf-text-2 leading-relaxed">
-          Es öffnet sich ein Google-Popup zur Bestätigung deiner Identität.
+          {t("KONTO_LOESCHEN_POPUP")}
         </p>
 
         <div>
           <label className="text-xs sf-text-2 mb-1.5 block">
-            Gib deine E-Mail-Adresse oder <span className="font-mono">LÖSCHEN</span> ein
+            {t("KONTO_LOESCHEN_EINGABE")}
           </label>
           <input
             type="text"
             value={eingabe}
             onChange={(e) => setEingabe(e.target.value)}
-            placeholder={email || "LÖSCHEN"}
+            placeholder={email || t("KONTO_LOESCHEN_WORT")}
             disabled={laden}
             className="sf-input w-full rounded-xl px-3 py-2.5 text-sm disabled:opacity-50"
             autoComplete="off"
@@ -1066,14 +1065,14 @@ function KontoLoeschenDialog({
             disabled={laden}
             className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
           >
-            Abbrechen
+            {t("ABBRECHEN")}
           </button>
           <button
             onClick={handleBestaetigen}
             disabled={!bestaetigt || laden}
             className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[.98] transition-all disabled:opacity-40"
           >
-            {laden ? <ShiftslotLoader size="sm" label="Wird gelöscht…" /> : "Konto löschen"}
+            {laden ? <ShiftslotLoader size="sm" label={t("KONTO_LOESCHEN_LAEUFT")} /> : t("KONTO_LOESCHEN_BTN")}
           </button>
         </div>
       </div>
@@ -1090,6 +1089,7 @@ function DatenExportDialog({
   onExportieren: () => Promise<void>
   onAbbrechen: () => void
 }) {
+  const t = useT()
   const [fehler, setFehler] = useState("")
   const [laden, setLaden] = useState(false)
   const [fertig, setFertig] = useState(false)
@@ -1110,26 +1110,25 @@ function DatenExportDialog({
   return (
     <BaseDialog onBackdropClick={laden ? undefined : onAbbrechen} maxWidth="max-w-sm">
       <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
-        <h2 className="text-base font-bold sf-text">Daten exportieren</h2>
+        <h2 className="text-base font-bold sf-text">{t("EXPORT_TITEL")}</h2>
 
         <div className="space-y-2">
           <p className="text-sm sf-text-2 leading-relaxed">
-            Die Exportdatei enthält:
+            {t("EXPORT_ENTHAELT")}
           </p>
           <ul className="text-sm sf-text-2 leading-relaxed list-disc list-inside space-y-0.5 pl-1">
-            <li>Schichten, Arbeitgeber, Einstellungen</li>
-            <li>Minusstunden, geplante Schichten, Abgleiche</li>
-            <li>E-Mail-Vorlagen</li>
-            <li>Gmail-Adresse (falls hinterlegt)</li>
-            <li>Kalender-Liste (Name, Farbe – keine URLs)</li>
+            <li>{t("EXPORT_ITEM1")}</li>
+            <li>{t("EXPORT_ITEM2")}</li>
+            <li>{t("EXPORT_ITEM3")}</li>
+            <li>{t("EXPORT_ITEM4")}</li>
+            <li>{t("EXPORT_ITEM5")}</li>
           </ul>
           <p className="text-sm sf-text-2 leading-relaxed">
-            <span className="font-medium sf-text">Nicht enthalten:</span>{" "}
-            Passwörter und iCal-URLs. iCal-URLs enthalten persönliche
-            Authentifizierungstoken und werden nicht exportiert.
+            <span className="font-medium sf-text">{t("EXPORT_NICHT_ENTHALTEN")}</span>{" "}
+            {t("EXPORT_NICHT_ENTHALTEN_TEXT")}
           </p>
           <p className="text-sm sf-text-2 leading-relaxed">
-            Die Datei enthält personenbezogene Daten — bitte sicher aufbewahren.
+            {t("EXPORT_DATENSCHUTZ")}
           </p>
         </div>
 
@@ -1141,7 +1140,7 @@ function DatenExportDialog({
 
         {fertig && (
           <p className="text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40 rounded-lg px-3 py-2">
-            Export heruntergeladen.
+            {t("EXPORT_HERUNTERGELADEN")}
           </p>
         )}
 
@@ -1151,7 +1150,7 @@ function DatenExportDialog({
             disabled={laden}
             className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
           >
-            {fertig ? "Schließen" : "Abbrechen"}
+            {fertig ? t("SCHLIESSEN") : t("ABBRECHEN")}
           </button>
           {!fertig && (
             <button
@@ -1160,7 +1159,7 @@ function DatenExportDialog({
               className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white active:scale-[.98] transition-all disabled:opacity-40"
               style={{ backgroundColor: "#2563eb" }}
             >
-              {laden ? <ShiftslotLoader size="sm" label="Wird erstellt…" /> : "Herunterladen"}
+              {laden ? <ShiftslotLoader size="sm" label={t("EXPORT_LAEUFT")} /> : t("EXPORT_HERUNTERLADEN")}
             </button>
           )}
         </div>
@@ -1180,6 +1179,7 @@ function KalenderKarte({
   onAktualisieren: (d: Partial<KalenderFormDaten>) => void
   onLoeschen: () => void
 }) {
+  const t = useT()
   const [bearbeiten, setBearbeiten] = useState(false)
   const [termineOffen, setTermineOffen] = useState(false)
 
@@ -1201,17 +1201,17 @@ function KalenderKarte({
         <div className="flex gap-3 pt-2 border-t border-stone-100 dark:border-white/5">
           <button onClick={() => { setBearbeiten((b) => !b); setTermineOffen(false) }}
             className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors">
-            {bearbeiten ? "Abbrechen" : "Bearbeiten"}
+            {bearbeiten ? t("ABBRECHEN") : t("KAL_BEARBEITEN")}
           </button>
           <span className="text-stone-200 dark:text-neutral-700">·</span>
-          <button onClick={() => { setTermineOffen((t) => !t); setBearbeiten(false) }}
+          <button onClick={() => { setTermineOffen((v) => !v); setBearbeiten(false) }}
             className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors">
-            {termineOffen ? "Schließen" : "Termine prüfen"}
+            {termineOffen ? t("KAL_SCHLIESSEN") : t("KAL_TERMINE_PRUEFEN")}
           </button>
           <span className="text-stone-200 dark:text-neutral-700">·</span>
           <button onClick={onLoeschen}
             className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors">
-            Löschen
+            {t("LOESCHEN")}
           </button>
         </div>
       </div>
@@ -1249,6 +1249,7 @@ function KalenderFormular({
   onAbbrechen: () => void
   istBearbeitung?: boolean
 }) {
+  const t = useT()
   const [name, setName] = useState(initial?.name ?? "")
   const [farbe, setFarbe] = useState(initial?.farbe ?? "#3b82f6")
   const [status, setStatus] = useState<"LOCKED" | "FLEXIBLE">(initial?.defaultStatus ?? "LOCKED")
@@ -1277,7 +1278,7 @@ function KalenderFormular({
       </div>
 
       <div className="flex gap-4 items-center">
-        <span className="text-xs sf-text-2">Standard-Status:</span>
+        <span className="text-xs sf-text-2">{t("KAL_FORM_DEFAULT_STATUS")}</span>
         {(["FLEXIBLE", "LOCKED"] as const).map((s) => (
           <label key={s} className="flex items-center gap-1.5 cursor-pointer">
             <input type="radio" name={`status-${istBearbeitung ? "edit" : "new"}`}
@@ -1291,20 +1292,17 @@ function KalenderFormular({
 
       <div>
         <input value={url} onChange={(e) => setUrl(e.target.value)}
-          placeholder={istBearbeitung ? "Neue URL (leer lassen = unverändert)" : "https://calendar.google.com/calendar/ical/…"}
+          placeholder={istBearbeitung ? t("KAL_FORM_URL_PLACEHOLDER_BEARBEITUNG") : "https://calendar.google.com/calendar/ical/…"}
           required={!istBearbeitung}
           className={`${inputKlasse} font-mono text-xs`} />
         {istBearbeitung ? (
-          <p className="text-xs sf-text-3 mt-1">URL nur ausfüllen wenn du sie ändern möchtest.</p>
+          <p className="text-xs sf-text-3 mt-1">{t("KAL_FORM_URL_HINT_BEARBEITUNG")}</p>
         ) : (
-          <p className="text-xs sf-text-3 mt-1">
-            iCal-Link (Kalender-Export). Bei Google: &quot;Geheime Adresse im iCal-Format&quot;. Bei Uni-Portalen: der iCal-Export-Link.
-            Die Adresse ist wie ein Passwort.
-          </p>
+          <p className="text-xs sf-text-3 mt-1">{t("KAL_FORM_URL_HINT_NEU")}</p>
         )}
         {istGooglePublic && (
           <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">
-            Das ist die öffentliche Adresse. Sie funktioniert nur, wenn dein Kalender öffentlich ist. Sonst nimm die geheime Adresse (…/private-…/basic.ics).
+            {t("KAL_FORM_PUBLIC_WARNUNG")}
           </p>
         )}
       </div>
@@ -1312,12 +1310,12 @@ function KalenderFormular({
       <div className="flex gap-2">
         <button type="button" onClick={onAbbrechen}
           className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button type="submit"
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white active:scale-95 transition-all"
           style={{ backgroundColor: farbe }}>
-          {istBearbeitung ? "Speichern" : "Hinzufügen"}
+          {istBearbeitung ? t("SPEICHERN") : t("HINZUFUEGEN")}
         </button>
       </div>
     </form>
@@ -1333,6 +1331,7 @@ function TerminPruefer({
   kalendarId: string
   defaultStatus: "LOCKED" | "FLEXIBLE"
 }) {
+  const t = useT()
   const heute = new Date().toISOString().slice(0, 10)
   const [von, setVon] = useState(heute)
   const [bis, setBis] = useState(() => {
@@ -1361,22 +1360,22 @@ function TerminPruefer({
 
   return (
     <div className="p-4 space-y-3">
-      <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">Termine prüfen</p>
+      <p className="text-xs font-semibold sf-text-2 uppercase tracking-wide">{t("KAL_TERMINE_PRUEFEN")}</p>
 
       <div className="flex gap-2 flex-wrap items-end">
         <div>
-          <p className="text-xs sf-text-3 mb-1">Von</p>
+          <p className="text-xs sf-text-3 mb-1">{t("TERMIN_VON")}</p>
           <input type="date" value={von} onChange={(e) => setVon(e.target.value)}
             className="rounded-lg border border-stone-200 dark:border-neutral-700 sf-input px-2 py-1.5 text-xs sf-text" />
         </div>
         <div>
-          <p className="text-xs sf-text-3 mb-1">Bis</p>
+          <p className="text-xs sf-text-3 mb-1">{t("TERMIN_BIS")}</p>
           <input type="date" value={bis} onChange={(e) => setBis(e.target.value)}
             className="rounded-lg border border-stone-200 dark:border-neutral-700 sf-input px-2 py-1.5 text-xs sf-text" />
         </div>
         <button onClick={ladTermine} disabled={laden}
           className="rounded-lg bg-stone-100 dark:bg-neutral-800 px-3 py-1.5 text-xs font-medium sf-text hover:bg-stone-200 dark:hover:bg-neutral-700 disabled:opacity-50">
-          {laden ? <ShiftslotLoader size="sm" label="Lädt…" /> : "Laden"}
+          {laden ? <ShiftslotLoader size="sm" label={t("LAEDT")} /> : t("TERMIN_LADEN")}
         </button>
       </div>
 
@@ -1386,34 +1385,35 @@ function TerminPruefer({
         <div className="space-y-0.5">
           {[...termine]
             .sort((a, b) => a.beginn.localeCompare(b.beginn))
-            .map((t, i) => {
-              const status = resolveStatus(t.titel, defaultStatus)
+            .map((termin, i) => {
+              const status = resolveStatus(termin.titel, defaultStatus)
               return (
                 <div key={i} className="flex items-center gap-2 text-xs py-0.5">
                   <span className={`w-16 flex-shrink-0 font-medium ${
                     status === "LOCKED" ? "text-red-500" : "text-amber-500"
                   }`}>{status}</span>
-                  {t.ganztaegig ? (
-                    <span className="sf-text-3">{datumKurz(t.beginn)}</span>
+                  {termin.ganztaegig ? (
+                    <span className="sf-text-3">{datumKurz(termin.beginn)}</span>
                   ) : (
                     <span className="sf-text-3 font-mono whitespace-nowrap">
-                      {datumKurz(t.beginn)} {uhrzeit(t.beginn)}–{uhrzeit(t.ende)}
+                      {datumKurz(termin.beginn)} {uhrzeit(termin.beginn)}–{uhrzeit(termin.ende)}
                     </span>
                   )}
-                  <span className="sf-text truncate">{t.titel}</span>
+                  <span className="sf-text truncate">{termin.titel}</span>
                 </div>
               )
             })}
           <p className="text-xs sf-text-3 pt-1">
-            {termine.length} Termine ·{" "}
-            {termine.filter((t) => resolveStatus(t.titel, defaultStatus) === "LOCKED").length} LOCKED ·{" "}
-            {termine.filter((t) => resolveStatus(t.titel, defaultStatus) === "FLEXIBLE").length} FLEXIBLE
+            {t("TERMIN_SUMMARY")
+              .replace("{count}", String(termine.length))
+              .replace("{locked}", String(termine.filter((termin) => resolveStatus(termin.titel, defaultStatus) === "LOCKED").length))
+              .replace("{flexible}", String(termine.filter((termin) => resolveStatus(termin.titel, defaultStatus) === "FLEXIBLE").length))}
           </p>
         </div>
       )}
 
       {termine.length === 0 && !laden && (
-        <p className="text-xs sf-text-3">Noch keine Termine geladen.</p>
+        <p className="text-xs sf-text-3">{t("TERMIN_KEINE")}</p>
       )}
     </div>
   )
@@ -1430,6 +1430,7 @@ function MinusFormular({
   onSpeichern: (d: MinusEintragInput) => void
   onAbbrechen: () => void
 }) {
+  const t = useT()
   const [datum, setDatum] = useState(new Date().toLocaleDateString("sv", { timeZone: BERLIN }))
   const [stunden, setStunden] = useState("")
   const [notiz, setNotiz] = useState("")
@@ -1447,9 +1448,9 @@ function MinusFormular({
   return (
     <form onSubmit={submit} className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
       <div>
-        <p className="text-xs sf-text-2 mb-1">Arbeitgeber</p>
+        <p className="text-xs sf-text-2 mb-1">{t("ARBEITGEBER_LABEL")}</p>
         {employers.length === 0 ? (
-          <p className="text-xs text-amber-600 dark:text-amber-400">Bitte zuerst einen Arbeitgeber anlegen.</p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">{t("MINUS_ZUERST_AG")}</p>
         ) : (
           <select
             required
@@ -1457,7 +1458,7 @@ function MinusFormular({
             onChange={(e) => setEmployerId(e.target.value)}
             className={inputKlasse}
           >
-            <option value="" disabled>Arbeitgeber wählen…</option>
+            <option value="" disabled>{t("MINUS_AG_WAEHLEN")}</option>
             {employers.map((emp) => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
@@ -1466,28 +1467,28 @@ function MinusFormular({
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="text-xs sf-text-2 mb-1">Datum</p>
+          <p className="text-xs sf-text-2 mb-1">{t("DATUM_LABEL")}</p>
           <input type="date" required value={datum} onChange={(e) => setDatum(e.target.value)} className={inputKlasse} />
         </div>
         <div>
-          <p className="text-xs sf-text-2 mb-1">Stunden</p>
+          <p className="text-xs sf-text-2 mb-1">{t("MINUS_STUNDEN")}</p>
           <input type="number" required min="0.25" step="0.25" placeholder="z.B. 2" value={stunden}
             onChange={(e) => setStunden(e.target.value)} className={`${inputKlasse} nums`} />
         </div>
       </div>
       <div>
-        <p className="text-xs sf-text-2 mb-1">Grund <span className="text-stone-400 font-normal">optional</span></p>
+        <p className="text-xs sf-text-2 mb-1">{t("MINUS_GRUND")} <span className="text-stone-400 font-normal">{t("OPTIONAL")}</span></p>
         <input type="text" value={notiz} onChange={(e) => setNotiz(e.target.value)}
           placeholder="z.B. Krankmeldung, Korrektur" className={inputKlasse} />
       </div>
       <div className="flex gap-2">
         <button type="button" onClick={onAbbrechen}
           className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button type="submit" disabled={!employerId}
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-red-500 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none">
-          Speichern
+          {t("SPEICHERN")}
         </button>
       </div>
     </form>
@@ -1521,6 +1522,7 @@ function VorlageFormular({
   onSpeichern: (d: { name: string; betreff: string; text: string; empfaenger: string; cc: string }) => void
   onAbbrechen: () => void
 }) {
+  const t = useT()
   const start = initial ?? DEFAULT_VORLAGE
   const [name, setName] = useState(start.name)
   const [betreff, setBetreff] = useState(start.betreff)
@@ -1539,31 +1541,31 @@ function VorlageFormular({
   return (
     <form onSubmit={submit} className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
       <div>
-        <p className="text-xs sf-text-2 mb-1">Name der Vorlage</p>
+        <p className="text-xs sf-text-2 mb-1">{t("VORLAGE_NAME")}</p>
         <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
           placeholder="z.B. Standard, Jumia, HAW" className={inputKlasse} />
       </div>
       <div>
         <p className="text-xs sf-text-2 mb-1">
-          Empfänger (An) <span className="text-stone-400 font-normal">optional, mehrere durch Komma</span>
+          {t("VORLAGE_EMPFAENGER")} <span className="text-stone-400 font-normal">{t("VORLAGE_OPT_MEHRERE")}</span>
         </p>
         <input type="text" value={empfaenger} onChange={(e) => setEmpfaenger(e.target.value)}
           placeholder="planung@arbeitgeber.de" className={inputKlasse} />
       </div>
       <div>
         <p className="text-xs sf-text-2 mb-1">
-          CC <span className="text-stone-400 font-normal">optional, mehrere durch Komma</span>
+          CC <span className="text-stone-400 font-normal">{t("VORLAGE_OPT_MEHRERE")}</span>
         </p>
         <input type="text" value={cc} onChange={(e) => setCc(e.target.value)}
           placeholder="leitung@example.de" className={inputKlasse} />
       </div>
       <div>
-        <p className="text-xs sf-text-2 mb-1">Betreff</p>
+        <p className="text-xs sf-text-2 mb-1">{t("VORLAGE_BETREFF")}</p>
         <input type="text" required value={betreff} onChange={(e) => setBetreff(e.target.value)}
           placeholder="Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}" className={inputKlasse} />
       </div>
       <div>
-        <p className="text-xs sf-text-2 mb-1">Text</p>
+        <p className="text-xs sf-text-2 mb-1">{t("VORLAGE_TEXT")}</p>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -1574,11 +1576,11 @@ function VorlageFormular({
       <div className="flex gap-2">
         <button type="button" onClick={onAbbrechen}
           className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button type="submit"
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 active:scale-95 transition-all">
-          {istBearbeitung ? "Speichern" : "Anlegen"}
+          {istBearbeitung ? t("SPEICHERN") : t("ANLEGEN")}
         </button>
       </div>
     </form>
@@ -1600,6 +1602,7 @@ function EmailKontoFormular({
   onSpeichern: (gmailUser: string, gmailAppPassword: string) => void
   onAbbrechen?: () => void
 }) {
+  const t = useT()
   const [gmailUser, setGmailUser] = useState(initialGmailUser ?? "")
   const [gmailAppPassword, setGmailAppPassword] = useState("")
 
@@ -1614,7 +1617,7 @@ function EmailKontoFormular({
   return (
     <form onSubmit={submit} className="sf-card rounded-2xl p-4 shadow-sm space-y-3">
       <div>
-        <p className="text-xs sf-text-2 mb-1">Gmail-Adresse</p>
+        <p className="text-xs sf-text-2 mb-1">{t("EMAIL_GMAIL_ADRESSE")}</p>
         <input
           type="email"
           required
@@ -1626,8 +1629,8 @@ function EmailKontoFormular({
       </div>
       <div>
         <p className="text-xs sf-text-2 mb-1">
-          App-Passwort{" "}
-          {istBearbeitung && <span className="text-stone-400 font-normal">neu eingeben</span>}
+          {t("EMAIL_APP_PASSWORT")}{" "}
+          {istBearbeitung && <span className="text-stone-400 font-normal">{t("EMAIL_APP_PASSWORT_NEU")}</span>}
         </p>
         <input
           type="password"
@@ -1647,7 +1650,7 @@ function EmailKontoFormular({
             disabled={laden}
             className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium sf-text-2 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
           >
-            Abbrechen
+            {t("ABBRECHEN")}
           </button>
         )}
         <button
@@ -1655,7 +1658,7 @@ function EmailKontoFormular({
           disabled={laden || !gmailUser.trim() || !gmailAppPassword.trim()}
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
         >
-          {laden ? "Speichert…" : istBearbeitung ? "Aktualisieren" : "Speichern"}
+          {laden ? t("SPEICHERT") : istBearbeitung ? t("EMAIL_AKTUALISIEREN") : t("SPEICHERN")}
         </button>
       </div>
     </form>

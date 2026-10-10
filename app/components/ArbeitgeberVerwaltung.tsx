@@ -7,13 +7,7 @@ import { employers as employersRepo } from "@/lib/storage"
 import { formatEuroCent } from "@/lib/calc/format"
 import { EinrichtungsDialog, sollDialogOeffnen } from "./EinrichtungsDialog"
 import { ShiftslotLoader } from "./ShiftslotLoader"
-
-const ART_LABEL: Record<EmployerArt, string> = {
-  werkstudent: "Werkstudent",
-  kurzfristig: "Kurzfristig",
-  minijob: "Minijob",
-  sonstiges: "Sonstiges",
-}
+import { useT } from "./LangProvider"
 
 const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
   { value: "BB", label: "Brandenburg" },
@@ -87,6 +81,7 @@ function employerZuForm(e: Employer): FormDaten {
 }
 
 export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: string }) {
+  const t = useT()
   const [employers, setEmployers] = useState<Employer[]>([])
   const [bearbeitenId, setBearbeitenId] = useState<string | null>(null)
   const [neuFormOffen, setNeuFormOffen] = useState(false)
@@ -131,18 +126,18 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
           <Link
             href={backHref}
             className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-stone-400 hover:bg-stone-200 hover:text-stone-700 dark:hover:bg-white/10 dark:hover:text-neutral-200 active:scale-90 transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
-            aria-label="Zurück"
+            aria-label={t("ZURUECK")}
           >
             ‹
           </Link>
           <h1 className="text-base font-semibold tracking-tight text-stone-900 dark:text-neutral-100">
-            Arbeitgeber
+            {t("AG_VERWALTEN")}
           </h1>
           <button
             onClick={() => { setNeuFormOffen(true); setBearbeitenId(null) }}
             className="w-10 h-10 flex items-center justify-center rounded-full text-xl font-light transition-all duration-100 active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-stone-400 text-white"
             style={{ backgroundColor: "#2563eb" }}
-            aria-label="Neuer Arbeitgeber"
+            aria-label={t("AG_NEU_ARIA")}
           >
             +
           </button>
@@ -164,12 +159,12 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
             {/* Aktive Arbeitgeber */}
             {aktive.length === 0 && !neuFormOffen && (
               <div className="sf-card rounded-2xl p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-                <p className="text-sm text-stone-400 dark:text-neutral-500 mb-1">Noch keine Arbeitgeber.</p>
+                <p className="text-sm text-stone-400 dark:text-neutral-500 mb-1">{t("AG_KEINE")}</p>
                 <button
                   onClick={() => setNeuFormOffen(true)}
                   className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Ersten anlegen →
+                  {t("AG_ERSTEN_ANLEGEN")}
                 </button>
               </div>
             )}
@@ -198,7 +193,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
               <details className="mt-4 group">
                 <summary className="text-xs font-medium text-stone-400 dark:text-neutral-500 cursor-pointer select-none list-none flex items-center gap-1.5 mb-2">
                   <span className="transition-transform duration-150 group-open:rotate-90 inline-block">›</span>
-                  {archivierte.length} archiviert
+                  {t("AG_ARCHIVIERT").replace("{count}", String(archivierte.length))}
                 </summary>
                 <div className="flex flex-col gap-2">
                   {archivierte.map((e) => (
@@ -242,6 +237,13 @@ function ArbeitgeberKarte({
   onVerfuegbarkeit?: () => void
   archiviert?: boolean
 }) {
+  const t = useT()
+  const artLabel: Record<string, string> = {
+    werkstudent: t("AG_ART_WERKSTUDENT"),
+    kurzfristig: t("AG_ART_KURZFRISTIG"),
+    minijob: t("AG_ART_MINIJOB"),
+    sonstiges: t("AG_ART_SONSTIGES"),
+  }
   return (
     <div className={`sf-card rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.04)] ${archiviert ? "opacity-60" : ""}`}>
       <div className="flex items-start gap-3">
@@ -259,15 +261,15 @@ function ArbeitgeberKarte({
             </p>
           </div>
           <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
-            {ART_LABEL[e.art]}
+            {artLabel[e.art] ?? e.art}
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
             {e.bundesland}
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
-            So {e.zuschlagSonntagProzent}%
+            {t("AG_ABBR_SO")} {e.zuschlagSonntagProzent}%
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
-            FT {e.zuschlagFeiertagProzent}%
+            {t("AG_ABBR_FT")} {e.zuschlagFeiertagProzent}%
             <span className="mx-1.5 text-stone-300 dark:text-neutral-600">·</span>
-            Nacht {e.zuschlagNachtProzent}%
+            {t("AG_ABBR_NACHT")} {e.zuschlagNachtProzent}%
           </p>
         </div>
       </div>
@@ -277,7 +279,7 @@ function ArbeitgeberKarte({
           onClick={onBearbeiten}
           className="text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors duration-100"
         >
-          Bearbeiten
+          {t("BEARBEITEN")}
         </button>
         {onVerfuegbarkeit && (
           <>
@@ -287,8 +289,8 @@ function ArbeitgeberKarte({
               className="flex items-center gap-1 text-xs font-medium text-stone-500 dark:text-neutral-400 hover:text-stone-800 dark:hover:text-neutral-200 transition-colors duration-100"
             >
               {e.verfuegbarkeit?.einrichtungBestaetigt === true
-                ? "Verfügbarkeits-Einstellungen ändern"
-                : "Verfügbarkeit einrichten"}
+                ? t("AG_VERF_AENDERN")
+                : t("AG_VERF_EINRICHTEN")}
               {sollDialogOeffnen(e) && (
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
               )}
@@ -300,7 +302,7 @@ function ArbeitgeberKarte({
           onClick={onArchivieren}
           className="text-xs font-medium text-stone-400 dark:text-neutral-500 hover:text-stone-700 dark:hover:text-neutral-300 transition-colors duration-100"
         >
-          {archiviert ? "Reaktivieren" : "Archivieren"}
+          {archiviert ? t("REAKTIVIEREN") : t("ARCHIVIEREN")}
         </button>
       </div>
     </div>
@@ -316,6 +318,13 @@ function ArbeitgeberForm({
   onSpeichern: (f: FormDaten) => Promise<void>
   onAbbrechen: () => void
 }) {
+  const t = useT()
+  const artOptionen: Record<EmployerArt, string> = {
+    werkstudent: t("AG_ART_WERKSTUDENT"),
+    kurzfristig: t("AG_ART_KURZFRISTIG"),
+    minijob: t("AG_ART_MINIJOB"),
+    sonstiges: t("AG_ART_SONSTIGES"),
+  }
   const [form, setForm] = useState<FormDaten>(initial)
   const [laden, setLaden] = useState(false)
   const [fehler, setFehler] = useState("")
@@ -361,7 +370,7 @@ function ArbeitgeberForm({
             required
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
-            placeholder="z.B. TechCorp GmbH"
+            placeholder={t("AG_PLACEHOLDER_NAME")}
             className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 placeholder:text-stone-300 dark:placeholder:text-neutral-600 outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
           />
         </div>
@@ -370,19 +379,19 @@ function ArbeitgeberForm({
       {/* Art + Stundenlohn */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <FormLabel>Beschäftigungsart</FormLabel>
+          <FormLabel>{t("AG_BESCHAEFTIGUNGSART")}</FormLabel>
           <select
             value={form.art}
             onChange={(e) => set("art", e.target.value as EmployerArt)}
             className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
           >
-            {(Object.keys(ART_LABEL) as EmployerArt[]).map((art) => (
-              <option key={art} value={art}>{ART_LABEL[art]}</option>
+            {(Object.keys(artOptionen) as EmployerArt[]).map((art) => (
+              <option key={art} value={art}>{artOptionen[art]}</option>
             ))}
           </select>
         </div>
         <div>
-          <FormLabel>Stundenlohn (EUR)</FormLabel>
+          <FormLabel>{t("AG_STUNDENLOHN")}</FormLabel>
           <input
             type="text"
             required
@@ -397,7 +406,7 @@ function ArbeitgeberForm({
 
       {/* Bundesland */}
       <div className="mb-4">
-        <FormLabel>Bundesland (für Feiertage)</FormLabel>
+        <FormLabel>{t("VERF_BUNDESLAND_LABEL")}</FormLabel>
         <select
           value={form.bundesland}
           onChange={(e) => set("bundesland", e.target.value as Bundesland)}
@@ -411,12 +420,12 @@ function ArbeitgeberForm({
 
       {/* Personalnummer */}
       <div className="mb-4">
-        <FormLabel>Personalnummer <span className="font-normal text-stone-400 dark:text-neutral-500">optional</span></FormLabel>
+        <FormLabel>{t("AG_PERSONALNUMMER")} <span className="font-normal text-stone-400 dark:text-neutral-500">{t("OPTIONAL")}</span></FormLabel>
         <input
           type="text"
           value={form.personalnummer}
           onChange={(e) => set("personalnummer", e.target.value)}
-          placeholder="z. B. 123456"
+          placeholder={t("AG_PLACEHOLDER_PERSONALNR")}
           className="w-full rounded-xl border border-stone-200 dark:border-neutral-700 sf-input px-3 py-2 text-sm text-stone-900 dark:text-neutral-100 placeholder:text-stone-300 dark:placeholder:text-neutral-600 nums outline-none focus:border-stone-400 dark:focus:border-neutral-500 focus:ring-2 focus:ring-stone-200 dark:focus:ring-neutral-700 transition-shadow"
         />
       </div>
@@ -424,9 +433,9 @@ function ArbeitgeberForm({
       {/* Zuschläge */}
       <div className="grid grid-cols-3 gap-3 mb-5">
         {([
-          ["zuschlagSonntag", "Sonntag %"],
-          ["zuschlagFeiertag", "Feiertag %"],
-          ["zuschlagNacht", "Nacht %"],
+          ["zuschlagSonntag", t("AG_ZUSCHLAG_SO")],
+          ["zuschlagFeiertag", t("AG_ZUSCHLAG_FT")],
+          ["zuschlagNacht", t("AG_ZUSCHLAG_NACHT")],
         ] as const).map(([key, label]) => (
           <div key={key}>
             <FormLabel>{label}</FormLabel>
@@ -457,7 +466,7 @@ function ArbeitgeberForm({
           disabled={laden}
           className="flex-1 rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-stone-400 disabled:opacity-40"
         >
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button
           type="submit"
@@ -465,7 +474,7 @@ function ArbeitgeberForm({
           className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-100 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400 disabled:opacity-60"
           style={{ backgroundColor: form.farbe }}
         >
-          {laden ? <ShiftslotLoader size="sm" label="Speichert…" /> : "Speichern"}
+          {laden ? <ShiftslotLoader size="sm" label={t("SPEICHERT")} /> : t("SPEICHERN")}
         </button>
       </div>
     </form>
