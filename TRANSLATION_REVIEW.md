@@ -111,6 +111,55 @@ review. Firebase error messages are never shown raw — these are the friendly r
 
 **Note:** RU/FR above — native-speaker review recommended before publication.
 
+## Datenschutz – new sign-in methods + Resend processor (2026-10-10) — **juristisch prüfen**
+
+Phase (f). Updated `lib/legal/datenschutz.ts` for the new sign-in methods and the Resend
+email processor. All 4 locales. **These are legal passages — lawyer / native-speaker review
+required before publication.**
+
+| Key | Change |
+|---|---|
+| `s2loginHeading` | Dropped "(Google OAuth)" — now just "Anmeldedaten" / "Login data" / etc. |
+| `s2loginBody` | Rewritten: sign-in via Google, GitHub, Apple (if enabled) **or** email+password; federated data received (uid, email, display name, profile picture URL); for email/password the password is stored only by Firebase Authentication and not accessible to the app; a one-time verification email with a confirmation link is sent. |
+| `s4resendHeading` | New. "Resend (Versand der Verifizierungs-E-Mail)" / "Resend (sending the verification email)" / RU / FR. |
+| `s4resendBody` | New. Resend, Inc. (USA) delivers the verification email; only recipient email address + confirmation link transmitted; falls back to Firebase if unconfigured; third-country transfer on SCC/DPF basis. |
+| `s5body` | Added "Resend" to the list of providers committed to GDPR third-country requirements. |
+
+`Stand` line unchanged (10. Oktober 2026, localized).
+
+## UI keys from landing + verify + auth (RU/FR) — review recommended
+
+Previously-added RU/FR keys (phases c/d) not yet logged for review. English/German authored
+directly; RU/FR below need native-speaker review.
+
+| Key | FR | RU |
+|---|---|---|
+| `LANDING_HERO_TITEL` | Votre temps de travail, maîtrisé. | Ваше рабочее время под контролем. |
+| `LANDING_HERO_UNTERTITEL` | Saisissez vos services, calculez automatiquement les heures et le salaire, exportez un relevé mensuel en PDF — pour les étudiants et les petits boulots en Allemagne. | Учитывайте смены, автоматически считайте часы и зарплату, выгружайте месячный отчёт в PDF — для студентов и подработки в Германии. |
+| `LANDING_LOSLEGEN` | Commencer | Начать |
+| `LANDING_FEATURES_TITEL` | Tout ce qu'il vous faut | Всё, что нужно |
+| `LANDING_F1_TITEL` | Saisir vos services | Учёт смен |
+| `LANDING_F1_TEXT` | Entrez vos horaires en quelques secondes — par employeur, avec pauses et heures fixes. | Вносите рабочее время за секунды — по каждому работодателю, с перерывами и фиксированными часами. |
+| `LANDING_F2_TITEL` | Calculé pour vous | Всё посчитано |
+| `LANDING_F2_TEXT` | Heures, salaire, majorations du dimanche et des jours fériés et pauses obligatoires — sans calcul. | Часы, зарплата, надбавки за воскресенья и праздники и обязательные перерывы — без расчётов. |
+| `LANDING_F3_TITEL` | Relevé mensuel en PDF | Месячный отчёт в PDF |
+| `LANDING_F3_TEXT` | Un relevé d'heures clair à votre nom, prêt à remettre ou à envoyer. | Аккуратный отчёт по часам с вашим именем, готовый к сдаче или отправке. |
+| `LANDING_F4_TITEL` | Calendrier et disponibilité | Календарь и доступность |
+| `LANDING_F4_TEXT` | Importez votre emploi du temps via iCal et partagez vos disponibilités par e-mail. | Импортируйте расписание через iCal и делитесь доступностью по эл. почте. |
+| `VERIFY_TITEL` | Vérifiez votre e-mail | Подтвердите адрес эл. почты |
+| `VERIFY_TEXT` | Nous avons envoyé un lien de vérification à {email}. Ouvrez-le pour continuer. | Мы отправили ссылку для подтверждения на {email}. Откройте её, чтобы продолжить. |
+| `VERIFY_ICH_HABE_BESTAETIGT` | J'ai vérifié | Я подтвердил(а) |
+| `VERIFY_NOCH_NICHT` | Pas encore vérifié. Veuillez consulter votre boîte de réception. | Пока не подтверждено. Проверьте почту. |
+| `VERIFY_ERNEUT_SENDEN` | Renvoyer l'e-mail | Отправить письмо ещё раз |
+| `VERIFY_ERNEUT_GESENDET` | Envoyé. Veuillez consulter votre boîte de réception. | Отправлено. Проверьте почту. |
+| `VERIFY_COOLDOWN` | Renvoyer dans {sek}s | Повтор через {sek}с |
+| `VERIFY_ANDERES_KONTO` | Utiliser un autre compte | Использовать другой аккаунт |
+| `AUTH_REAUTH_POPUP_BLOCKIERT` | La fenêtre contextuelle de connexion a été bloquée. Ouvrez l'application dans votre navigateur (Safari → Partager → Ouvrir dans le navigateur) et réessayez. | Всплывающее окно входа заблокировано. Откройте приложение в браузере (Safari → Поделиться → Открыть в браузере) и повторите попытку. |
+| `AUTH_FEHLER_NETZWERK` | Pas de connexion réseau. Vérifiez votre connexion internet. | Нет подключения к сети. Проверьте интернет-соединение. |
+| `AUTH_FEHLER_ABGEBROCHEN` | Connexion annulée. Veuillez réessayer. | Вход отменён. Попробуйте ещё раз. |
+
+**Note:** RU/FR above — native-speaker review recommended before publication.
+
 ## 2.0 bullet items (historical, shown in Profil → Neuigkeiten)
 
 | Key | Notes |

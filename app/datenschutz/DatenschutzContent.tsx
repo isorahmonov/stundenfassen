@@ -100,6 +100,11 @@ export function DatenschutzContent() {
           </div>
 
           <div className="space-y-1">
+            <h3 className="text-xs font-semibold sf-text uppercase tracking-wide">{s.s4resendHeading}</h3>
+            <p className="text-sm sf-text-2 leading-relaxed">{s.s4resendBody}</p>
+          </div>
+
+          <div className="space-y-1">
             <h3 className="text-xs font-semibold sf-text uppercase tracking-wide">{s.s4calendarHeading}</h3>
             <p className="text-sm sf-text-2 leading-relaxed">{s.s4calendarBody}</p>
           </div>

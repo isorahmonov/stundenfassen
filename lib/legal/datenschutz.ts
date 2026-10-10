@@ -18,6 +18,7 @@ export type DatenschutzStrings = {
   s4firebaseHeading: string; s4firebaseBody: string
   s4vercelHeading: string; s4vercelBody: string
   s4smtpHeading: string; s4smtpBody: string
+  s4resendHeading: string; s4resendBody: string
   s4calendarHeading: string; s4calendarBody: string
   s5heading: string; s5body: string
   s6heading: string; s6body: string; s6body2: string; s6body3: string
@@ -48,9 +49,9 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s1heading: "1. Verantwortlicher",
     s1intro: "Verantwortlich im Sinne der DSGVO ist:",
     s2heading: "2. Welche Daten werden verarbeitet?",
-    s2loginHeading: "Anmeldedaten (Google OAuth)",
+    s2loginHeading: "Anmeldedaten",
     s2loginBody:
-      "Die Anmeldung erfolgt ausschließlich über Google (OAuth 2.0). Dabei erhält die App von Google folgende Daten: interne Nutzer-ID (uid), E-Mail-Adresse, Anzeigename und Profilbild-URL. Es gibt keine eigene Passwort-Registrierung.",
+      "Die Anmeldung ist über externe Anbieter (Google, GitHub sowie – sofern aktiviert – Apple, jeweils über OAuth 2.0 / OpenID Connect) oder über eine eigene Registrierung mit E-Mail-Adresse und Passwort möglich. Bei der Anmeldung über einen externen Anbieter erhält die App je nach Anbieter eine interne Nutzer-ID (uid), die E-Mail-Adresse, den Anzeigenamen und ggf. eine Profilbild-URL. Bei der Registrierung mit E-Mail und Passwort werden die E-Mail-Adresse und das Passwort verarbeitet; das Passwort wird ausschließlich von Google Firebase Authentication gespeichert und ist für die App nicht einsehbar. Zur Bestätigung der E-Mail-Adresse wird einmalig eine Verifizierungs-E-Mail mit einem Bestätigungslink versendet.",
     s2appHeading: "App-Daten (Zeiterfassung)",
     s2appBody:
       "In der App werden folgende arbeitsbezogene Daten gespeichert: Arbeitgeberdaten (Name, Farbe, Bundesland, Stundenlohn, Zuschläge, optionale Personalnummer), Schichteinträge (Datum, Zeiten, Pausen, optionale Notiz), Steuereinstellungen (Steuerklasse, Kirchensteuer), Minusstunden-Einträge (Datum, Minuten, optionale Notiz), geplante Schichten sowie E-Mail-Vorlagen (Empfänger, Betreff, Text) und Abrechnungsabgleiche.",
@@ -76,11 +77,13 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s4vercelBody: `Hosting und alle serverseitigen API-Funktionen werden über Vercel Inc. (USA) betrieben. Drittlandübermittlung auf Basis von ${SCC.de}.`,
     s4smtpHeading: "Gmail SMTP (optional)",
     s4smtpBody: `Wenn du E-Mail-Versand konfigurierst, werden E-Mails über Googles SMTP-Server (Google LLC, USA) versendet. Dies gilt nur, wenn du diese Funktion aktiv einrichtest. Drittlandübermittlung auf Basis von ${SCC.de}.`,
+    s4resendHeading: "Resend (Versand der Verifizierungs-E-Mail)",
+    s4resendBody: `Bei der Registrierung mit E-Mail und Passwort wird zur Zustellung der Verifizierungs-E-Mail der Dienst Resend (Resend, Inc., USA) eingesetzt. Dabei werden an Resend ausschließlich die E-Mail-Adresse der empfangenden Person und der Bestätigungslink übermittelt. Ist dieser Dienst nicht konfiguriert, wird die Verifizierungs-E-Mail stattdessen direkt über Google Firebase versendet. Drittlandübermittlung auf Basis von ${SCC.de}.`,
     s4calendarHeading: "Google Calendar / Hochschulportale (optional)",
     s4calendarBody:
       "Wenn du eine iCal-URL hinterlegst, ruft der Server die Kalenderinhalte von dem jeweiligen Anbieter ab (z. B. Google LLC oder dein Hochschulportal). Dies gilt nur, wenn du diese Funktion aktiv einrichtest. Die iCal-URL (inklusive Authentifizierungstoken) verlässt dabei nie den Browser und wird nur serverseitig verwendet.",
     s5heading: "5. Drittlandübermittlung",
-    s5body: `Daten werden in die USA übermittelt. Grundlage sind ${SCC.de}. Alle genannten Anbieter (Google/Firebase, Vercel) haben sich verpflichtet, die DSGVO-Anforderungen für Drittlandübermittlungen einzuhalten.`,
+    s5body: `Daten werden in die USA übermittelt. Grundlage sind ${SCC.de}. Alle genannten Anbieter (Google/Firebase, Vercel, Resend) haben sich verpflichtet, die DSGVO-Anforderungen für Drittlandübermittlungen einzuhalten.`,
     s6heading: "6. Speicherdauer",
     s6body:
       "App-Daten (Schichten, Arbeitgeber, Einstellungen etc.) werden bis zur Löschung deines Kontos gespeichert. Du kannst dein Konto jederzeit löschen; dabei werden alle Daten unwiderruflich entfernt (inkl. iCal-Cache und SMTP-Zugangsdaten).",
@@ -128,9 +131,9 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s1heading: "1. Controller",
     s1intro: "The controller under the GDPR is:",
     s2heading: "2. What data is processed?",
-    s2loginHeading: "Login data (Google OAuth)",
+    s2loginHeading: "Login data",
     s2loginBody:
-      "Authentication is handled exclusively via Google (OAuth 2.0). The app receives the following data from Google: internal user ID (uid), email address, display name, and profile picture URL. There is no separate password registration.",
+      "You can sign in via external providers (Google, GitHub, and — if enabled — Apple, each via OAuth 2.0 / OpenID Connect) or by registering with your own email address and password. When signing in via an external provider, the app receives, depending on the provider, an internal user ID (uid), email address, display name, and possibly a profile picture URL. When registering with email and password, the email address and password are processed; the password is stored exclusively by Google Firebase Authentication and is not accessible to the app. To confirm the email address, a one-time verification email with a confirmation link is sent.",
     s2appHeading: "App data (time tracking)",
     s2appBody:
       "The following work-related data is stored in the app: employer data (name, colour, federal state, hourly rate, supplements, optional employee number), shift entries (date, times, breaks, optional note), tax settings (tax class, church tax), minus-hours entries (date, minutes, optional note), planned shifts, email templates (recipient, subject, body), and payroll reconciliations.",
@@ -155,11 +158,13 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s4vercelBody: `Hosting and all server-side API functions are operated via Vercel Inc. (USA). Third-country transfer on the basis of ${SCC.en}.`,
     s4smtpHeading: "Gmail SMTP (optional)",
     s4smtpBody: `If you configure email sending, emails are sent via Google's SMTP server (Google LLC, USA). This only applies if you actively set up this function. Third-country transfer on the basis of ${SCC.en}.`,
+    s4resendHeading: "Resend (sending the verification email)",
+    s4resendBody: `When you register with email and password, the service Resend (Resend, Inc., USA) is used to deliver the verification email. Only the recipient's email address and the confirmation link are transmitted to Resend. If this service is not configured, the verification email is sent directly via Google Firebase instead. Third-country transfer on the basis of ${SCC.en}.`,
     s4calendarHeading: "Google Calendar / University portals (optional)",
     s4calendarBody:
       "If you enter an iCal URL, the server retrieves calendar content from the respective provider (e.g. Google LLC or your university portal). This only applies if you actively set up this function. The iCal URL (including the authentication token) never leaves the browser and is only used server-side.",
     s5heading: "5. Third-country transfers",
-    s5body: `Data is transferred to the USA. The basis is ${SCC.en}. All named providers (Google/Firebase, Vercel) have committed to complying with GDPR requirements for third-country transfers.`,
+    s5body: `Data is transferred to the USA. The basis is ${SCC.en}. All named providers (Google/Firebase, Vercel, Resend) have committed to complying with GDPR requirements for third-country transfers.`,
     s6heading: "6. Retention periods",
     s6body:
       "App data (shifts, employers, settings, etc.) is stored until your account is deleted. You can delete your account at any time; all data will be irrevocably removed (including iCal cache and SMTP credentials).",
@@ -209,9 +214,9 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s1heading: "1. Ответственный контролёр",
     s1intro: "Ответственным в смысле GDPR/DSGVO является:",
     s2heading: "2. Какие данные обрабатываются?",
-    s2loginHeading: "Данные для входа (Google OAuth)",
+    s2loginHeading: "Данные для входа",
     s2loginBody:
-      "Аутентификация осуществляется исключительно через Google (OAuth 2.0). Приложение получает от Google следующие данные: внутренний идентификатор пользователя (uid), адрес электронной почты, отображаемое имя и URL фотографии профиля. Самостоятельная регистрация с паролем не предусмотрена.",
+      "Вход возможен через внешних провайдеров (Google, GitHub, а также — если включено — Apple, каждый через OAuth 2.0 / OpenID Connect) либо посредством собственной регистрации с адресом электронной почты и паролем. При входе через внешнего провайдера приложение получает, в зависимости от провайдера, внутренний идентификатор пользователя (uid), адрес электронной почты, отображаемое имя и, при наличии, URL фотографии профиля. При регистрации с адресом электронной почты и паролем обрабатываются адрес электронной почты и пароль; пароль хранится исключительно в Google Firebase Authentication и недоступен приложению. Для подтверждения адреса электронной почты однократно отправляется письмо для подтверждения со ссылкой.",
     s2appHeading: "Данные приложения (учёт рабочего времени)",
     s2appBody:
       "В приложении хранятся следующие рабочие данные: данные работодателя (название, цвет, федеральная земля, часовая ставка, надбавки, табельный номер (необязательно)), записи о сменах (дата, время, перерывы, заметка (необязательно)), налоговые настройки (налоговый класс, церковный налог), записи о минус-часах (дата, минуты, заметка (необязательно)), запланированные смены, шаблоны электронной почты (получатель, тема, текст) и сверки расчётов.",
@@ -237,11 +242,13 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s4vercelBody: `Хостинг и все серверные API-функции работают через Vercel Inc. (США). Передача данных в третью страну на основании ${SCC.ru}.`,
     s4smtpHeading: "Gmail SMTP (необязательно)",
     s4smtpBody: `Если вы настраиваете отправку электронной почты, письма отправляются через SMTP-сервер Google (Google LLC, США). Это применяется только в случае, если вы активно настроили данную функцию. Передача данных в третью страну на основании ${SCC.ru}.`,
+    s4resendHeading: "Resend (отправка письма для подтверждения)",
+    s4resendBody: `При регистрации с адресом электронной почты и паролем для доставки письма для подтверждения используется сервис Resend (Resend, Inc., США). При этом в Resend передаются только адрес электронной почты получателя и ссылка для подтверждения. Если этот сервис не настроен, письмо для подтверждения отправляется напрямую через Google Firebase. Передача данных в третью страну на основании ${SCC.ru}.`,
     s4calendarHeading: "Google Календарь / Порталы университетов (необязательно)",
     s4calendarBody:
       "Если вы вводите URL iCal, сервер получает содержимое календаря от соответствующего провайдера (например, Google LLC или вашего университетского портала). Это применяется только в случае, если вы активно настроили данную функцию. URL iCal (включая токен аутентификации) никогда не покидает браузер и используется исключительно на сервере.",
     s5heading: "5. Передача данных в третьи страны",
-    s5body: `Данные передаются в США. Основанием является ${SCC.ru}. Все указанные провайдеры (Google/Firebase, Vercel) взяли на себя обязательство соблюдать требования GDPR для передачи данных в третьи страны.`,
+    s5body: `Данные передаются в США. Основанием является ${SCC.ru}. Все указанные провайдеры (Google/Firebase, Vercel, Resend) взяли на себя обязательство соблюдать требования GDPR для передачи данных в третьи страны.`,
     s6heading: "6. Сроки хранения данных",
     s6body:
       "Данные приложения (смены, работодатели, настройки и т.д.) хранятся до удаления вашего аккаунта. Вы можете удалить аккаунт в любое время; все данные будут безвозвратно удалены (включая кэш iCal и учётные данные SMTP).",
@@ -291,9 +298,9 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s1heading: "1. Responsable du traitement",
     s1intro: "Le responsable du traitement au sens du RGPD est :",
     s2heading: "2. Quelles données sont traitées ?",
-    s2loginHeading: "Données de connexion (Google OAuth)",
+    s2loginHeading: "Données de connexion",
     s2loginBody:
-      "L'authentification s'effectue exclusivement via Google (OAuth 2.0). L'application reçoit de Google les données suivantes : identifiant utilisateur interne (uid), adresse e-mail, nom d'affichage et URL de la photo de profil. Il n'y a pas d'inscription par mot de passe propre à l'application.",
+      "La connexion est possible via des fournisseurs externes (Google, GitHub ainsi que — si activé — Apple, chacun via OAuth 2.0 / OpenID Connect) ou par une inscription propre avec une adresse e-mail et un mot de passe. Lors de la connexion via un fournisseur externe, l'application reçoit, selon le fournisseur, un identifiant utilisateur interne (uid), l'adresse e-mail, le nom d'affichage et, le cas échéant, l'URL de la photo de profil. Lors de l'inscription avec e-mail et mot de passe, l'adresse e-mail et le mot de passe sont traités ; le mot de passe est stocké exclusivement par Google Firebase Authentication et n'est pas accessible à l'application. Pour confirmer l'adresse e-mail, un e-mail de vérification contenant un lien de confirmation est envoyé une seule fois.",
     s2appHeading: "Données de l'application (suivi du temps)",
     s2appBody:
       "Les données professionnelles suivantes sont stockées dans l'application : données sur l'employeur (nom, couleur, Land allemand, taux horaire, suppléments, numéro de matricule optionnel), entrées de service (date, horaires, pauses, note optionnelle), paramètres fiscaux (classe fiscale, impôt ecclésiastique), entrées d'heures négatives (date, minutes, note optionnelle), services planifiés, modèles d'e-mail (destinataire, sujet, corps) et réconciliations de paie.",
@@ -319,11 +326,13 @@ const CONTENT: Record<Locale, DatenschutzStrings> = {
     s4vercelBody: `L'hébergement et toutes les fonctions API côté serveur sont exploités via Vercel Inc. (États-Unis). Transfert vers un pays tiers sur la base de ${SCC.fr}.`,
     s4smtpHeading: "Gmail SMTP (optionnel)",
     s4smtpBody: `Si vous configurez l'envoi d'e-mails, les e-mails sont envoyés via le serveur SMTP de Google (Google LLC, États-Unis). Cela ne s'applique que si vous activez cette fonction. Transfert vers un pays tiers sur la base de ${SCC.fr}.`,
+    s4resendHeading: "Resend (envoi de l'e-mail de vérification)",
+    s4resendBody: `Lors de l'inscription avec e-mail et mot de passe, le service Resend (Resend, Inc., États-Unis) est utilisé pour délivrer l'e-mail de vérification. Seules l'adresse e-mail du destinataire et le lien de confirmation sont transmis à Resend. Si ce service n'est pas configuré, l'e-mail de vérification est envoyé directement via Google Firebase. Transfert vers un pays tiers sur la base de ${SCC.fr}.`,
     s4calendarHeading: "Google Agenda / Portails universitaires (optionnel)",
     s4calendarBody:
       "Si vous saisissez une URL iCal, le serveur récupère le contenu du calendrier auprès du fournisseur concerné (p. ex. Google LLC ou votre portail universitaire). Cela ne s'applique que si vous activez cette fonction. L'URL iCal (y compris le jeton d'authentification) ne quitte jamais le navigateur et n'est utilisée que côté serveur.",
     s5heading: "5. Transferts vers des pays tiers",
-    s5body: `Les données sont transférées aux États-Unis. La base est ${SCC.fr}. Tous les fournisseurs mentionnés (Google/Firebase, Vercel) se sont engagés à respecter les exigences du RGPD pour les transferts vers des pays tiers.`,
+    s5body: `Les données sont transférées aux États-Unis. La base est ${SCC.fr}. Tous les fournisseurs mentionnés (Google/Firebase, Vercel, Resend) se sont engagés à respecter les exigences du RGPD pour les transferts vers des pays tiers.`,
     s6heading: "6. Durées de conservation",
     s6body:
       "Les données de l'application (services, employeurs, paramètres, etc.) sont conservées jusqu'à la suppression de votre compte. Vous pouvez supprimer votre compte à tout moment ; toutes les données seront irrévocablement effacées (y compris le cache iCal et les identifiants SMTP).",

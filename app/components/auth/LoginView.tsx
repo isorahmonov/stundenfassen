@@ -297,9 +297,9 @@ export default function LoginView() {
 }
 
 function LangSelector() {
-  const { locale, setLocale } = useLang()
+  const { locale, setLocale, t } = useLang()
   return (
-    <div className={s.langWrap} role="group" aria-label="Language">
+    <div className={s.langWrap} role="group" aria-label={t("SEKTION_SPRACHE")}>
       {(LOCALES as readonly Locale[]).map((l) => (
         <button
           key={l}
