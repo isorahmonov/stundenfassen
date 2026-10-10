@@ -297,8 +297,10 @@ export default function MonatsUebersicht() {
             <div className="flex items-center justify-between mt-1">
               <p className="text-xs text-stone-400">
                 {aktivSumme.summe.anzahlSchichten === 0
-                  ? "Keine Schichten in diesem Monat"
-                  : `${aktivSumme.summe.anzahlSchichten} Schicht${aktivSumme.summe.anzahlSchichten === 1 ? "" : "en"}`}
+                  ? t("MONAT_KEINE_SCHICHTEN")
+                  : aktivSumme.summe.anzahlSchichten === 1
+                    ? t("MONAT_SCHICHTEN_EINZEL")
+                    : t("MONAT_SCHICHTEN_N").replace("{{n}}", aktivSumme.summe.anzahlSchichten.toString())}
               </p>
               <PDFButton
                 employer={aktivSumme.employer}

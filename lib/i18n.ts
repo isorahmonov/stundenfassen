@@ -319,6 +319,38 @@ export interface UiStrings {
   UPD_2_0_ITEM7: string
   UPD_2_0_ITEM8: string
   UPD_2_0_ITEM9: string
+  // SchnellEingabe & SchichtTabelle — shared labels
+  SE_TAB_ARBEITSZEIT: string
+  SE_TAB_MINUS: string
+  SE_NEUE_SCHICHT: string
+  SE_PAUSE_VON: string
+  SE_PAUSE_BIS: string
+  SE_LETZTE_KOPIEREN: string
+  SE_SCHICHT_SPEICHERN: string
+  SE_FEHLER_PAUSE: string
+  SE_FEHLER_SCHICHT: string
+  SE_MINUS_EINTRAGEN: string
+  SE_MINUS_HINWEIS: string
+  SE_PH_STUNDEN: string
+  SE_GRUND_NOTIZ: string
+  SE_PH_NOTIZ: string
+  SE_MINUS_SPEICHERN: string
+  SE_FEHLER_STUNDEN: string
+  SE_FEHLER_EINTRAG: string
+  // SchichtTabelle column headers
+  SPAL_WOCHENTAG: string
+  SPAL_STD: string
+  SPAL_BRUTTO: string
+  // SchichtTabelle aria-labels
+  SCHICHT_BEARBEITEN_ARIA: string
+  SCHICHT_LOESCHEN_ARIA: string
+  // SchichtKarte
+  PAUSE_ZU_KURZ: string
+  PAUSE_LABEL: string
+  // MonatsUebersicht
+  MONAT_KEINE_SCHICHTEN: string
+  MONAT_SCHICHTEN_EINZEL: string
+  MONAT_SCHICHTEN_N: string
 }
 
 export const translations: Record<Locale, UiStrings> = {
@@ -611,6 +643,33 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_0_ITEM7: "Lohnsteuer pauschal pro Arbeitgeber (bei kurzfristiger Beschäftigung)",
     UPD_2_0_ITEM8: "Kalender lädt schneller und aktualisiert sich beim Zurückkehren in die App",
     UPD_2_0_ITEM9: "Abmelden im Profil-Tab",
+    SE_TAB_ARBEITSZEIT: "Arbeitszeit",
+    SE_TAB_MINUS: "Minusstunden",
+    SE_NEUE_SCHICHT: "Neue Schicht",
+    SE_PAUSE_VON: "Pause von",
+    SE_PAUSE_BIS: "Pause bis",
+    SE_LETZTE_KOPIEREN: "↩ Letzte kopieren",
+    SE_SCHICHT_SPEICHERN: "Schicht speichern",
+    SE_FEHLER_PAUSE: "Pause von und Pause bis müssen beide angegeben oder beide leer sein.",
+    SE_FEHLER_SCHICHT: "Schicht konnte nicht gespeichert werden.",
+    SE_MINUS_EINTRAGEN: "Minusstunden eintragen",
+    SE_MINUS_HINWEIS: "Erscheinen im Verfügbarkeits-PDF oben rechts.",
+    SE_PH_STUNDEN: "z.B. 2 oder 1.5",
+    SE_GRUND_NOTIZ: "Grund / Notiz",
+    SE_PH_NOTIZ: "z.B. Krankmeldung, Korrektur",
+    SE_MINUS_SPEICHERN: "Minusstunden speichern",
+    SE_FEHLER_STUNDEN: "Bitte eine positive Stundenanzahl eingeben.",
+    SE_FEHLER_EINTRAG: "Eintrag konnte nicht gespeichert werden.",
+    SPAL_WOCHENTAG: "Wochentag",
+    SPAL_STD: "Std",
+    SPAL_BRUTTO: "Brutto",
+    SCHICHT_BEARBEITEN_ARIA: "Schicht bearbeiten",
+    SCHICHT_LOESCHEN_ARIA: "Schicht löschen",
+    PAUSE_ZU_KURZ: "Pause zu kurz",
+    PAUSE_LABEL: "Pause",
+    MONAT_KEINE_SCHICHTEN: "Keine Schichten in diesem Monat",
+    MONAT_SCHICHTEN_EINZEL: "1 Schicht",
+    MONAT_SCHICHTEN_N: "{{n}} Schichten",
   },
   en: {
     LAEDT: "Loading…",
@@ -901,6 +960,33 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_0_ITEM7: "Flat-rate wage tax per employer (for short-term employment)",
     UPD_2_0_ITEM8: "Calendar loads faster and updates when you return to the app",
     UPD_2_0_ITEM9: "Sign out in the Profile tab",
+    SE_TAB_ARBEITSZEIT: "Working hours",
+    SE_TAB_MINUS: "Negative hours",
+    SE_NEUE_SCHICHT: "New shift",
+    SE_PAUSE_VON: "Break from",
+    SE_PAUSE_BIS: "Break until",
+    SE_LETZTE_KOPIEREN: "↩ Copy last",
+    SE_SCHICHT_SPEICHERN: "Save shift",
+    SE_FEHLER_PAUSE: "Break from and Break until must both be given or both empty.",
+    SE_FEHLER_SCHICHT: "Shift could not be saved.",
+    SE_MINUS_EINTRAGEN: "Enter negative hours",
+    SE_MINUS_HINWEIS: "Appear in the availability PDF top right.",
+    SE_PH_STUNDEN: "e.g. 2 or 1.5",
+    SE_GRUND_NOTIZ: "Reason / Note",
+    SE_PH_NOTIZ: "e.g. sick note, correction",
+    SE_MINUS_SPEICHERN: "Save negative hours",
+    SE_FEHLER_STUNDEN: "Please enter a positive number of hours.",
+    SE_FEHLER_EINTRAG: "Entry could not be saved.",
+    SPAL_WOCHENTAG: "Weekday",
+    SPAL_STD: "Hrs",
+    SPAL_BRUTTO: "Gross",
+    SCHICHT_BEARBEITEN_ARIA: "Edit shift",
+    SCHICHT_LOESCHEN_ARIA: "Delete shift",
+    PAUSE_ZU_KURZ: "Break too short",
+    PAUSE_LABEL: "Break",
+    MONAT_KEINE_SCHICHTEN: "No shifts this month",
+    MONAT_SCHICHTEN_EINZEL: "1 shift",
+    MONAT_SCHICHTEN_N: "{{n}} shifts",
   },
   ru: {
     LAEDT: "Загрузка…",
@@ -1191,6 +1277,33 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_0_ITEM7: "Паушальный подоходный налог для каждого работодателя (при краткосрочной занятости)",
     UPD_2_0_ITEM8: "Календарь загружается быстрее и обновляется при возвращении в приложение",
     UPD_2_0_ITEM9: "Выход в разделе Профиль",
+    SE_TAB_ARBEITSZEIT: "Рабочее время",
+    SE_TAB_MINUS: "Минус-часы",
+    SE_NEUE_SCHICHT: "Новая смена",
+    SE_PAUSE_VON: "Перерыв с",
+    SE_PAUSE_BIS: "Перерыв до",
+    SE_LETZTE_KOPIEREN: "↩ Копировать последнюю",
+    SE_SCHICHT_SPEICHERN: "Сохранить смену",
+    SE_FEHLER_PAUSE: "«Перерыв с» и «Перерыв до» должны быть указаны оба или оба пусты.",
+    SE_FEHLER_SCHICHT: "Не удалось сохранить смену.",
+    SE_MINUS_EINTRAGEN: "Ввести минус-часы",
+    SE_MINUS_HINWEIS: "Отображается в PDF доступности вверху справа.",
+    SE_PH_STUNDEN: "напр. 2 или 1.5",
+    SE_GRUND_NOTIZ: "Причина / Заметка",
+    SE_PH_NOTIZ: "напр. больничный, корректировка",
+    SE_MINUS_SPEICHERN: "Сохранить минус-часы",
+    SE_FEHLER_STUNDEN: "Пожалуйста, введите положительное количество часов.",
+    SE_FEHLER_EINTRAG: "Не удалось сохранить запись.",
+    SPAL_WOCHENTAG: "День недели",
+    SPAL_STD: "Ч",
+    SPAL_BRUTTO: "Брутто",
+    SCHICHT_BEARBEITEN_ARIA: "Редактировать смену",
+    SCHICHT_LOESCHEN_ARIA: "Удалить смену",
+    PAUSE_ZU_KURZ: "Перерыв слишком короткий",
+    PAUSE_LABEL: "Перерыв",
+    MONAT_KEINE_SCHICHTEN: "В этом месяце нет смен",
+    MONAT_SCHICHTEN_EINZEL: "1 смена",
+    MONAT_SCHICHTEN_N: "{{n}} смен",
   },
   fr: {
     LAEDT: "Chargement…",
@@ -1481,6 +1594,33 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_0_ITEM7: "Impôt sur les salaires forfaitaire par employeur (pour emploi de courte durée)",
     UPD_2_0_ITEM8: "Le calendrier se charge plus vite et se met à jour au retour dans l'app",
     UPD_2_0_ITEM9: "Se déconnecter dans l'onglet Profil",
+    SE_TAB_ARBEITSZEIT: "Heures de travail",
+    SE_TAB_MINUS: "Heures négatives",
+    SE_NEUE_SCHICHT: "Nouveau quart",
+    SE_PAUSE_VON: "Pause de",
+    SE_PAUSE_BIS: "Pause jusqu'à",
+    SE_LETZTE_KOPIEREN: "↩ Copier le dernier",
+    SE_SCHICHT_SPEICHERN: "Enregistrer le quart",
+    SE_FEHLER_PAUSE: "Pause de et Pause jusqu'à doivent être tous deux renseignés ou tous deux vides.",
+    SE_FEHLER_SCHICHT: "Impossible d'enregistrer le quart.",
+    SE_MINUS_EINTRAGEN: "Saisir les heures négatives",
+    SE_MINUS_HINWEIS: "Apparaît dans le PDF de disponibilité en haut à droite.",
+    SE_PH_STUNDEN: "p. ex. 2 ou 1.5",
+    SE_GRUND_NOTIZ: "Raison / Note",
+    SE_PH_NOTIZ: "p. ex. arrêt maladie, correction",
+    SE_MINUS_SPEICHERN: "Enregistrer les heures négatives",
+    SE_FEHLER_STUNDEN: "Veuillez saisir un nombre d'heures positif.",
+    SE_FEHLER_EINTRAG: "Impossible d'enregistrer la saisie.",
+    SPAL_WOCHENTAG: "Jour",
+    SPAL_STD: "H",
+    SPAL_BRUTTO: "Brut",
+    SCHICHT_BEARBEITEN_ARIA: "Modifier le quart",
+    SCHICHT_LOESCHEN_ARIA: "Supprimer le quart",
+    PAUSE_ZU_KURZ: "Pause trop courte",
+    PAUSE_LABEL: "Pause",
+    MONAT_KEINE_SCHICHTEN: "Aucun quart ce mois-ci",
+    MONAT_SCHICHTEN_EINZEL: "1 quart",
+    MONAT_SCHICHTEN_N: "{{n}} quarts",
   },
 }
 

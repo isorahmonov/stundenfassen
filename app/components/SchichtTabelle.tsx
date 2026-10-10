@@ -13,11 +13,12 @@ import {
 import { pruefePause } from "@/lib/calc/pause"
 import {
   formatDatum,
-  formatEuroCent,
-  formatStundenDezimal,
-  formatWochentag,
+  formatEuroCentLokal,
+  formatStundenDezimalLokal,
+  formatWochentagLokal,
 } from "@/lib/calc/format"
 import { shifts as shiftsRepo } from "@/lib/storage"
+import { useLang, useT } from "@/app/components/LangProvider"
 
 interface ShiftZeile {
   shift: Shift
@@ -62,9 +63,6 @@ function zeilenBorder(z: ShiftZeile): string {
   return "border-stone-100 dark:border-white/5"
 }
 
-const SPALTEN = ["Datum", "Wochentag", "Start", "Pause von", "Pause bis", "Ende", "Std", "Brutto", ""]
-const RECHTS = new Set(["Std", "Brutto"])
-
 export function SchichtTabelle({
   schichten,
   employer,
@@ -76,6 +74,8 @@ export function SchichtTabelle({
   bundesland: Bundesland
   onGeloescht?: () => void
 }) {
+  const t = useT()
+  const { locale } = useLang()
   const [bearbeitenId, setBearbeitenId] = useState<string | null>(null)
 
   if (schichten.length === 0) return null
@@ -83,6 +83,19 @@ export function SchichtTabelle({
   const zeilen = [...schichten]
     .sort((a, b) => a.datum.localeCompare(b.datum))
     .map((s) => berechneZeile(s, employer, bundesland))
+
+  const spalten = [
+    t("DATUM_LABEL"),
+    t("SPAL_WOCHENTAG"),
+    t("SCHICHTEN_FORM_START"),
+    t("SE_PAUSE_VON"),
+    t("SE_PAUSE_BIS"),
+    t("SCHICHTEN_FORM_ENDE"),
+    t("SPAL_STD"),
+    t("SPAL_BRUTTO"),
+    "",
+  ]
+  const rechtsSet = new Set([t("SPAL_STD"), t("SPAL_BRUTTO")])
 
   async function loeschen(id: string) {
     await shiftsRepo.remove(id)
@@ -112,6 +125,7 @@ export function SchichtTabelle({
             <SchichtKarte
               key={z.shift.id}
               zeile={z}
+              locale={locale}
               onLoeschen={() => loeschen(z.shift.id)}
               onBearbeiten={() => setBearbeitenId(z.shift.id)}
             />
@@ -124,11 +138,11 @@ export function SchichtTabelle({
         <table className="w-full min-w-[580px]">
           <thead>
             <tr className="border-b border-stone-200 dark:border-white/10 sf-card">
-              {SPALTEN.map((h, i) => (
+              {spalten.map((h, i) => (
                 <th
                   key={i}
                   className={`py-2.5 px-3 text-xs font-medium text-stone-500 dark:text-neutral-400 whitespace-nowrap ${
-                    RECHTS.has(h) ? "text-right" : "text-left"
+                    rechtsSet.has(h) ? "text-right" : "text-left"
                   }`}
                 >
                   {h}
@@ -141,6 +155,7 @@ export function SchichtTabelle({
               <Fragment key={z.shift.id}>
                 <TabellenZeile
                   zeile={z}
+                  locale={locale}
                   bearbeitet={bearbeitenId === z.shift.id}
                   onLoeschen={() => loeschen(z.shift.id)}
                   onBearbeiten={() =>
@@ -149,7 +164,7 @@ export function SchichtTabelle({
                 />
                 {bearbeitenId === z.shift.id && (
                   <tr key={`edit-${z.shift.id}`} className="sf-card border-b border-stone-100 dark:border-white/5">
-                    <td colSpan={SPALTEN.length} className="px-4 py-3">
+                    <td colSpan={spalten.length} className="px-4 py-3">
                       <SchichtEditForm
                         shift={z.shift}
                         onSpeichern={(d) => speichern(z.shift.id, d)}
@@ -170,22 +185,25 @@ export function SchichtTabelle({
 
 function TabellenZeile({
   zeile: z,
+  locale,
   bearbeitet,
   onLoeschen,
   onBearbeiten,
 }: {
   zeile: ShiftZeile
+  locale: string
   bearbeitet: boolean
   onLoeschen: () => void
   onBearbeiten: () => void
 }) {
+  const t = useT()
   return (
     <tr className={`group border-b ${zeilenBorder(z)} ${zeilenBg(z)} ${bearbeitet ? "ring-1 ring-inset ring-stone-300 dark:ring-neutral-600" : ""}`}>
       <td className="py-2.5 px-3 text-sm text-stone-900 dark:text-neutral-100 nums whitespace-nowrap">
         {formatDatum(z.shift.datum)}
       </td>
       <td className="py-2.5 px-3 text-sm text-stone-700 dark:text-neutral-300 whitespace-nowrap">
-        {formatWochentag(z.datum)}
+        {formatWochentagLokal(z.datum, locale)}
         {z.feiertag && (
           <span className="ml-1.5 text-xs text-red-600 dark:text-red-400 font-medium">
             ({z.feiertag})
@@ -197,23 +215,23 @@ function TabellenZeile({
       <td className="py-2.5 px-3 text-sm text-stone-500 dark:text-neutral-400 nums">{z.shift.pauseBis ?? "—"}</td>
       <td className="py-2.5 px-3 text-sm text-stone-700 dark:text-neutral-300 nums">{z.shift.ende}</td>
       <td className="py-2.5 px-3 text-sm text-right text-stone-900 dark:text-neutral-100 font-medium nums whitespace-nowrap">
-        {formatStundenDezimal(z.nettoMinuten)}
+        {formatStundenDezimalLokal(z.nettoMinuten, locale)}
       </td>
       <td className="py-2.5 px-3 text-sm text-right text-stone-700 dark:text-neutral-300 nums whitespace-nowrap">
-        {formatEuroCent(z.bruttoCent)}
+        {formatEuroCentLokal(z.bruttoCent, locale)}
       </td>
       <td className="py-1 pr-2 text-right w-16">
         <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-100">
           <button
             onClick={onBearbeiten}
-            aria-label="Schicht bearbeiten"
+            aria-label={t("SCHICHT_BEARBEITEN_ARIA")}
             className="rounded-full p-1 text-stone-400 hover:text-stone-700 dark:text-neutral-600 dark:hover:text-neutral-300 outline-none focus-visible:ring-1 focus-visible:ring-stone-400"
           >
             ✎
           </button>
           <button
             onClick={onLoeschen}
-            aria-label="Schicht löschen"
+            aria-label={t("SCHICHT_LOESCHEN_ARIA")}
             className="rounded-full p-1 text-stone-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400 outline-none focus-visible:ring-1 focus-visible:ring-red-400"
           >
             ×
@@ -226,13 +244,16 @@ function TabellenZeile({
 
 function SchichtKarte({
   zeile: z,
+  locale,
   onLoeschen,
   onBearbeiten,
 }: {
   zeile: ShiftZeile
+  locale: string
   onLoeschen: () => void
   onBearbeiten: () => void
 }) {
+  const t = useT()
   const bg = zeilenBg(z)
   return (
     <div
@@ -240,7 +261,7 @@ function SchichtKarte({
     >
       <div className="flex items-start justify-between mb-1">
         <span className="font-medium text-stone-900 dark:text-neutral-100">
-          {formatWochentag(z.datum, true)}, {formatDatum(z.datum)}
+          {formatWochentagLokal(z.datum, locale, true)}, {formatDatum(z.datum)}
         </span>
         <div className="flex items-center gap-0.5 -mt-0.5 shrink-0">
           {z.feiertag && (
@@ -248,14 +269,14 @@ function SchichtKarte({
           )}
           <button
             onClick={onBearbeiten}
-            aria-label="Schicht bearbeiten"
+            aria-label={t("SCHICHT_BEARBEITEN_ARIA")}
             className="rounded-full p-1 text-stone-400 hover:text-stone-700 dark:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-100 outline-none focus-visible:ring-1 focus-visible:ring-stone-400"
           >
             ✎
           </button>
           <button
             onClick={onLoeschen}
-            aria-label="Schicht löschen"
+            aria-label={t("SCHICHT_LOESCHEN_ARIA")}
             className="rounded-full p-1 text-stone-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400 transition-colors duration-100 outline-none focus-visible:ring-1 focus-visible:ring-red-400"
           >
             ×
@@ -266,21 +287,21 @@ function SchichtKarte({
         {z.shift.start}–{z.shift.ende}
         {z.shift.pauseVon && z.shift.pauseBis && (
           <span className="text-stone-400 dark:text-neutral-500">
-            {" "}· Pause {z.shift.pauseVon}–{z.shift.pauseBis}
+            {" "}· {t("PAUSE_LABEL")} {z.shift.pauseVon}–{z.shift.pauseBis}
           </span>
         )}
       </p>
       <div className="flex items-center gap-2 text-sm">
         <span className="font-semibold nums text-stone-900 dark:text-neutral-100">
-          {formatStundenDezimal(z.nettoMinuten)}
+          {formatStundenDezimalLokal(z.nettoMinuten, locale)}
         </span>
         <span className="text-stone-300 dark:text-neutral-600">·</span>
         <span className="nums text-stone-700 dark:text-neutral-300">
-          {formatEuroCent(z.bruttoCent)}
+          {formatEuroCentLokal(z.bruttoCent, locale)}
         </span>
         {z.zuKurzePause && (
           <span className="ml-auto text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
-            Pause zu kurz
+            {t("PAUSE_ZU_KURZ")}
           </span>
         )}
       </div>
@@ -299,6 +320,7 @@ function SchichtEditForm({
   onAbbrechen: () => void
   kompakt?: boolean
 }) {
+  const t = useT()
   const [datum, setDatum] = useState(shift.datum)
   const [start, setStart] = useState(shift.start)
   const [ende, setEnde] = useState(shift.ende)
@@ -325,23 +347,23 @@ function SchichtEditForm({
     >
       <div className={`grid gap-2 mb-3 ${kompakt ? "grid-cols-6" : "grid-cols-2"}`}>
         <div className={kompakt ? "col-span-2" : ""}>
-          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">Datum</p>
+          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">{t("DATUM_LABEL")}</p>
           <input type="date" required value={datum} onChange={(e) => setDatum(e.target.value)} className={inputKlasse} />
         </div>
         <div>
-          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">Start</p>
+          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">{t("SCHICHTEN_FORM_START")}</p>
           <input type="time" required value={start} onChange={(e) => setStart(e.target.value)} className={inputKlasse} />
         </div>
         <div>
-          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">Ende</p>
+          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">{t("SCHICHTEN_FORM_ENDE")}</p>
           <input type="time" required value={ende} onChange={(e) => setEnde(e.target.value)} className={inputKlasse} />
         </div>
         <div>
-          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">Pause von</p>
+          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">{t("SE_PAUSE_VON")}</p>
           <input type="time" value={pauseVon} onChange={(e) => setPauseVon(e.target.value)} className={inputKlasse} />
         </div>
         <div>
-          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">Pause bis</p>
+          <p className="text-xs font-medium text-stone-500 dark:text-neutral-400 mb-1">{t("SE_PAUSE_BIS")}</p>
           <input type="time" value={pauseBis} onChange={(e) => setPauseBis(e.target.value)} className={inputKlasse} />
         </div>
       </div>
@@ -351,13 +373,13 @@ function SchichtEditForm({
           onClick={onAbbrechen}
           className="rounded-xl border border-stone-200 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-neutral-400 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
         >
-          Abbrechen
+          {t("ABBRECHEN")}
         </button>
         <button
           type="submit"
           className="flex-1 rounded-xl bg-stone-800 dark:bg-neutral-200 text-white dark:text-neutral-900 text-sm font-semibold py-2 active:scale-[.99] transition-all outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
         >
-          Speichern
+          {t("SPEICHERN")}
         </button>
       </div>
     </form>
