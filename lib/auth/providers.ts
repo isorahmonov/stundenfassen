@@ -1,4 +1,40 @@
+import {
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  OAuthProvider,
+  type AuthProvider,
+} from "firebase/auth"
 import type { UiStrings } from "@/lib/i18n"
+
+/**
+ * Returns a fresh provider instance for re-authentication, keyed by the
+ * `providerId` on `user.providerData`. Password/unknown accounts return null
+ * (they re-auth with an email+password credential instead of a popup).
+ */
+export function providerFor(providerId: string | undefined): AuthProvider | null {
+  switch (providerId) {
+    case "google.com":
+      return new GoogleAuthProvider()
+    case "github.com":
+      return new GithubAuthProvider()
+    case "apple.com":
+      return new OAuthProvider("apple.com")
+    default:
+      return null
+  }
+}
+
+/**
+ * Whether the user must verify their email before entering the app: only
+ * password accounts that aren't verified yet. Federated sign-ins (Google,
+ * GitHub, Apple) are treated as verified and pass through.
+ */
+export function braucheVerifizierung(user: {
+  emailVerified: boolean
+  providerData: { providerId: string }[]
+}): boolean {
+  return !user.emailVerified && user.providerData.some((p) => p.providerId === "password")
+}
 
 /**
  * Maps a Firebase auth error code to a friendly, localized UiStrings key.

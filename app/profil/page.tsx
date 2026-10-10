@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { signOut, reauthenticateWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "@/lib/firebase/client"
+import { signOut, reauthenticateWithPopup, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
+import { auth } from "@/lib/firebase/client"
+import { providerFor, mapAuthError } from "@/lib/auth/providers"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
 import type { Employer, MinusEintrag, EmailVorlage, Settings, Steuerklasse } from "@/lib/types"
@@ -206,21 +207,28 @@ export default function ProfilSeite() {
     // AuthGate erkennt den Logout via onAuthStateChanged und zeigt den Login-Screen
   }
 
-  async function kontoLoeschen() {
+  async function kontoLoeschen(passwort?: string) {
     if (!auth.currentUser) throw new Error("Nicht angemeldet")
-    // Frische Google-Bestätigung via Popup (Pflicht vor Konto-Löschung).
+    // Frische Bestätigung (Pflicht vor Konto-Löschung): Popup für föderierte
+    // Anbieter, E-Mail+Passwort-Credential für Passwort-Konten.
     // iOS-Homescreen-PWA blockiert Popups (auth/popup-blocked) — in dem Fall
     // klaren Hinweis geben. Muss im iOS-PWA-Modus getestet werden.
+    const provider = providerFor(auth.currentUser.providerData[0]?.providerId)
     try {
-      await reauthenticateWithPopup(auth.currentUser, googleProvider)
+      if (provider) {
+        await reauthenticateWithPopup(auth.currentUser, provider)
+      } else {
+        await reauthenticateWithCredential(
+          auth.currentUser,
+          EmailAuthProvider.credential(auth.currentUser.email ?? "", passwort ?? ""),
+        )
+      }
     } catch (e: unknown) {
-      const err = e as { code?: string }
-      if (
-        err.code === "auth/popup-blocked" ||
-        err.code === "auth/cancelled-popup-request"
-      ) {
+      const code = (e as { code?: string }).code ?? ""
+      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
         throw new Error(t("AUTH_REAUTH_POPUP_BLOCKIERT"))
       }
+      if (!provider) throw new Error(t(mapAuthError(code)))
       throw e
     }
     const token = await auth.currentUser.getIdToken(true)
@@ -879,6 +887,7 @@ export default function ProfilSeite() {
       {loeschenOffen && (
         <KontoLoeschenDialog
           email={nutzerEmail}
+          passwortKonto={auth.currentUser?.providerData[0]?.providerId === "password"}
           onLoeschen={kontoLoeschen}
           onAbbrechen={() => setLoeschenOffen(false)}
         />
@@ -1080,26 +1089,31 @@ function AbmeldenDialog({
 
 function KontoLoeschenDialog({
   email,
+  passwortKonto,
   onLoeschen,
   onAbbrechen,
 }: {
   email: string
-  onLoeschen: () => Promise<void>
+  passwortKonto: boolean
+  onLoeschen: (passwort?: string) => Promise<void>
   onAbbrechen: () => void
 }) {
   const t = useT()
   const [eingabe, setEingabe] = useState("")
+  const [passwort, setPasswort] = useState("")
   const [fehler, setFehler] = useState("")
   const [laden, setLaden] = useState(false)
 
-  const bestaetigt = eingabe === email || eingabe === t("KONTO_LOESCHEN_WORT")
+  const bestaetigt =
+    (eingabe === email || eingabe === t("KONTO_LOESCHEN_WORT")) &&
+    (!passwortKonto || passwort.length > 0)
 
   async function handleBestaetigen() {
     if (!bestaetigt) return
     setLaden(true)
     setFehler("")
     try {
-      await onLoeschen()
+      await onLoeschen(passwortKonto ? passwort : undefined)
     } catch (e) {
       setFehler(e instanceof Error ? e.message : String(e))
       setLaden(false)
@@ -1124,9 +1138,11 @@ function KontoLoeschenDialog({
           </ul>
         </div>
 
-        <p className="text-sm sf-text-2 leading-relaxed">
-          {t("KONTO_LOESCHEN_POPUP")}
-        </p>
+        {!passwortKonto && (
+          <p className="text-sm sf-text-2 leading-relaxed">
+            {t("KONTO_LOESCHEN_POPUP")}
+          </p>
+        )}
 
         <div>
           <label className="text-xs sf-text-2 mb-1.5 block">
@@ -1142,6 +1158,22 @@ function KontoLoeschenDialog({
             autoComplete="off"
           />
         </div>
+
+        {passwortKonto && (
+          <div>
+            <label className="text-xs sf-text-2 mb-1.5 block">
+              {t("PASSWORT_LABEL")}
+            </label>
+            <input
+              type="password"
+              value={passwort}
+              onChange={(e) => setPasswort(e.target.value)}
+              disabled={laden}
+              className="sf-input w-full rounded-xl px-3 py-2.5 text-sm disabled:opacity-50"
+              autoComplete="current-password"
+            />
+          </div>
+        )}
 
         {fehler && (
           <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">

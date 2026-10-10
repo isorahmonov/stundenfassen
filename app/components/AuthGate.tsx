@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useReducer } from "react"
 import { usePathname } from "next/navigation"
 import type { User } from "firebase/auth"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/lib/firebase/client"
+import { braucheVerifizierung } from "@/lib/auth/providers"
 import { TabBar } from "./TabBar"
 import { ShiftslotLoader } from "./ShiftslotLoader"
 import LoginView from "./auth/LoginView"
+import VerifyEmailScreen from "./auth/VerifyEmailScreen"
 import LandingPage from "./landing/LandingPage"
 import { useIsDesktop } from "./useIsDesktop"
 import { useT } from "./LangProvider"
@@ -45,6 +47,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [authFehler, setAuthFehler] = useState(false)
   const pathname = usePathname()
   const desktop = useIsDesktop()
+  // Bumped by VerifyEmailScreen once the (mutated) user becomes verified, so
+  // braucheVerifizierung re-evaluates without waiting for onAuthStateChanged.
+  const [, erneutPruefen] = useReducer((x: number) => x + 1, 0)
   const istOeffentlich = OEFFENTLICHE_PFADE.includes(pathname)
   const istStartseite = pathname === "/"
 
@@ -117,6 +122,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user && istOeffentlich) {
     return <div className="min-h-screen sf-page">{children}</div>
+  }
+
+  if (user && braucheVerifizierung(user)) {
+    return <VerifyEmailScreen user={user} onVerified={erneutPruefen} />
   }
 
   return (

@@ -36,6 +36,14 @@ export interface UiStrings {
   AUTH_FEHLER_NETZWERK: string
   AUTH_FEHLER_ABGEBROCHEN: string
   AUTH_FEHLER_ALLGEMEIN: string
+  VERIFY_TITEL: string
+  VERIFY_TEXT: string
+  VERIFY_ICH_HABE_BESTAETIGT: string
+  VERIFY_NOCH_NICHT: string
+  VERIFY_ERNEUT_SENDEN: string
+  VERIFY_ERNEUT_GESENDET: string
+  VERIFY_COOLDOWN: string
+  VERIFY_ANDERES_KONTO: string
   ANMELDEN_LAEUFT: string
   MIT_GOOGLE_ANMELDEN: string
   ANMELDUNG_ZUSTIMMUNG_PRAEFIX: string
@@ -462,6 +470,14 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_NETZWERK: "Keine Netzwerkverbindung. Bitte überprüfe deine Internetverbindung.",
     AUTH_FEHLER_ABGEBROCHEN: "Anmeldung abgebrochen. Bitte versuche es erneut.",
     AUTH_FEHLER_ALLGEMEIN: "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+    VERIFY_TITEL: "Bestätige deine E-Mail",
+    VERIFY_TEXT: "Wir haben einen Bestätigungslink an {email} gesendet. Öffne ihn, um fortzufahren.",
+    VERIFY_ICH_HABE_BESTAETIGT: "Ich habe bestätigt",
+    VERIFY_NOCH_NICHT: "Noch nicht bestätigt. Bitte prüfe deinen Posteingang.",
+    VERIFY_ERNEUT_SENDEN: "E-Mail erneut senden",
+    VERIFY_ERNEUT_GESENDET: "Gesendet. Bitte prüfe dein Postfach.",
+    VERIFY_COOLDOWN: "Erneut senden in {sek}s",
+    VERIFY_ANDERES_KONTO: "Anderes Konto verwenden",
     ANMELDEN_LAEUFT: "Anmelden…",
     MIT_GOOGLE_ANMELDEN: "Mit Google anmelden",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "Mit der Anmeldung akzeptierst du die",
@@ -853,6 +869,14 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_NETZWERK: "No network connection. Please check your internet.",
     AUTH_FEHLER_ABGEBROCHEN: "Sign-in was cancelled. Please try again.",
     AUTH_FEHLER_ALLGEMEIN: "Sign-in failed. Please try again.",
+    VERIFY_TITEL: "Verify your email",
+    VERIFY_TEXT: "We've sent a verification link to {email}. Open it to continue.",
+    VERIFY_ICH_HABE_BESTAETIGT: "I've verified",
+    VERIFY_NOCH_NICHT: "Not verified yet. Please check your inbox.",
+    VERIFY_ERNEUT_SENDEN: "Resend email",
+    VERIFY_ERNEUT_GESENDET: "Sent. Please check your inbox.",
+    VERIFY_COOLDOWN: "Resend in {sek}s",
+    VERIFY_ANDERES_KONTO: "Use another account",
     ANMELDEN_LAEUFT: "Signing in…",
     MIT_GOOGLE_ANMELDEN: "Sign in with Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "By signing in, you agree to our",
@@ -1244,6 +1268,14 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_NETZWERK: "Нет подключения к сети. Проверьте интернет-соединение.",
     AUTH_FEHLER_ABGEBROCHEN: "Вход отменён. Попробуйте ещё раз.",
     AUTH_FEHLER_ALLGEMEIN: "Вход не выполнен. Попробуйте ещё раз.",
+    VERIFY_TITEL: "Подтвердите адрес эл. почты",
+    VERIFY_TEXT: "Мы отправили ссылку для подтверждения на {email}. Откройте её, чтобы продолжить.",
+    VERIFY_ICH_HABE_BESTAETIGT: "Я подтвердил(а)",
+    VERIFY_NOCH_NICHT: "Пока не подтверждено. Проверьте почту.",
+    VERIFY_ERNEUT_SENDEN: "Отправить письмо ещё раз",
+    VERIFY_ERNEUT_GESENDET: "Отправлено. Проверьте почту.",
+    VERIFY_COOLDOWN: "Повтор через {sek}с",
+    VERIFY_ANDERES_KONTO: "Использовать другой аккаунт",
     ANMELDEN_LAEUFT: "Вход…",
     MIT_GOOGLE_ANMELDEN: "Войти через Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "Регистрируясь, вы принимаете",
@@ -1635,6 +1667,14 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_NETZWERK: "Pas de connexion réseau. Vérifiez votre connexion internet.",
     AUTH_FEHLER_ABGEBROCHEN: "Connexion annulée. Veuillez réessayer.",
     AUTH_FEHLER_ALLGEMEIN: "Échec de la connexion. Veuillez réessayer.",
+    VERIFY_TITEL: "Vérifiez votre e-mail",
+    VERIFY_TEXT: "Nous avons envoyé un lien de vérification à {email}. Ouvrez-le pour continuer.",
+    VERIFY_ICH_HABE_BESTAETIGT: "J'ai vérifié",
+    VERIFY_NOCH_NICHT: "Pas encore vérifié. Veuillez consulter votre boîte de réception.",
+    VERIFY_ERNEUT_SENDEN: "Renvoyer l'e-mail",
+    VERIFY_ERNEUT_GESENDET: "Envoyé. Veuillez consulter votre boîte de réception.",
+    VERIFY_COOLDOWN: "Renvoyer dans {sek}s",
+    VERIFY_ANDERES_KONTO: "Utiliser un autre compte",
     ANMELDEN_LAEUFT: "Connexion…",
     MIT_GOOGLE_ANMELDEN: "Se connecter avec Google",
     ANMELDUNG_ZUSTIMMUNG_PRAEFIX: "En vous connectant, vous acceptez la",

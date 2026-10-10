@@ -7,7 +7,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  linkWithCredential,
+  OAuthProvider,
   type AuthProvider,
+  type AuthCredential,
+  type AuthError,
 } from "firebase/auth"
 import {
   auth,
@@ -50,6 +54,10 @@ export default function LoginView() {
   const [fehler, setFehler] = useState("")
   const [info, setInfo] = useState("")
 
+  // Stashed when a popup sign-in hits account-exists-with-different-credential:
+  // after the user signs in with their original provider, we link this one.
+  const [pendingCred, setPendingCred] = useState<AuthCredential | null>(null)
+
   const [tabHidden, setTabHidden] = useState(false)
   useEffect(() => {
     const handler = () => setTabHidden(document.hidden)
@@ -62,10 +70,18 @@ export default function LoginView() {
     setInfo("")
     setBusy(key)
     try {
-      await signInWithPopup(auth, provider)
+      const result = await signInWithPopup(auth, provider)
       // On success AuthGate's onAuthStateChanged swaps to the app.
+      if (pendingCred) {
+        // Link the method the user first tried; ignore if it no longer applies.
+        try { await linkWithCredential(result.user, pendingCred) } catch { /* already linked */ }
+        setPendingCred(null)
+      }
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? ""
+      if (code === "auth/account-exists-with-different-credential") {
+        setPendingCred(OAuthProvider.credentialFromError(e as AuthError))
+      }
       if (code !== "auth/popup-closed-by-user") setFehler(t(mapAuthError(code)))
     } finally {
       setBusy(null)
