@@ -1,0 +1,126 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px solid transparent;
+  /* magnetic offset (set via --tx/--ty) composed with press scale */
+  transform: translate(var(--tx, 0), var(--ty, 0)) scale(1);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--sf-accent);
+  outline-offset: 2px;
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary — accent fill, glow on hover, shimmer sweep */
+.primary {
+  background: var(--sf-accent);
+  color: var(--sf-accent-fg);
+}
+
+.primary:hover:not(:disabled) {
+  box-shadow: 0 8px 24px -8px var(--sf-accent);
+}
+
+.primary .shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.primary:hover:not(:disabled) .shimmer {
+  animation: shimmer 0.9s ease;
+}
+
+/* Secondary — glass surface, subtle border */
+.secondary {
+  background: var(--sf-card);
+  color: var(--sf-text);
+  border-color: var(--sf-border-2);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--sf-accent);
+  box-shadow: 0 6px 18px -10px var(--sf-text);
+}
+
+/* Provider buttons — consistent AA-contrast surface in light + dark */
+.provider {
+  background: var(--sf-card);
+  color: var(--sf-text);
+  border-color: var(--sf-border-2);
+  font-weight: 500;
+}
+
+.provider:hover:not(:disabled) {
+  border-color: var(--sf-text-3);
+  box-shadow: 0 6px 18px -12px var(--sf-text);
+}
+
+.icon {
+  display: inline-flex;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  to { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none !important;
+    transform: none !important;
+  }
+  .btn:active:not(:disabled) {
+    transform: none !important;
+  }
+  .primary:hover:not(:disabled) .shimmer {
+    animation: none !important;
+  }
+  .spinner {
+    animation: spin 1.2s linear infinite;
+  }
+}
