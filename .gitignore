@@ -42,11 +42,17 @@ next-env.d.ts
 
 # lokale Werkzeuge und persönliche Dateien
 graphify-out/
+brag-output/
+playwright-screenshots/
 video-out/
+design/
 STATUS.md
 scripts/migrate-*
 scripts/promo-video*
+scripts/check-*
+scripts/diagnose-*
+scripts/test-holeSicherIcal.ts
 *.backup.json
-employer-backup-*.json
+employer-bac*.json
 tsconfig.scripts.json
 scripts/screenshot-login.mjs
