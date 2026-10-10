@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { User } from "firebase/auth"
 import { sendEmailVerification, signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase/client"
-import { useT } from "../LangProvider"
+import { useLang } from "../LangProvider"
 import { ThemeToggle } from "../ThemeToggle"
 import { ShiftslotLogo } from "../ShiftslotLogo"
 import AuroraBackground from "../ui/AuroraBackground"
@@ -25,7 +25,7 @@ export default function VerifyEmailScreen({
   user: User
   onVerified: () => void
 }) {
-  const t = useT()
+  const { t, locale } = useLang()
   const [cooldown, setCooldown] = useState(0)
   const [info, setInfo] = useState("")
   const [fehler, setFehler] = useState("")
@@ -39,7 +39,8 @@ export default function VerifyEmailScreen({
       const token = await user.getIdToken()
       const res = await fetch("/api/auth/send-verification", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
       })
       // Route absent (pre-rollout) or it asked us to fall back → send client-side.
       const fallback = !res.ok || (await res.json().catch(() => ({})))?.fallback === true
@@ -54,7 +55,7 @@ export default function VerifyEmailScreen({
       }
       setInfo(t("VERIFY_ERNEUT_GESENDET"))
     }
-  }, [user, t])
+  }, [user, t, locale])
 
   // Send once on mount so the arrival copy ("we've sent a link") is always true.
   const gesendet = useRef(false)

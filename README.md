@@ -20,6 +20,29 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## E-Mail-Verifizierung (Resend)
+
+Die Verifizierungs-E-Mail nach der Registrierung mit E-Mail/Passwort wird über
+[Resend](https://resend.com) versendet. Siehe `.env.example` für alle Variablen.
+
+- **Domain verifizieren:** In Resend eine Domain hinzufügen und die
+  bereitgestellten **SPF**- und **DKIM**-DNS-Einträge bei deinem DNS-Anbieter
+  setzen. Erst nach erfolgreicher Verifizierung kann von dieser Domain gesendet
+  werden.
+- **Variablen** (nur serverseitig, nie im Client gebündelt):
+  - `RESEND_API_KEY` — API-Key aus dem Resend-Dashboard.
+  - `RESEND_FROM` — verifizierte Absenderadresse, z. B.
+    `Shiftslot <noreply@deine-domain.tld>`.
+- **Fallback:** Sind `RESEND_API_KEY`/`RESEND_FROM` nicht gesetzt (oder liefert
+  Resend einen Fehler), antwortet `POST /api/auth/send-verification` mit
+  `{ fallback: true }`. Der Client versendet die Mail dann über Firebase
+  (`sendEmailVerification`) — so funktioniert die Verifizierung auch lokal und
+  ohne verifizierte Domain.
+- **Rate-Limit:** max. 5 Versuche pro Stunde je uid und je (gehashter) IP.
+- **Datenschutz:** Der `continueUrl` stammt ausschließlich aus einer Allowlist
+  (`APP_DOMAINS.current` bzw. `localhost` in Dev), nie aus der Anfrage. Als
+  Rate-Limit-Schlüssel wird nur der SHA-256-Hash der IP gespeichert.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
