@@ -65,6 +65,52 @@ New keys added to `lib/i18n.ts` UiStrings interface + all 4 locales. New fields 
 
 **Note:** RU/FR for `EINTRAGEN`, `ARIA_*`, `KAL_PLACEHOLDER_NAME` — native-speaker review recommended.
 
+## Login / signup page – `/anmelden` (2026-10-10)
+
+New keys added to `lib/i18n.ts` UiStrings interface + all 4 locales (DE/EN/RU/FR) for the
+new split login/signup screen (providers, email/password, password reset, auth errors) and
+the desktop product-preview card. DE/EN authored directly; RU/FR below need native-speaker
+review. Firebase error messages are never shown raw — these are the friendly replacements.
+
+| Key | FR | RU |
+|---|---|---|
+| `ANMELDEN_WILLKOMMEN` | Bon retour | С возвращением |
+| `ANMELDEN_UNTERTITEL` | Connectez-vous pour continuer | Войдите, чтобы продолжить |
+| `REGISTRIEREN_TITEL` | Créer un compte | Создать аккаунт |
+| `REGISTRIEREN_UNTERTITEL` | Suivez vos services en un clin d'œil | Учитывайте смены без труда |
+| `MIT_APPLE_ANMELDEN` | Se connecter avec Apple | Войти через Apple |
+| `MIT_GITHUB_ANMELDEN` | Se connecter avec GitHub | Войти через GitHub |
+| `BALD_VERFUEGBAR` | Bientôt disponible | Скоро |
+| `ODER` | ou | или |
+| `EMAIL_LABEL` | E-mail | Эл. почта |
+| `EMAIL_PLATZHALTER` | vous@exemple.com | you@example.com |
+| `PASSWORT_LABEL` | Mot de passe | Пароль |
+| `PASSWORT_PLATZHALTER` | •••••••• | •••••••• |
+| `ANMELDEN_AKTION` | Se connecter | Войти |
+| `KONTO_ERSTELLEN_AKTION` | Créer un compte | Создать аккаунт |
+| `KEIN_KONTO` | Pas encore de compte ? | Ещё нет аккаунта? |
+| `ZUM_REGISTRIEREN` | S'inscrire | Зарегистрироваться |
+| `HABE_KONTO` | Vous avez déjà un compte ? | Уже есть аккаунт? |
+| `ZUM_ANMELDEN` | Se connecter | Войти |
+| `PASSWORT_VERGESSEN` | Mot de passe oublié ? | Забыли пароль? |
+| `PW_MIN_HINWEIS` | Au moins 8 caractères | Не менее 8 символов |
+| `PW_STAERKE_SCHWACH` | Faible | Слабый |
+| `PW_STAERKE_MITTEL` | Moyen | Средний |
+| `PW_STAERKE_STARK` | Fort | Надёжный |
+| `PW_RESET_HINWEIS` | Si un compte existe, nous avons envoyé un lien de réinitialisation. | Если аккаунт существует, мы отправили ссылку для сброса. |
+| `PW_RESET_EMAIL_FEHLT` | Saisissez d'abord votre adresse e-mail. | Сначала введите адрес эл. почты. |
+| `AUTH_FEHLER_FALSCHE_DATEN` | E-mail ou mot de passe incorrect. | Неверная эл. почта или пароль. |
+| `AUTH_FEHLER_EMAIL_VERGEBEN` | Un compte existe déjà. Connectez-vous avec votre fournisseur d'origine. | Аккаунт уже существует. Войдите через исходный способ входа. |
+| `AUTH_FEHLER_SCHWACHES_PW` | Le mot de passe est trop faible (au moins 8 caractères). | Пароль слишком простой (не менее 8 символов). |
+| `AUTH_FEHLER_ZU_VIELE` | Trop de tentatives. Réessayez plus tard. | Слишком много попыток. Повторите позже. |
+| `AUTH_FEHLER_EMAIL_UNGUELTIG` | Veuillez saisir une adresse e-mail valide. | Введите корректный адрес эл. почты. |
+| `AUTH_FEHLER_KONTO_ANDERER_ANBIETER` | Un compte avec cet e-mail existe déjà via une autre méthode de connexion. Veuillez l'utiliser. | Для этой почты уже есть аккаунт с другим способом входа. Используйте его. |
+| `PREVIEW_MONAT` | Ce mois-ci | Этот месяц |
+| `PREVIEW_STUNDEN` | Heures | Часы |
+| `PREVIEW_GESAMT` | Total | Итого |
+
+**Note:** RU/FR above — native-speaker review recommended before publication.
+
 ## 2.0 bullet items (historical, shown in Profil → Neuigkeiten)
 
 | Key | Notes |

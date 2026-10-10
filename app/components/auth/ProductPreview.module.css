@@ -1,0 +1,91 @@
+.card {
+  width: 100%;
+  max-width: 20rem;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.month {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sf-text-2);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--sf-accent-2);
+}
+
+.big {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--sf-text);
+  line-height: 1;
+}
+
+.unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sf-text-3);
+  margin-left: 0.25rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--sf-text-3);
+  margin-top: 0.15rem;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  height: 3.5rem;
+  margin: 1.25rem 0;
+}
+
+.bar {
+  flex: 1;
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: var(--sf-accent);
+  opacity: 0.85;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--sf-border);
+}
+
+.totalLabel {
+  font-size: 0.8rem;
+  color: var(--sf-text-2);
+}
+
+.totalValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sf-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none !important;
+    transform: none !important;
+  }
+}

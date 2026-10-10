@@ -43,6 +43,41 @@ export interface UiStrings {
   DATENSCHUTZ: string
   IMPRESSUM: string
   TAGLINE: string
+  // Login page (new sign-in methods)
+  ANMELDEN_WILLKOMMEN: string
+  ANMELDEN_UNTERTITEL: string
+  REGISTRIEREN_TITEL: string
+  REGISTRIEREN_UNTERTITEL: string
+  MIT_APPLE_ANMELDEN: string
+  MIT_GITHUB_ANMELDEN: string
+  BALD_VERFUEGBAR: string
+  ODER: string
+  EMAIL_LABEL: string
+  EMAIL_PLATZHALTER: string
+  PASSWORT_LABEL: string
+  PASSWORT_PLATZHALTER: string
+  ANMELDEN_AKTION: string
+  KONTO_ERSTELLEN_AKTION: string
+  KEIN_KONTO: string
+  ZUM_REGISTRIEREN: string
+  HABE_KONTO: string
+  ZUM_ANMELDEN: string
+  PASSWORT_VERGESSEN: string
+  PW_MIN_HINWEIS: string
+  PW_STAERKE_SCHWACH: string
+  PW_STAERKE_MITTEL: string
+  PW_STAERKE_STARK: string
+  PW_RESET_HINWEIS: string
+  PW_RESET_EMAIL_FEHLT: string
+  AUTH_FEHLER_FALSCHE_DATEN: string
+  AUTH_FEHLER_EMAIL_VERGEBEN: string
+  AUTH_FEHLER_SCHWACHES_PW: string
+  AUTH_FEHLER_ZU_VIELE: string
+  AUTH_FEHLER_EMAIL_UNGUELTIG: string
+  AUTH_FEHLER_KONTO_ANDERER_ANBIETER: string
+  PREVIEW_MONAT: string
+  PREVIEW_STUNDEN: string
+  PREVIEW_GESAMT: string
   // Tab bar
   TAB_HOME: string
   TAB_KALENDER: string
@@ -421,6 +456,40 @@ export const translations: Record<Locale, UiStrings> = {
     DATENSCHUTZ: "Datenschutz",
     IMPRESSUM: "Impressum",
     TAGLINE: "Schichten, Stunden, freie Zeiten",
+    ANMELDEN_WILLKOMMEN: "Willkommen zurück",
+    ANMELDEN_UNTERTITEL: "Melde dich an, um fortzufahren",
+    REGISTRIEREN_TITEL: "Konto erstellen",
+    REGISTRIEREN_UNTERTITEL: "Erfasse deine Schichten im Handumdrehen",
+    MIT_APPLE_ANMELDEN: "Mit Apple anmelden",
+    MIT_GITHUB_ANMELDEN: "Mit GitHub anmelden",
+    BALD_VERFUEGBAR: "Bald verfügbar",
+    ODER: "oder",
+    EMAIL_LABEL: "E-Mail",
+    EMAIL_PLATZHALTER: "du@beispiel.de",
+    PASSWORT_LABEL: "Passwort",
+    PASSWORT_PLATZHALTER: "••••••••",
+    ANMELDEN_AKTION: "Anmelden",
+    KONTO_ERSTELLEN_AKTION: "Konto erstellen",
+    KEIN_KONTO: "Noch kein Konto?",
+    ZUM_REGISTRIEREN: "Registrieren",
+    HABE_KONTO: "Schon ein Konto?",
+    ZUM_ANMELDEN: "Anmelden",
+    PASSWORT_VERGESSEN: "Passwort vergessen?",
+    PW_MIN_HINWEIS: "Mindestens 8 Zeichen",
+    PW_STAERKE_SCHWACH: "Schwach",
+    PW_STAERKE_MITTEL: "Mittel",
+    PW_STAERKE_STARK: "Stark",
+    PW_RESET_HINWEIS: "Falls ein Konto existiert, haben wir einen Link zum Zurücksetzen gesendet.",
+    PW_RESET_EMAIL_FEHLT: "Gib zuerst deine E-Mail-Adresse ein.",
+    AUTH_FEHLER_FALSCHE_DATEN: "E-Mail oder Passwort ist falsch.",
+    AUTH_FEHLER_EMAIL_VERGEBEN: "Konto existiert bereits. Melde dich mit deinem ursprünglichen Anbieter an.",
+    AUTH_FEHLER_SCHWACHES_PW: "Passwort ist zu schwach (mindestens 8 Zeichen).",
+    AUTH_FEHLER_ZU_VIELE: "Zu viele Versuche. Bitte versuche es später erneut.",
+    AUTH_FEHLER_EMAIL_UNGUELTIG: "Bitte gib eine gültige E-Mail-Adresse ein.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Für diese E-Mail existiert bereits ein Konto über eine andere Anmeldemethode. Bitte nutze diese Methode.",
+    PREVIEW_MONAT: "Dieser Monat",
+    PREVIEW_STUNDEN: "Stunden",
+    PREVIEW_GESAMT: "Gesamt",
     TAB_HOME: "Home",
     TAB_KALENDER: "Kalender",
     TAB_SCHICHTEN: "Schichten",
@@ -766,6 +835,40 @@ export const translations: Record<Locale, UiStrings> = {
     DATENSCHUTZ: "Privacy",
     IMPRESSUM: "Imprint",
     TAGLINE: "Shifts, hours, free time",
+    ANMELDEN_WILLKOMMEN: "Welcome back",
+    ANMELDEN_UNTERTITEL: "Sign in to continue",
+    REGISTRIEREN_TITEL: "Create account",
+    REGISTRIEREN_UNTERTITEL: "Track your shifts in no time",
+    MIT_APPLE_ANMELDEN: "Sign in with Apple",
+    MIT_GITHUB_ANMELDEN: "Sign in with GitHub",
+    BALD_VERFUEGBAR: "Coming soon",
+    ODER: "or",
+    EMAIL_LABEL: "Email",
+    EMAIL_PLATZHALTER: "you@example.com",
+    PASSWORT_LABEL: "Password",
+    PASSWORT_PLATZHALTER: "••••••••",
+    ANMELDEN_AKTION: "Sign in",
+    KONTO_ERSTELLEN_AKTION: "Create account",
+    KEIN_KONTO: "No account yet?",
+    ZUM_REGISTRIEREN: "Sign up",
+    HABE_KONTO: "Already have an account?",
+    ZUM_ANMELDEN: "Sign in",
+    PASSWORT_VERGESSEN: "Forgot password?",
+    PW_MIN_HINWEIS: "At least 8 characters",
+    PW_STAERKE_SCHWACH: "Weak",
+    PW_STAERKE_MITTEL: "Medium",
+    PW_STAERKE_STARK: "Strong",
+    PW_RESET_HINWEIS: "If an account exists, we've sent a reset link.",
+    PW_RESET_EMAIL_FEHLT: "Enter your email address first.",
+    AUTH_FEHLER_FALSCHE_DATEN: "Email or password is incorrect.",
+    AUTH_FEHLER_EMAIL_VERGEBEN: "Account already exists. Sign in with your original provider.",
+    AUTH_FEHLER_SCHWACHES_PW: "Password is too weak (at least 8 characters).",
+    AUTH_FEHLER_ZU_VIELE: "Too many attempts. Please try again later.",
+    AUTH_FEHLER_EMAIL_UNGUELTIG: "Please enter a valid email address.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "An account with this email already exists via a different sign-in method. Please use that method.",
+    PREVIEW_MONAT: "This month",
+    PREVIEW_STUNDEN: "Hours",
+    PREVIEW_GESAMT: "Total",
     TAB_HOME: "Home",
     TAB_KALENDER: "Calendar",
     TAB_SCHICHTEN: "Shifts",
@@ -1111,6 +1214,40 @@ export const translations: Record<Locale, UiStrings> = {
     DATENSCHUTZ: "Конфиденциальность",
     IMPRESSUM: "Об авторе",
     TAGLINE: "Смены, часы, свободное время",
+    ANMELDEN_WILLKOMMEN: "С возвращением",
+    ANMELDEN_UNTERTITEL: "Войдите, чтобы продолжить",
+    REGISTRIEREN_TITEL: "Создать аккаунт",
+    REGISTRIEREN_UNTERTITEL: "Учитывайте смены без труда",
+    MIT_APPLE_ANMELDEN: "Войти через Apple",
+    MIT_GITHUB_ANMELDEN: "Войти через GitHub",
+    BALD_VERFUEGBAR: "Скоро",
+    ODER: "или",
+    EMAIL_LABEL: "Эл. почта",
+    EMAIL_PLATZHALTER: "you@example.com",
+    PASSWORT_LABEL: "Пароль",
+    PASSWORT_PLATZHALTER: "••••••••",
+    ANMELDEN_AKTION: "Войти",
+    KONTO_ERSTELLEN_AKTION: "Создать аккаунт",
+    KEIN_KONTO: "Ещё нет аккаунта?",
+    ZUM_REGISTRIEREN: "Зарегистрироваться",
+    HABE_KONTO: "Уже есть аккаунт?",
+    ZUM_ANMELDEN: "Войти",
+    PASSWORT_VERGESSEN: "Забыли пароль?",
+    PW_MIN_HINWEIS: "Не менее 8 символов",
+    PW_STAERKE_SCHWACH: "Слабый",
+    PW_STAERKE_MITTEL: "Средний",
+    PW_STAERKE_STARK: "Надёжный",
+    PW_RESET_HINWEIS: "Если аккаунт существует, мы отправили ссылку для сброса.",
+    PW_RESET_EMAIL_FEHLT: "Сначала введите адрес эл. почты.",
+    AUTH_FEHLER_FALSCHE_DATEN: "Неверная эл. почта или пароль.",
+    AUTH_FEHLER_EMAIL_VERGEBEN: "Аккаунт уже существует. Войдите через исходный способ входа.",
+    AUTH_FEHLER_SCHWACHES_PW: "Пароль слишком простой (не менее 8 символов).",
+    AUTH_FEHLER_ZU_VIELE: "Слишком много попыток. Повторите позже.",
+    AUTH_FEHLER_EMAIL_UNGUELTIG: "Введите корректный адрес эл. почты.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Для этой почты уже есть аккаунт с другим способом входа. Используйте его.",
+    PREVIEW_MONAT: "Этот месяц",
+    PREVIEW_STUNDEN: "Часы",
+    PREVIEW_GESAMT: "Итого",
     TAB_HOME: "Главная",
     TAB_KALENDER: "Календарь",
     TAB_SCHICHTEN: "Смены",
@@ -1456,6 +1593,40 @@ export const translations: Record<Locale, UiStrings> = {
     DATENSCHUTZ: "Confidentialité",
     IMPRESSUM: "Mentions légales",
     TAGLINE: "Quarts, heures, temps libre",
+    ANMELDEN_WILLKOMMEN: "Bon retour",
+    ANMELDEN_UNTERTITEL: "Connectez-vous pour continuer",
+    REGISTRIEREN_TITEL: "Créer un compte",
+    REGISTRIEREN_UNTERTITEL: "Suivez vos services en un clin d'œil",
+    MIT_APPLE_ANMELDEN: "Se connecter avec Apple",
+    MIT_GITHUB_ANMELDEN: "Se connecter avec GitHub",
+    BALD_VERFUEGBAR: "Bientôt disponible",
+    ODER: "ou",
+    EMAIL_LABEL: "E-mail",
+    EMAIL_PLATZHALTER: "vous@exemple.com",
+    PASSWORT_LABEL: "Mot de passe",
+    PASSWORT_PLATZHALTER: "••••••••",
+    ANMELDEN_AKTION: "Se connecter",
+    KONTO_ERSTELLEN_AKTION: "Créer un compte",
+    KEIN_KONTO: "Pas encore de compte ?",
+    ZUM_REGISTRIEREN: "S'inscrire",
+    HABE_KONTO: "Vous avez déjà un compte ?",
+    ZUM_ANMELDEN: "Se connecter",
+    PASSWORT_VERGESSEN: "Mot de passe oublié ?",
+    PW_MIN_HINWEIS: "Au moins 8 caractères",
+    PW_STAERKE_SCHWACH: "Faible",
+    PW_STAERKE_MITTEL: "Moyen",
+    PW_STAERKE_STARK: "Fort",
+    PW_RESET_HINWEIS: "Si un compte existe, nous avons envoyé un lien de réinitialisation.",
+    PW_RESET_EMAIL_FEHLT: "Saisissez d'abord votre adresse e-mail.",
+    AUTH_FEHLER_FALSCHE_DATEN: "E-mail ou mot de passe incorrect.",
+    AUTH_FEHLER_EMAIL_VERGEBEN: "Un compte existe déjà. Connectez-vous avec votre fournisseur d'origine.",
+    AUTH_FEHLER_SCHWACHES_PW: "Le mot de passe est trop faible (au moins 8 caractères).",
+    AUTH_FEHLER_ZU_VIELE: "Trop de tentatives. Réessayez plus tard.",
+    AUTH_FEHLER_EMAIL_UNGUELTIG: "Veuillez saisir une adresse e-mail valide.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Un compte avec cet e-mail existe déjà via une autre méthode de connexion. Veuillez l'utiliser.",
+    PREVIEW_MONAT: "Ce mois-ci",
+    PREVIEW_STUNDEN: "Heures",
+    PREVIEW_GESAMT: "Total",
     TAB_HOME: "Accueil",
     TAB_KALENDER: "Calendrier",
     TAB_SCHICHTEN: "Quarts",

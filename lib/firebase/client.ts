@@ -1,5 +1,12 @@
 import { initializeApp, getApps } from "firebase/app"
-import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence } from "firebase/auth"
+import {
+  getAuth,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  OAuthProvider,
+  browserLocalPersistence,
+  setPersistence,
+} from "firebase/auth"
 import {
   type Firestore,
   getFirestore,
@@ -35,6 +42,10 @@ try {
 }
 export { db }
 export const googleProvider = new GoogleAuthProvider()
+export const githubProvider = new GithubAuthProvider()
+export const appleProvider = new OAuthProvider("apple.com")
+// Apple Sign-In requires a paid Apple Developer account; gated until configured.
+export const AUTH_APPLE_ENABLED = process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED === "true"
 
 // Use localStorage instead of IndexedDB to avoid "Database is closing/hidden" errors
 // under Cross-Origin-Opener-Policy restrictions
