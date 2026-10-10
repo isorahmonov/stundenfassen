@@ -296,6 +296,29 @@ export interface UiStrings {
   EINR_VAL_SPERRZEIT_FELDER: string
   EINR_VAL_SPERRZEIT_ZEITEN: string
   EINR_SPEICHERN_FEHLER: string
+  // Neuigkeiten / Changelog
+  SEKTION_NEUIGKEITEN: string
+  UPD_DIALOG_TITEL: string
+  UPD_VERSION_PREFIX: string
+  UPD_LOSGEH: string
+  UPD_ZUM_PROFIL: string
+  UPD_2_1_0_ITEM1: string
+  UPD_2_1_0_ITEM2: string
+  UPD_2_1_0_ITEM3: string
+  UPD_2_1_0_ITEM4: string
+  UPD_2_1_0_ITEM5: string
+  UPD_2_1_0_ITEM6: string
+  UPD_2_1_0_ITEM7: string
+  UPD_2_1_0_ITEM9: string
+  UPD_2_0_ITEM1: string
+  UPD_2_0_ITEM2: string
+  UPD_2_0_ITEM3: string
+  UPD_2_0_ITEM4: string
+  UPD_2_0_ITEM5: string
+  UPD_2_0_ITEM6: string
+  UPD_2_0_ITEM7: string
+  UPD_2_0_ITEM8: string
+  UPD_2_0_ITEM9: string
 }
 
 export const translations: Record<Locale, UiStrings> = {
@@ -566,6 +589,28 @@ export const translations: Record<Locale, UiStrings> = {
     EINR_VAL_SPERRZEIT_FELDER: "Alle Felder einer Sperrzeit müssen ausgefüllt sein.",
     EINR_VAL_SPERRZEIT_ZEITEN: "Anfangszeit einer Sperrzeit muss vor der Endzeit liegen.",
     EINR_SPEICHERN_FEHLER: "Speichern fehlgeschlagen.",
+    SEKTION_NEUIGKEITEN: "Neuigkeiten",
+    UPD_DIALOG_TITEL: "Neu in Shiftslot",
+    UPD_VERSION_PREFIX: "Version",
+    UPD_LOSGEH: "Los geht's",
+    UPD_ZUM_PROFIL: "Profil → Neuigkeiten",
+    UPD_2_1_0_ITEM1: "Neuer Name und neues Aussehen: Stundenfassen heißt jetzt Shiftslot – mit neuem Logo und App-Symbol",
+    UPD_2_1_0_ITEM2: "Neuer Anmeldebildschirm mit animiertem Logo",
+    UPD_2_1_0_ITEM3: "Vier Sprachen: Deutsch, Englisch, Russisch, Französisch – wählbar beim Anmelden oder unter Profil → Sprache; separate Dokumentensprache",
+    UPD_2_1_0_ITEM4: "Hell, dunkel oder automatisch – unter Profil → Erscheinungsbild oder direkt am Anmeldebildschirm",
+    UPD_2_1_0_ITEM5: "Ruhigerer Ladevorgang: neuer Shiftslot-Lader überall, „Erneut versuchen“ nach Timeout, hilfreiche Karte wenn kein Arbeitgeber vorhanden",
+    UPD_2_1_0_ITEM6: "Bessere Kalenderbehandlung: klarere Fehler pro Kalender, ein defekter blockiert nicht die anderen, „Stand: …“-Banner, verbesserte iCal-Link-Hilfe",
+    UPD_2_1_0_ITEM7: "Deine Daten, deine Kontrolle: Datenschutzerklärung und Impressum in der App, Daten als Datei exportieren, Konto löschen im Profil",
+    UPD_2_1_0_ITEM9: "Neue Webadresse: {url} – Auf dem Startbildschirm installierte Apps unter der alten Adresse funktionieren weiter; für das neue Symbol und die neue Adresse die neue URL öffnen und zur Startseite hinzufügen",
+    UPD_2_0_ITEM1: "Verfügbarkeit pro Arbeitgeber einrichten: Wochentage, früheste und späteste Zeit, Mindestdauer, Wegezeiten",
+    UPD_2_0_ITEM2: "Feste Zeiten sperren, z. B. Gebetszeit, Uni oder Lerngruppe",
+    UPD_2_0_ITEM3: "Dein Name im PDF: du legst selbst fest, was im Kopf steht",
+    UPD_2_0_ITEM4: "Feiertage nach Bundesland des Arbeitgebers",
+    UPD_2_0_ITEM5: "Verfügbarkeit per E-Mail senden, mit Vorlagen und CC",
+    UPD_2_0_ITEM6: "Minusstunden pro Arbeitgeber, wahlweise im PDF",
+    UPD_2_0_ITEM7: "Lohnsteuer pauschal pro Arbeitgeber (bei kurzfristiger Beschäftigung)",
+    UPD_2_0_ITEM8: "Kalender lädt schneller und aktualisiert sich beim Zurückkehren in die App",
+    UPD_2_0_ITEM9: "Abmelden im Profil-Tab",
   },
   en: {
     LAEDT: "Loading…",
@@ -834,6 +879,28 @@ export const translations: Record<Locale, UiStrings> = {
     EINR_VAL_SPERRZEIT_FELDER: "All fields of a blocked time must be filled in.",
     EINR_VAL_SPERRZEIT_ZEITEN: "Start time of a blocked slot must be before the end time.",
     EINR_SPEICHERN_FEHLER: "Save failed.",
+    SEKTION_NEUIGKEITEN: "What's new",
+    UPD_DIALOG_TITEL: "What's new in Shiftslot",
+    UPD_VERSION_PREFIX: "Version",
+    UPD_LOSGEH: "Let's go",
+    UPD_ZUM_PROFIL: "Profile → What's new",
+    UPD_2_1_0_ITEM1: "New name and look: Stundenfassen is now Shiftslot – with a new logo and app icon",
+    UPD_2_1_0_ITEM2: "New sign-in screen with animated logo",
+    UPD_2_1_0_ITEM3: "Four languages: German, English, Russian, French – choose on the sign-in screen or under Profile → Language; separate document language",
+    UPD_2_1_0_ITEM4: "Light, dark or automatic appearance – under Profile → Appearance or directly on the sign-in screen",
+    UPD_2_1_0_ITEM5: "Calmer loading: new Shiftslot loader everywhere, \"Try again\" after timeout, helpful card when no employer is set up",
+    UPD_2_1_0_ITEM6: "Better calendar handling: clearer errors per calendar, one broken calendar doesn't block others, \"As of: …\" banner, improved iCal link help",
+    UPD_2_1_0_ITEM7: "Your data, your control: privacy policy and legal notice inside the app, export data as a file, delete account from Profile",
+    UPD_2_1_0_ITEM9: "New web address: {url} – Apps installed on the home screen from the old address keep working; for the new icon and address, open the new URL and add it to your home screen again",
+    UPD_2_0_ITEM1: "Set up availability per employer: weekdays, earliest and latest time, minimum duration, travel times",
+    UPD_2_0_ITEM2: "Block fixed times, e.g. prayer time, university or study group",
+    UPD_2_0_ITEM3: "Your name in the PDF: you decide what appears in the header",
+    UPD_2_0_ITEM4: "Public holidays by the employer's state",
+    UPD_2_0_ITEM5: "Send availability by email, with templates and CC",
+    UPD_2_0_ITEM6: "Minus hours per employer, optionally shown in PDF",
+    UPD_2_0_ITEM7: "Flat-rate wage tax per employer (for short-term employment)",
+    UPD_2_0_ITEM8: "Calendar loads faster and updates when you return to the app",
+    UPD_2_0_ITEM9: "Sign out in the Profile tab",
   },
   ru: {
     LAEDT: "Загрузка…",
@@ -1102,6 +1169,28 @@ export const translations: Record<Locale, UiStrings> = {
     EINR_VAL_SPERRZEIT_FELDER: "Все поля блокировки должны быть заполнены.",
     EINR_VAL_SPERRZEIT_ZEITEN: "Начало блокировки должно быть раньше конца.",
     EINR_SPEICHERN_FEHLER: "Ошибка сохранения.",
+    SEKTION_NEUIGKEITEN: "Новости",
+    UPD_DIALOG_TITEL: "Что нового в Shiftslot",
+    UPD_VERSION_PREFIX: "Версия",
+    UPD_LOSGEH: "Начать",
+    UPD_ZUM_PROFIL: "Профиль → Новости",
+    UPD_2_1_0_ITEM1: "Новое имя и внешний вид: Stundenfassen теперь называется Shiftslot – новый логотип и значок приложения",
+    UPD_2_1_0_ITEM2: "Новый экран входа с анимированным логотипом",
+    UPD_2_1_0_ITEM3: "Четыре языка: немецкий, английский, русский, французский – выбор на экране входа или в разделе Профиль → Язык; отдельный язык документа",
+    UPD_2_1_0_ITEM4: "Светлое, тёмное или автоматическое оформление – в разделе Профиль → Оформление или прямо на экране входа",
+    UPD_2_1_0_ITEM5: "Спокойная загрузка: новый загрузчик Shiftslot везде, «Повторить» после таймаута, подсказка при отсутствии работодателя",
+    UPD_2_1_0_ITEM6: "Улучшенная работа с календарями: чёткие ошибки по каждому календарю, один сломанный не блокирует другие, баннер «Данные на: …», улучшенная справка по iCal-ссылке",
+    UPD_2_1_0_ITEM7: "Ваши данные, ваш контроль: политика конфиденциальности и правовая информация в приложении, экспорт данных в файл, удаление аккаунта из раздела Профиль",
+    UPD_2_1_0_ITEM9: "Новый веб-адрес: {url} – Приложения, добавленные на главный экран со старого адреса, продолжают работать; для нового значка и адреса откройте новый URL и добавьте приложение снова",
+    UPD_2_0_ITEM1: "Настройка доступности для каждого работодателя: дни недели, ранний и поздний предел, минимальная длительность, время в пути",
+    UPD_2_0_ITEM2: "Блокировка фиксированных периодов, например времени молитвы, занятий или учёбы",
+    UPD_2_0_ITEM3: "Ваше имя в PDF: вы сами решаете, что отображается в заголовке",
+    UPD_2_0_ITEM4: "Праздники по федеральной земле работодателя",
+    UPD_2_0_ITEM5: "Отправка доступности по электронной почте с шаблонами и копией",
+    UPD_2_0_ITEM6: "Минус-часы для каждого работодателя, опционально в PDF",
+    UPD_2_0_ITEM7: "Паушальный подоходный налог для каждого работодателя (при краткосрочной занятости)",
+    UPD_2_0_ITEM8: "Календарь загружается быстрее и обновляется при возвращении в приложение",
+    UPD_2_0_ITEM9: "Выход в разделе Профиль",
   },
   fr: {
     LAEDT: "Chargement…",
@@ -1370,6 +1459,28 @@ export const translations: Record<Locale, UiStrings> = {
     EINR_VAL_SPERRZEIT_FELDER: "Tous les champs d'un créneau bloqué doivent être renseignés.",
     EINR_VAL_SPERRZEIT_ZEITEN: "L'heure de début d'un créneau bloqué doit être avant l'heure de fin.",
     EINR_SPEICHERN_FEHLER: "Échec de l'enregistrement.",
+    SEKTION_NEUIGKEITEN: "Nouveautés",
+    UPD_DIALOG_TITEL: "Nouveautés dans Shiftslot",
+    UPD_VERSION_PREFIX: "Version",
+    UPD_LOSGEH: "C'est parti",
+    UPD_ZUM_PROFIL: "Profil → Nouveautés",
+    UPD_2_1_0_ITEM1: "Nouveau nom et nouvelle apparence : Stundenfassen s'appelle désormais Shiftslot – avec un nouveau logo et une nouvelle icône",
+    UPD_2_1_0_ITEM2: "Nouvel écran de connexion avec logo animé",
+    UPD_2_1_0_ITEM3: "Quatre langues : allemand, anglais, russe, français – à choisir sur l'écran de connexion ou dans Profil → Langue ; langue de document séparée",
+    UPD_2_1_0_ITEM4: "Apparence claire, sombre ou automatique – dans Profil → Apparence ou directement sur l'écran de connexion",
+    UPD_2_1_0_ITEM5: "Chargement plus calme : nouveau chargeur Shiftslot partout, « Réessayer » après délai, carte d'aide si aucun employeur",
+    UPD_2_1_0_ITEM6: "Meilleure gestion des calendriers : erreurs claires par calendrier, un calendrier cassé ne bloque pas les autres, bannière « À jour : … », aide iCal améliorée",
+    UPD_2_1_0_ITEM7: "Vos données, votre contrôle : politique de confidentialité et mentions légales dans l'app, export des données en fichier, suppression du compte depuis Profil",
+    UPD_2_1_0_ITEM9: "Nouvelle adresse web : {url} – Les apps installées sur l'écran d'accueil depuis l'ancienne adresse continuent de fonctionner ; pour la nouvelle icône et adresse, ouvrez la nouvelle URL et ajoutez-la à l'écran d'accueil",
+    UPD_2_0_ITEM1: "Configurer la disponibilité par employeur : jours de la semaine, horaire le plus tôt et le plus tard, durée minimale, temps de trajet",
+    UPD_2_0_ITEM2: "Bloquer des créneaux fixes, par ex. prière, cours ou groupe d'étude",
+    UPD_2_0_ITEM3: "Votre nom dans le PDF : vous choisissez ce qui apparaît dans l'en-tête",
+    UPD_2_0_ITEM4: "Jours fériés selon le Land de l'employeur",
+    UPD_2_0_ITEM5: "Envoyer la disponibilité par e-mail, avec modèles et CC",
+    UPD_2_0_ITEM6: "Heures négatives par employeur, affichables dans le PDF",
+    UPD_2_0_ITEM7: "Impôt sur les salaires forfaitaire par employeur (pour emploi de courte durée)",
+    UPD_2_0_ITEM8: "Le calendrier se charge plus vite et se met à jour au retour dans l'app",
+    UPD_2_0_ITEM9: "Se déconnecter dans l'onglet Profil",
   },
 }
 
