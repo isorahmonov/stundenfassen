@@ -17,6 +17,12 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: APP_NAME,
   description: APP_TAGLINE,
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_TAGLINE,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

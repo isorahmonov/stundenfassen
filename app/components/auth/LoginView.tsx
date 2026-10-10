@@ -18,6 +18,7 @@ import {
 } from "@/lib/firebase/client"
 import { mapAuthError } from "@/lib/auth/providers"
 import { useLang, useT } from "../LangProvider"
+import { useIsDesktop } from "../useIsDesktop"
 import { ThemeToggle } from "../ThemeToggle"
 import { ShiftslotLogo } from "../ShiftslotLogo"
 import AuroraBackground from "../ui/AuroraBackground"
@@ -26,19 +27,6 @@ import ProductPreview from "./ProductPreview"
 import { APP_NAME } from "@/lib/brand"
 import { LOCALES, type Locale } from "@/lib/i18n"
 import s from "./LoginView.module.css"
-
-/** Mount-gated media query so SSR renders the mobile/login layout, then upgrades. */
-function useIsDesktop() {
-  const [desktop, setDesktop] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)")
-    const update = () => setDesktop(mq.matches)
-    update()
-    mq.addEventListener("change", update)
-    return () => mq.removeEventListener("change", update)
-  }, [])
-  return desktop
-}
 
 /** Hint-only strength score (0–3); Firebase enforces the real minimum server-side. */
 function passwortStaerke(pw: string): 0 | 1 | 2 | 3 {

@@ -78,6 +78,19 @@ export interface UiStrings {
   PREVIEW_MONAT: string
   PREVIEW_STUNDEN: string
   PREVIEW_GESAMT: string
+  // Landing page
+  LANDING_HERO_TITEL: string
+  LANDING_HERO_UNTERTITEL: string
+  LANDING_LOSLEGEN: string
+  LANDING_FEATURES_TITEL: string
+  LANDING_F1_TITEL: string
+  LANDING_F1_TEXT: string
+  LANDING_F2_TITEL: string
+  LANDING_F2_TEXT: string
+  LANDING_F3_TITEL: string
+  LANDING_F3_TEXT: string
+  LANDING_F4_TITEL: string
+  LANDING_F4_TEXT: string
   // Tab bar
   TAB_HOME: string
   TAB_KALENDER: string
@@ -490,6 +503,18 @@ export const translations: Record<Locale, UiStrings> = {
     PREVIEW_MONAT: "Dieser Monat",
     PREVIEW_STUNDEN: "Stunden",
     PREVIEW_GESAMT: "Gesamt",
+    LANDING_HERO_TITEL: "Deine Arbeitszeit, im Griff.",
+    LANDING_HERO_UNTERTITEL: "Schichten erfassen, Stunden und Lohn automatisch berechnen, Monatsnachweis als PDF – für Studierende und Minijobs in Deutschland.",
+    LANDING_LOSLEGEN: "Loslegen",
+    LANDING_FEATURES_TITEL: "Alles, was du brauchst",
+    LANDING_F1_TITEL: "Schichten erfassen",
+    LANDING_F1_TEXT: "Trag deine Arbeitszeiten in Sekunden ein – pro Arbeitgeber, mit Pausen und festen Zeiten.",
+    LANDING_F2_TITEL: "Automatisch berechnet",
+    LANDING_F2_TEXT: "Stunden, Lohn, Sonntags- und Feiertagszuschläge sowie Pflichtpausen – ohne Rechnen.",
+    LANDING_F3_TITEL: "Monatsnachweis als PDF",
+    LANDING_F3_TEXT: "Sauberer Stundennachweis mit deinem Namen, bereit zum Abgeben oder Versenden.",
+    LANDING_F4_TITEL: "Kalender & Verfügbarkeit",
+    LANDING_F4_TEXT: "Importiere deinen Stundenplan per iCal und teile deine Verfügbarkeit per E-Mail.",
     TAB_HOME: "Home",
     TAB_KALENDER: "Kalender",
     TAB_SCHICHTEN: "Schichten",
@@ -869,6 +894,18 @@ export const translations: Record<Locale, UiStrings> = {
     PREVIEW_MONAT: "This month",
     PREVIEW_STUNDEN: "Hours",
     PREVIEW_GESAMT: "Total",
+    LANDING_HERO_TITEL: "Your working hours, under control.",
+    LANDING_HERO_UNTERTITEL: "Log shifts, calculate hours and pay automatically, export a monthly record as PDF — for students and part-time jobs in Germany.",
+    LANDING_LOSLEGEN: "Get started",
+    LANDING_FEATURES_TITEL: "Everything you need",
+    LANDING_F1_TITEL: "Log your shifts",
+    LANDING_F1_TEXT: "Enter your working times in seconds — per employer, with breaks and fixed hours.",
+    LANDING_F2_TITEL: "Calculated for you",
+    LANDING_F2_TEXT: "Hours, pay, Sunday and public-holiday premiums, and mandatory breaks — no math needed.",
+    LANDING_F3_TITEL: "Monthly record as PDF",
+    LANDING_F3_TEXT: "A clean hours statement with your name, ready to hand in or send.",
+    LANDING_F4_TITEL: "Calendar & availability",
+    LANDING_F4_TEXT: "Import your timetable via iCal and share your availability by email.",
     TAB_HOME: "Home",
     TAB_KALENDER: "Calendar",
     TAB_SCHICHTEN: "Shifts",
@@ -1248,6 +1285,18 @@ export const translations: Record<Locale, UiStrings> = {
     PREVIEW_MONAT: "Этот месяц",
     PREVIEW_STUNDEN: "Часы",
     PREVIEW_GESAMT: "Итого",
+    LANDING_HERO_TITEL: "Ваше рабочее время под контролем.",
+    LANDING_HERO_UNTERTITEL: "Учитывайте смены, автоматически считайте часы и зарплату, выгружайте месячный отчёт в PDF — для студентов и подработки в Германии.",
+    LANDING_LOSLEGEN: "Начать",
+    LANDING_FEATURES_TITEL: "Всё, что нужно",
+    LANDING_F1_TITEL: "Учёт смен",
+    LANDING_F1_TEXT: "Вносите рабочее время за секунды — по каждому работодателю, с перерывами и фиксированными часами.",
+    LANDING_F2_TITEL: "Всё посчитано",
+    LANDING_F2_TEXT: "Часы, зарплата, надбавки за воскресенья и праздники и обязательные перерывы — без расчётов.",
+    LANDING_F3_TITEL: "Месячный отчёт в PDF",
+    LANDING_F3_TEXT: "Аккуратный отчёт по часам с вашим именем, готовый к сдаче или отправке.",
+    LANDING_F4_TITEL: "Календарь и доступность",
+    LANDING_F4_TEXT: "Импортируйте расписание через iCal и делитесь доступностью по эл. почте.",
     TAB_HOME: "Главная",
     TAB_KALENDER: "Календарь",
     TAB_SCHICHTEN: "Смены",
@@ -1627,6 +1676,18 @@ export const translations: Record<Locale, UiStrings> = {
     PREVIEW_MONAT: "Ce mois-ci",
     PREVIEW_STUNDEN: "Heures",
     PREVIEW_GESAMT: "Total",
+    LANDING_HERO_TITEL: "Votre temps de travail, maîtrisé.",
+    LANDING_HERO_UNTERTITEL: "Saisissez vos services, calculez automatiquement les heures et le salaire, exportez un relevé mensuel en PDF — pour les étudiants et les petits boulots en Allemagne.",
+    LANDING_LOSLEGEN: "Commencer",
+    LANDING_FEATURES_TITEL: "Tout ce qu'il vous faut",
+    LANDING_F1_TITEL: "Saisir vos services",
+    LANDING_F1_TEXT: "Entrez vos horaires en quelques secondes — par employeur, avec pauses et heures fixes.",
+    LANDING_F2_TITEL: "Calculé pour vous",
+    LANDING_F2_TEXT: "Heures, salaire, majorations du dimanche et des jours fériés et pauses obligatoires — sans calcul.",
+    LANDING_F3_TITEL: "Relevé mensuel en PDF",
+    LANDING_F3_TEXT: "Un relevé d'heures clair à votre nom, prêt à remettre ou à envoyer.",
+    LANDING_F4_TITEL: "Calendrier et disponibilité",
+    LANDING_F4_TEXT: "Importez votre emploi du temps via iCal et partagez vos disponibilités par e-mail.",
     TAB_HOME: "Accueil",
     TAB_KALENDER: "Calendrier",
     TAB_SCHICHTEN: "Quarts",
