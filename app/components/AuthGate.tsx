@@ -14,6 +14,7 @@ import LandingPage from "./landing/LandingPage"
 import { useIsDesktop } from "./useIsDesktop"
 import { useT } from "./LangProvider"
 import { hasSessionHint, setSessionHint, clearSessionHint } from "@/lib/auth/sessionHint"
+import { APP_NAME } from "@/lib/brand"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
@@ -38,6 +39,21 @@ function LandingSeo() {
         </div>
       </noscript>
     </>
+  )
+}
+
+/**
+ * Visible hero overlay in the loader state for `/`. Positioned absolutely so
+ * it sits in the initial HTML (SSR) as a large LCP candidate at FCP time.
+ * Replaced by LandingPage's own hero once auth resolves.
+ */
+function LandingHero() {
+  const t = useT()
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-3 pointer-events-none">
+      <h1 className="text-4xl font-bold tracking-tight leading-tight">{t("LANDING_HERO_TITEL")}</h1>
+      <p className="text-base sf-text-2 max-w-md">{t("LANDING_HERO_UNTERTITEL")}</p>
+    </div>
   )
 }
 
@@ -87,7 +103,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <>
         {seo}
-        <div className="min-h-screen sf-page flex items-center justify-center">
+        {/* relative so the absolute-positioned text anchors below work */}
+        <div className="relative min-h-screen sf-page flex items-center justify-center">
+          {/* Visible text LCP anchors in SSR HTML; replaced by real content after auth resolves */}
+          {istStartseite
+            ? <LandingHero />
+            : <p className="absolute top-1/3 w-full text-center text-2xl font-bold tracking-tight" aria-hidden="true">{APP_NAME}</p>
+          }
           <ShiftslotLoader size="lg" />
         </div>
       </>
