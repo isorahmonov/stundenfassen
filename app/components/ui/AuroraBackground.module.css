@@ -4,6 +4,7 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  contain: layout paint;
 }
 
 /* Parallax layer — transformed by mouse on desktop, independent of blob drift */
@@ -17,36 +18,36 @@
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.55;
+  filter: blur(40px);
+  opacity: 0.5;
   will-change: transform;
 }
 
 .blob1 {
   top: -8%;
   left: 5%;
-  width: 42vw;
-  height: 42vw;
+  width: 36vw;
+  height: 36vw;
   background: radial-gradient(circle at 30% 30%, var(--sf-accent), transparent 70%);
-  animation: drift1 22s ease-in-out infinite;
+  animation: drift1 40s ease-in-out infinite;
 }
 
 .blob2 {
   top: 20%;
   right: -5%;
-  width: 38vw;
-  height: 38vw;
+  width: 30vw;
+  height: 30vw;
   background: radial-gradient(circle at 70% 40%, var(--sf-accent-2), transparent 70%);
-  animation: drift2 28s ease-in-out infinite;
+  animation: drift2 50s ease-in-out infinite;
 }
 
 .blob3 {
   bottom: -12%;
   left: 25%;
-  width: 36vw;
-  height: 36vw;
+  width: 28vw;
+  height: 28vw;
   background: radial-gradient(circle at 50% 60%, var(--sf-accent-3), transparent 70%);
-  animation: drift3 26s ease-in-out infinite;
+  animation: drift3 45s ease-in-out infinite;
 }
 
 /* Subtle grain to break up the gradients (pure CSS, no asset) */

@@ -54,6 +54,7 @@ export default function LoginView() {
   const [fehler, setFehler] = useState("")
   const [info, setInfo] = useState("")
   const [rawCode, setRawCode] = useState("")
+  const [pwFocus, setPwFocus] = useState(false)
 
   // Stashed when a popup sign-in hits account-exists-with-different-credential:
   // after the user signs in with their original provider, we link this one.
@@ -162,13 +163,15 @@ export default function LoginView() {
           {registrieren ? t("REGISTRIEREN_UNTERTITEL") : t("ANMELDEN_UNTERTITEL")}
         </p>
 
-        {fehler && (
-          <p className={s.error} role="alert">
-            {fehler}
-            {rawCode && <> <small style={{opacity:0.6,fontSize:"0.8em"}}>({rawCode})</small></>}
-          </p>
-        )}
-        {info && <p className={s.info} role="status">{info}</p>}
+        <div className={s.msgWrap}>
+          {fehler && (
+            <p className={s.error} role="alert">
+              {fehler}
+              {rawCode && <> <small style={{opacity:0.6,fontSize:"0.8em"}}>({rawCode})</small></>}
+            </p>
+          )}
+          {info && <p className={s.info} role="status">{info}</p>}
+        </div>
 
         <div className={s.providers}>
           <ProviderButton
@@ -227,6 +230,8 @@ export default function LoginView() {
               placeholder={t("PASSWORT_PLATZHALTER")}
               value={passwort}
               onChange={(e) => setPasswort(e.target.value)}
+              onFocus={() => setPwFocus(true)}
+              onBlur={() => setPwFocus(false)}
               minLength={registrieren ? 8 : undefined}
               required
             />
@@ -238,7 +243,7 @@ export default function LoginView() {
                   </div>
                   <span className={s.strengthLabel}>{passwort ? staerkeLabel : ""}</span>
                 </div>
-                <span className={s.hint}>{t("PW_MIN_HINWEIS")}</span>
+                {pwFocus && <span className={s.hint}>{t("PW_MIN_HINWEIS")}</span>}
               </>
             )}
           </div>
@@ -274,12 +279,12 @@ export default function LoginView() {
       </div>
 
       <div className={s.footer}>
+        <Link href="/datenschutz">{t("DATENSCHUTZ")}</Link>
+        <span className={s.footerSep}>·</span>
+        <Link href="/impressum">{t("IMPRESSUM")}</Link>
+        <span className={s.footerSep}>·</span>
         <LangSelector />
-        <div className={s.footerLinks}>
-          <Link href="/datenschutz">{t("DATENSCHUTZ")}</Link>
-          <span className={s.footerSep}>·</span>
-          <Link href="/impressum">{t("IMPRESSUM")}</Link>
-        </div>
+        {!desktop && <ThemeToggle />}
       </div>
     </div>
   )
@@ -305,7 +310,6 @@ export default function LoginView() {
   return (
     <div className={s.page}>
       <AuroraBackground />
-      <div className={s.topBar}><ThemeToggle /></div>
       {card}
     </div>
   )
