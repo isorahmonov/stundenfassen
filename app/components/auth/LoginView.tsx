@@ -53,6 +53,7 @@ export default function LoginView() {
   const [busy, setBusy] = useState<Busy>(null)
   const [fehler, setFehler] = useState("")
   const [info, setInfo] = useState("")
+  const [rawCode, setRawCode] = useState("")
 
   // Stashed when a popup sign-in hits account-exists-with-different-credential:
   // after the user signs in with their original provider, we link this one.
@@ -68,6 +69,7 @@ export default function LoginView() {
   async function mitAnbieter(key: Busy, provider: AuthProvider) {
     setFehler("")
     setInfo("")
+    setRawCode("")
     setBusy(key)
     try {
       const result = await signInWithPopup(auth, provider)
@@ -79,10 +81,13 @@ export default function LoginView() {
       }
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? ""
+      console.warn("[auth]", code)
       if (code === "auth/account-exists-with-different-credential") {
         setPendingCred(OAuthProvider.credentialFromError(e as AuthError))
       }
-      if (code !== "auth/popup-closed-by-user") setFehler(t(mapAuthError(code)))
+      const key2 = mapAuthError(code)
+      if (key2 === "AUTH_FEHLER_ALLGEMEIN" && code) setRawCode(code)
+      if (code !== "auth/popup-closed-by-user") setFehler(t(key2))
     } finally {
       setBusy(null)
     }
@@ -92,6 +97,7 @@ export default function LoginView() {
     e.preventDefault()
     setFehler("")
     setInfo("")
+    setRawCode("")
     if (modus === "registrieren" && passwort.length < 8) {
       setFehler(t("PW_MIN_HINWEIS"))
       return
@@ -105,7 +111,10 @@ export default function LoginView() {
       }
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ""
-      setFehler(t(mapAuthError(code)))
+      console.warn("[auth]", code)
+      const key = mapAuthError(code)
+      if (key === "AUTH_FEHLER_ALLGEMEIN" && code) setRawCode(code)
+      setFehler(t(key))
     } finally {
       setBusy(null)
     }
@@ -114,6 +123,7 @@ export default function LoginView() {
   async function passwortVergessen() {
     setFehler("")
     setInfo("")
+    setRawCode("")
     if (!email) {
       setFehler(t("PW_RESET_EMAIL_FEHLT"))
       return
@@ -152,7 +162,12 @@ export default function LoginView() {
           {registrieren ? t("REGISTRIEREN_UNTERTITEL") : t("ANMELDEN_UNTERTITEL")}
         </p>
 
-        {fehler && <p className={s.error} role="alert">{fehler}</p>}
+        {fehler && (
+          <p className={s.error} role="alert">
+            {fehler}
+            {rawCode && <> <small style={{opacity:0.6,fontSize:"0.8em"}}>({rawCode})</small></>}
+          </p>
+        )}
         {info && <p className={s.info} role="status">{info}</p>}
 
         <div className={s.providers}>
@@ -246,7 +261,7 @@ export default function LoginView() {
           <button
             type="button"
             className={s.linkBtn}
-            onClick={() => { setModus(registrieren ? "login" : "registrieren"); setFehler(""); setInfo("") }}
+            onClick={() => { setModus(registrieren ? "login" : "registrieren"); setFehler(""); setInfo(""); setRawCode("") }}
           >
             {registrieren ? t("ZUM_ANMELDEN") : t("ZUM_REGISTRIEREN")}
           </button>

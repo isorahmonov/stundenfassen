@@ -83,6 +83,9 @@ export interface UiStrings {
   AUTH_FEHLER_ZU_VIELE: string
   AUTH_FEHLER_EMAIL_UNGUELTIG: string
   AUTH_FEHLER_KONTO_ANDERER_ANBIETER: string
+  AUTH_FEHLER_NICHT_AKTIVIERT: string
+  AUTH_FEHLER_DEAKTIVIERT: string
+  AUTH_FEHLER_REAUTH_BENOETIGT: string
   PREVIEW_MONAT: string
   PREVIEW_STUNDEN: string
   PREVIEW_GESAMT: string
@@ -516,6 +519,9 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_ZU_VIELE: "Zu viele Versuche. Bitte versuche es später erneut.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Bitte gib eine gültige E-Mail-Adresse ein.",
     AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Für diese E-Mail existiert bereits ein Konto über eine andere Anmeldemethode. Bitte nutze diese Methode.",
+    AUTH_FEHLER_NICHT_AKTIVIERT: "Diese Anmeldemethode ist aktuell nicht aktiviert.",
+    AUTH_FEHLER_DEAKTIVIERT: "Dieses Konto wurde deaktiviert. Bitte wende dich an den Support.",
+    AUTH_FEHLER_REAUTH_BENOETIGT: "Für diese Aktion ist eine erneute Anmeldung erforderlich. Bitte melde dich ab und wieder an.",
     PREVIEW_MONAT: "Dieser Monat",
     PREVIEW_STUNDEN: "Stunden",
     PREVIEW_GESAMT: "Gesamt",
@@ -915,6 +921,9 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_ZU_VIELE: "Too many attempts. Please try again later.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Please enter a valid email address.",
     AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "An account with this email already exists via a different sign-in method. Please use that method.",
+    AUTH_FEHLER_NICHT_AKTIVIERT: "This sign-in method is currently not enabled.",
+    AUTH_FEHLER_DEAKTIVIERT: "This account has been disabled. Please contact support.",
+    AUTH_FEHLER_REAUTH_BENOETIGT: "This action requires a recent sign-in. Please sign out and sign in again.",
     PREVIEW_MONAT: "This month",
     PREVIEW_STUNDEN: "Hours",
     PREVIEW_GESAMT: "Total",
@@ -1314,6 +1323,9 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_ZU_VIELE: "Слишком много попыток. Повторите позже.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Введите корректный адрес эл. почты.",
     AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Для этой почты уже есть аккаунт с другим способом входа. Используйте его.",
+    AUTH_FEHLER_NICHT_AKTIVIERT: "Этот способ входа сейчас не активирован.",
+    AUTH_FEHLER_DEAKTIVIERT: "Аккаунт заблокирован. Обратитесь в службу поддержки.",
+    AUTH_FEHLER_REAUTH_BENOETIGT: "Для этого действия требуется повторная авторизация. Выйдите и войдите снова.",
     PREVIEW_MONAT: "Этот месяц",
     PREVIEW_STUNDEN: "Часы",
     PREVIEW_GESAMT: "Итого",
@@ -1713,6 +1725,9 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_ZU_VIELE: "Trop de tentatives. Réessayez plus tard.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Veuillez saisir une adresse e-mail valide.",
     AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Un compte avec cet e-mail existe déjà via une autre méthode de connexion. Veuillez l'utiliser.",
+    AUTH_FEHLER_NICHT_AKTIVIERT: "Cette méthode de connexion n'est pas activée actuellement.",
+    AUTH_FEHLER_DEAKTIVIERT: "Ce compte a été désactivé. Veuillez contacter le support.",
+    AUTH_FEHLER_REAUTH_BENOETIGT: "Cette action nécessite une connexion récente. Déconnectez-vous et reconnectez-vous.",
     PREVIEW_MONAT: "Ce mois-ci",
     PREVIEW_STUNDEN: "Heures",
     PREVIEW_GESAMT: "Total",

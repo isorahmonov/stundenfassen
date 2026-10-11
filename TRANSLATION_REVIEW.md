@@ -160,6 +160,19 @@ directly; RU/FR below need native-speaker review.
 
 **Note:** RU/FR above — native-speaker review recommended before publication.
 
+## Auth error codes – phase (a) (2026-10-11)
+
+New keys added to `lib/i18n.ts` UiStrings interface + all 4 locales (DE/EN/RU/FR).
+New cases added to `mapAuthError` in `lib/auth/providers.ts`.
+
+| Key | DE | EN | RU | FR |
+|---|---|---|---|---|
+| `AUTH_FEHLER_NICHT_AKTIVIERT` | Diese Anmeldemethode ist aktuell nicht aktiviert. | This sign-in method is currently not enabled. | Этот способ входа сейчас не активирован. | Cette méthode de connexion n'est pas activée actuellement. |
+| `AUTH_FEHLER_DEAKTIVIERT` | Dieses Konto wurde deaktiviert. Bitte wende dich an den Support. | This account has been disabled. Please contact support. | Аккаунт заблокирован. Обратитесь в службу поддержки. | Ce compte a été désactivé. Veuillez contacter le support. |
+| `AUTH_FEHLER_REAUTH_BENOETIGT` | Für diese Aktion ist eine erneute Anmeldung erforderlich. Bitte melde dich ab und wieder an. | This action requires a recent sign-in. Please sign out and sign in again. | Для этого действия требуется повторная авторизация. Выйдите и войдите снова. | Cette action nécessite une connexion récente. Déconnectez-vous et reconnectez-vous. |
+
+**Note:** RU/FR — native-speaker review recommended.
+
 ## 2.0 bullet items (historical, shown in Profil → Neuigkeiten)
 
 | Key | Notes |

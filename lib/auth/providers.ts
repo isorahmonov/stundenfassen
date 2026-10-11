@@ -68,6 +68,12 @@ export function mapAuthError(code: string): keyof UiStrings {
     case "auth/popup-closed-by-user":
     case "auth/cancelled-popup-request":
       return "AUTH_FEHLER_ABGEBROCHEN"
+    case "auth/operation-not-allowed":
+      return "AUTH_FEHLER_NICHT_AKTIVIERT"
+    case "auth/user-disabled":
+      return "AUTH_FEHLER_DEAKTIVIERT"
+    case "auth/requires-recent-login":
+      return "AUTH_FEHLER_REAUTH_BENOETIGT"
     default:
       return "AUTH_FEHLER_ALLGEMEIN"
   }

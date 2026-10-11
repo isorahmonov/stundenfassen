@@ -17,6 +17,9 @@ describe("mapAuthError", () => {
     expect(mapAuthError("auth/popup-blocked")).toBe("AUTH_FEHLER_POPUP_BLOCKIERT")
     expect(mapAuthError("auth/network-request-failed")).toBe("AUTH_FEHLER_NETZWERK")
     expect(mapAuthError("auth/popup-closed-by-user")).toBe("AUTH_FEHLER_ABGEBROCHEN")
+    expect(mapAuthError("auth/operation-not-allowed")).toBe("AUTH_FEHLER_NICHT_AKTIVIERT")
+    expect(mapAuthError("auth/user-disabled")).toBe("AUTH_FEHLER_DEAKTIVIERT")
+    expect(mapAuthError("auth/requires-recent-login")).toBe("AUTH_FEHLER_REAUTH_BENOETIGT")
   })
 
   it("falls back to the generic error for unknown codes", () => {
