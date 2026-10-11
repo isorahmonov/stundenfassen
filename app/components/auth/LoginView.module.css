@@ -86,6 +86,7 @@
   z-index: 1;
   width: 100%;
   max-width: 24rem;
+  animation: cardFloat 5s ease-in-out 0.6s infinite;
 }
 
 .card {
@@ -133,11 +134,15 @@
 /* staggered entry */
 .providers > *,
 .form > * {
-  animation: itemIn 0.35s ease both;
+  animation: itemIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.providers > *:nth-child(1) { animation-delay: 0.05s; }
-.providers > *:nth-child(2) { animation-delay: 0.1s; }
-.providers > *:nth-child(3) { animation-delay: 0.15s; }
+.providers > *:nth-child(1) { animation-delay: 0.06s; }
+.providers > *:nth-child(2) { animation-delay: 0.12s; }
+.providers > *:nth-child(3) { animation-delay: 0.18s; }
+.form > *:nth-child(1) { animation-delay: 0.2s; }
+.form > *:nth-child(2) { animation-delay: 0.26s; }
+.form > *:nth-child(3) { animation-delay: 0.32s; }
+.form > *:nth-child(4) { animation-delay: 0.38s; }
 
 .divider {
   display: flex;
@@ -269,6 +274,7 @@
 .error {
   color: #b42318;
   background: color-mix(in srgb, var(--sf-accent-3) 12%, transparent);
+  animation: errorShake 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .info {
@@ -414,9 +420,23 @@
 }
 
 @keyframes logoLoop {
-  0%    { transform: rotate(0deg); }
-  37.5% { transform: rotate(360deg); }
-  100%  { transform: rotate(360deg); }
+  0%    { transform: rotate(0deg) scale(1); }
+  37.5% { transform: rotate(360deg) scale(1); }
+  62.5% { transform: rotate(360deg) scale(1.05); }
+  100%  { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
 }
 
 @keyframes ssLogoPulse {
@@ -425,6 +445,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loginWrap {
+    animation: none !important;
+  }
   .card,
   .providers > *,
   .form > *,
@@ -433,6 +456,9 @@
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+  .error {
+    animation: none !important;
   }
   .logoMark {
     animation: ssLogoPulse 3s ease-in-out infinite !important;

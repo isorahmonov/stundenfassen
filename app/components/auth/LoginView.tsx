@@ -183,7 +183,7 @@ export default function LoginView() {
 
         <div className={s.msgWrap}>
           {fehler && (
-            <p className={s.error} role="alert">
+            <p key={fehler} className={s.error} role="alert">
               {fehler}
               {rawCode && <> <small style={{opacity:0.6,fontSize:"0.8em"}}>({rawCode})</small></>}
             </p>
