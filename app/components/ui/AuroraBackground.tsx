@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import styles from "./AuroraBackground.module.css"
 
 /**
@@ -10,6 +10,12 @@ import styles from "./AuroraBackground.module.css"
  */
 export default function AuroraBackground({ parallax = false }: { parallax?: boolean }) {
   const layerRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setActive(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     if (!parallax) return
@@ -30,7 +36,7 @@ export default function AuroraBackground({ parallax = false }: { parallax?: bool
   }, [parallax])
 
   return (
-    <div className={styles.root} aria-hidden="true">
+    <div className={`${styles.root}${active ? ` ${styles.active}` : ""}`} aria-hidden="true">
       <div ref={layerRef} className={styles.layer}>
         <div className={`${styles.blob} ${styles.blob1}`} />
         <div className={`${styles.blob} ${styles.blob2}`} />

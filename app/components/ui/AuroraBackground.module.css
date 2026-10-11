@@ -29,7 +29,6 @@
   width: 36vw;
   height: 36vw;
   background: radial-gradient(circle at 30% 30%, var(--sf-accent), transparent 70%);
-  animation: drift1 40s ease-in-out infinite;
 }
 
 .blob2 {
@@ -38,7 +37,6 @@
   width: 30vw;
   height: 30vw;
   background: radial-gradient(circle at 70% 40%, var(--sf-accent-2), transparent 70%);
-  animation: drift2 50s ease-in-out infinite;
 }
 
 .blob3 {
@@ -47,8 +45,12 @@
   width: 28vw;
   height: 28vw;
   background: radial-gradient(circle at 50% 60%, var(--sf-accent-3), transparent 70%);
-  animation: drift3 45s ease-in-out infinite;
 }
+
+/* Animations start after the first paint (class added via requestAnimationFrame). */
+.active .blob1 { animation: drift1 40s ease-in-out infinite; }
+.active .blob2 { animation: drift2 50s ease-in-out infinite; }
+.active .blob3 { animation: drift3 45s ease-in-out infinite; }
 
 /* Subtle grain to break up the gradients (pure CSS, no asset) */
 .grain {
