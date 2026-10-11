@@ -53,6 +53,7 @@ scripts/promo-video*
 scripts/check-*
 scripts/diagnose-*
 scripts/test-holeSicherIcal.ts
+scripts/restore-from-backup.ts
 *.backup.json
 employer-bac*.json
 tsconfig.scripts.json
