@@ -13,6 +13,7 @@ import VerifyEmailScreen from "./auth/VerifyEmailScreen"
 import LandingPage from "./landing/LandingPage"
 import { useIsDesktop } from "./useIsDesktop"
 import { useT } from "./LangProvider"
+import { hasSessionHint, setSessionHint, clearSessionHint } from "@/lib/auth/sessionHint"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
@@ -54,6 +55,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const istStartseite = pathname === "/"
 
   useEffect(() => {
+    // No hint → user is almost certainly logged out; show content immediately.
+    // queueMicrotask avoids a synchronous setState in effect body (lint rule).
+    if (!hasSessionHint()) queueMicrotask(() => setLaden(false))
+
     let settled = false
     const timer = setTimeout(() => {
       if (!settled) {
@@ -64,6 +69,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       settled = true
       clearTimeout(timer)
+      if (u) setSessionHint()
+      else clearSessionHint()
       setUser(u)
       setLaden(false)
     })
