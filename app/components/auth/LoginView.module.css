@@ -91,13 +91,22 @@
 .card {
   border-radius: 1.25rem;
   padding: 1.25rem;
-  box-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 10px 40px -12px rgba(0, 0, 0, 0.18),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset; /* specular top edge */
   /* gradient border via padding-box/border-box trick */
   border: 1px solid transparent;
   background:
     linear-gradient(var(--sf-card), var(--sf-card)) padding-box,
     linear-gradient(140deg, var(--sf-accent), var(--sf-accent-2), var(--sf-accent-3)) border-box;
   animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .card {
+    background: var(--sf-card);
+    border: 1px solid var(--sf-border-2);
+  }
 }
 
 .cardTitle {
@@ -176,6 +185,7 @@
   background: var(--sf-input);
   color: var(--sf-text);
   font-size: 0.95rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 

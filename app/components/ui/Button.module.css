@@ -109,7 +109,7 @@
   to { transform: translateX(120%); }
 }
 
-/* Round 56px icon-only provider button */
+/* Round 56px icon-only provider button — glass layer 2 (card is layer 1) */
 .iconBtn {
   position: relative;
   display: inline-flex;
@@ -118,25 +118,43 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--sf-card);
-  border: 1px solid var(--sf-border-2);
+  background: var(--sf-glass);
+  border: 1px solid var(--sf-glass-border);
   color: var(--sf-text);
   cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset, /* specular top */
+    0 4px 12px -8px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  backdrop-filter: blur(10px) saturate(130%);
   transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .iconBtn {
+    background: var(--sf-card);
+    border-color: var(--sf-border-2);
+    box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .iconBtn:focus-visible {
   outline: 2px solid var(--sf-accent);
   outline-offset: 2px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 4px color-mix(in srgb, var(--sf-accent) 22%, transparent);
 }
 
 .iconBtn:hover:not(:disabled) {
   border-color: var(--sf-text-3);
-  box-shadow: 0 6px 18px -12px var(--sf-text);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 6px 18px -8px rgba(0, 0, 0, 0.18);
 }
 
 .iconBtn:active:not(:disabled) {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .iconBtn:disabled {
