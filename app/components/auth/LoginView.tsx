@@ -8,6 +8,7 @@ import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   linkWithCredential,
+  fetchSignInMethodsForEmail,
   OAuthProvider,
   type AuthProvider,
   type AuthCredential,
@@ -26,7 +27,7 @@ import { useIsDesktop } from "../useIsDesktop"
 import { ThemeToggle } from "../ThemeToggle"
 import { ShiftslotLogo } from "../ShiftslotLogo"
 import AuroraBackground from "../ui/AuroraBackground"
-import { Button, ProviderButton } from "../ui/Button"
+import { Button, IconButton } from "../ui/Button"
 import ProductPreview from "./ProductPreview"
 import { APP_NAME } from "@/lib/brand"
 import { LOCALES, type Locale } from "@/lib/i18n"
@@ -59,6 +60,7 @@ export default function LoginView() {
   // Stashed when a popup sign-in hits account-exists-with-different-credential:
   // after the user signs in with their original provider, we link this one.
   const [pendingCred, setPendingCred] = useState<AuthCredential | null>(null)
+  const [suggestedProvider, setSuggestedProvider] = useState<"google" | "github" | "email" | null>(null)
 
   const [tabHidden, setTabHidden] = useState(false)
   useEffect(() => {
@@ -85,10 +87,26 @@ export default function LoginView() {
       console.warn("[auth]", code)
       if (code === "auth/account-exists-with-different-credential") {
         setPendingCred(OAuthProvider.credentialFromError(e as AuthError))
+        const errEmail = (e as { customData?: { email?: string } }).customData?.email
+        let shown = false
+        if (errEmail) {
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, errEmail)
+            if (methods.includes("google.com")) {
+              setFehler(t("AUTH_FEHLER_KONTO_ANBIETER_GOOGLE")); setSuggestedProvider("google"); shown = true
+            } else if (methods.includes("github.com")) {
+              setFehler(t("AUTH_FEHLER_KONTO_ANBIETER_GITHUB")); setSuggestedProvider("github"); shown = true
+            } else if (methods.includes("password")) {
+              setFehler(t("AUTH_FEHLER_KONTO_ANBIETER_EMAIL")); setSuggestedProvider("email"); shown = true
+            }
+          } catch { /* email enumeration protection active */ }
+        }
+        if (!shown) setFehler(t("AUTH_FEHLER_KONTO_ANDERER_ANBIETER"))
+      } else {
+        const key2 = mapAuthError(code)
+        if (key2 === "AUTH_FEHLER_ALLGEMEIN" && code) setRawCode(code)
+        if (code !== "auth/popup-closed-by-user") setFehler(t(key2))
       }
-      const key2 = mapAuthError(code)
-      if (key2 === "AUTH_FEHLER_ALLGEMEIN" && code) setRawCode(code)
-      if (code !== "auth/popup-closed-by-user") setFehler(t(key2))
     } finally {
       setBusy(null)
     }
@@ -174,33 +192,30 @@ export default function LoginView() {
         </div>
 
         <div className={s.providers}>
-          <ProviderButton
+          <IconButton
             icon={<GoogleIcon />}
+            aria-label={t("MIT_GOOGLE_ANMELDEN")}
             loading={busy === "google"}
             disabled={busy !== null}
+            suggested={suggestedProvider === "google"}
             onClick={() => mitAnbieter("google", googleProvider)}
-          >
-            {t("MIT_GOOGLE_ANMELDEN")}
-          </ProviderButton>
-
-          <ProviderButton
+          />
+          <IconButton
             icon={<AppleIcon />}
+            aria-label={t("MIT_APPLE_ANMELDEN")}
+            title={!AUTH_APPLE_ENABLED ? t("BALD_VERFUEGBAR") : undefined}
             loading={busy === "apple"}
             disabled={busy !== null || !AUTH_APPLE_ENABLED}
-            title={AUTH_APPLE_ENABLED ? undefined : t("BALD_VERFUEGBAR")}
             onClick={() => AUTH_APPLE_ENABLED && mitAnbieter("apple", appleProvider)}
-          >
-            {AUTH_APPLE_ENABLED ? t("MIT_APPLE_ANMELDEN") : `${t("MIT_APPLE_ANMELDEN")} · ${t("BALD_VERFUEGBAR")}`}
-          </ProviderButton>
-
-          <ProviderButton
+          />
+          <IconButton
             icon={<GithubIcon />}
+            aria-label={t("MIT_GITHUB_ANMELDEN")}
             loading={busy === "github"}
             disabled={busy !== null}
+            suggested={suggestedProvider === "github"}
             onClick={() => mitAnbieter("github", githubProvider)}
-          >
-            {t("MIT_GITHUB_ANMELDEN")}
-          </ProviderButton>
+          />
         </div>
 
         <div className={s.divider}>{t("ODER")}</div>
@@ -266,7 +281,7 @@ export default function LoginView() {
           <button
             type="button"
             className={s.linkBtn}
-            onClick={() => { setModus(registrieren ? "login" : "registrieren"); setFehler(""); setInfo(""); setRawCode("") }}
+            onClick={() => { setModus(registrieren ? "login" : "registrieren"); setFehler(""); setInfo(""); setRawCode(""); setSuggestedProvider(null) }}
           >
             {registrieren ? t("ZUM_ANMELDEN") : t("ZUM_REGISTRIEREN")}
           </button>
@@ -336,7 +351,7 @@ function LangSelector() {
 
 function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 18 18" aria-hidden="true">
       <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
       <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
       <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
@@ -347,7 +362,7 @@ function GoogleIcon() {
 
 function AppleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
       <path d="M16.365 1.43c0 1.14-.42 2.22-1.12 3.02-.84.96-2.22 1.7-3.38 1.6-.14-1.12.42-2.3 1.1-3.02.78-.84 2.14-1.46 3.4-1.6zM20.5 17.1c-.6 1.38-.9 1.99-1.67 3.2-1.08 1.7-2.6 3.81-4.48 3.82-1.67.02-2.1-1.09-4.37-1.08-2.27.01-2.74 1.1-4.42 1.08-1.88-.02-3.32-1.93-4.4-3.62-3.02-4.74-3.34-10.3-1.47-13.26 1.33-2.1 3.43-3.33 5.4-3.33 2.01 0 3.27 1.1 4.93 1.1 1.61 0 2.59-1.1 4.92-1.1 1.76 0 3.62.96 4.95 2.62-4.35 2.38-3.64 8.58.08 9.57z"/>
     </svg>
   )
@@ -355,7 +370,7 @@ function AppleIcon() {
 
 function GithubIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
       <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>
     </svg>
   )

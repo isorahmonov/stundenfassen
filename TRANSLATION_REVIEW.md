@@ -186,3 +186,17 @@ New cases added to `mapAuthError` in `lib/auth/providers.ts`.
 | `UPD_2_0_ITEM7` | Flat-rate wage tax |
 | `UPD_2_0_ITEM8` | Faster calendar loading |
 | `UPD_2_0_ITEM9` | Sign out in Profile tab |
+
+## Auth error provider-specific – phase (c) (2026-10-11)
+
+New keys for `account-exists-with-different-credential` provider naming.
+Neutral fallback (`AUTH_FEHLER_KONTO_ANDERER_ANBIETER`) updated in all locales.
+
+| Key | DE | EN | RU | FR |
+|---|---|---|---|---|
+| `AUTH_FEHLER_KONTO_ANDERER_ANBIETER` | Melde dich mit dem Anbieter an, mit dem du dich zuerst registriert hast (z. B. Google). | Sign in with the provider you used when you first signed up (e.g. Google). | Войдите через сервис, с которым вы впервые зарегистрировались (например, Google). | Connectez-vous avec le fournisseur utilisé lors de votre inscription (p. ex. Google). |
+| `AUTH_FEHLER_KONTO_ANBIETER_GOOGLE` | Für diese E-Mail existiert bereits ein Google-Konto. Melde dich mit Google an. | A Google account already exists for this email. Sign in with Google. | Для этой почты уже есть аккаунт Google. Войдите через Google. | Un compte Google existe déjà pour cet e-mail. Connectez-vous avec Google. |
+| `AUTH_FEHLER_KONTO_ANBIETER_GITHUB` | Für diese E-Mail existiert bereits ein GitHub-Konto. Melde dich mit GitHub an. | A GitHub account already exists for this email. Sign in with GitHub. | Для этой почты уже есть аккаунт GitHub. Войдите через GitHub. | Un compte GitHub existe déjà pour cet e-mail. Connectez-vous avec GitHub. |
+| `AUTH_FEHLER_KONTO_ANBIETER_EMAIL` | Für diese E-Mail wurde ein Konto mit E-Mail/Passwort erstellt. Melde dich mit deinen Zugangsdaten an. | An account with email and password already exists for this email. Sign in with your credentials. | Для этой почты создан аккаунт с паролем. Войдите с помощью вашего адреса и пароля. | Un compte avec e-mail et mot de passe existe déjà. Connectez-vous avec vos identifiants. |
+
+**Note:** RU/FR — native-speaker review recommended. Juristisch prüfen.

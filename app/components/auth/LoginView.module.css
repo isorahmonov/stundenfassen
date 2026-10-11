@@ -116,8 +116,9 @@
 
 .providers {
   display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
 }
 
 /* staggered entry */

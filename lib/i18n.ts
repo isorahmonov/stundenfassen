@@ -83,6 +83,9 @@ export interface UiStrings {
   AUTH_FEHLER_ZU_VIELE: string
   AUTH_FEHLER_EMAIL_UNGUELTIG: string
   AUTH_FEHLER_KONTO_ANDERER_ANBIETER: string
+  AUTH_FEHLER_KONTO_ANBIETER_GOOGLE: string
+  AUTH_FEHLER_KONTO_ANBIETER_GITHUB: string
+  AUTH_FEHLER_KONTO_ANBIETER_EMAIL: string
   AUTH_FEHLER_NICHT_AKTIVIERT: string
   AUTH_FEHLER_DEAKTIVIERT: string
   AUTH_FEHLER_REAUTH_BENOETIGT: string
@@ -518,7 +521,10 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_SCHWACHES_PW: "Passwort ist zu schwach (mindestens 8 Zeichen).",
     AUTH_FEHLER_ZU_VIELE: "Zu viele Versuche. Bitte versuche es später erneut.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Bitte gib eine gültige E-Mail-Adresse ein.",
-    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Für diese E-Mail existiert bereits ein Konto über eine andere Anmeldemethode. Bitte nutze diese Methode.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Melde dich mit dem Anbieter an, mit dem du dich zuerst registriert hast (z. B. Google).",
+    AUTH_FEHLER_KONTO_ANBIETER_GOOGLE: "Für diese E-Mail existiert bereits ein Google-Konto. Melde dich mit Google an.",
+    AUTH_FEHLER_KONTO_ANBIETER_GITHUB: "Für diese E-Mail existiert bereits ein GitHub-Konto. Melde dich mit GitHub an.",
+    AUTH_FEHLER_KONTO_ANBIETER_EMAIL: "Für diese E-Mail wurde ein Konto mit E-Mail/Passwort erstellt. Melde dich mit deinen Zugangsdaten an.",
     AUTH_FEHLER_NICHT_AKTIVIERT: "Diese Anmeldemethode ist aktuell nicht aktiviert.",
     AUTH_FEHLER_DEAKTIVIERT: "Dieses Konto wurde deaktiviert. Bitte wende dich an den Support.",
     AUTH_FEHLER_REAUTH_BENOETIGT: "Für diese Aktion ist eine erneute Anmeldung erforderlich. Bitte melde dich ab und wieder an.",
@@ -920,7 +926,10 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_SCHWACHES_PW: "Password is too weak (at least 8 characters).",
     AUTH_FEHLER_ZU_VIELE: "Too many attempts. Please try again later.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Please enter a valid email address.",
-    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "An account with this email already exists via a different sign-in method. Please use that method.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Sign in with the provider you used when you first signed up (e.g. Google).",
+    AUTH_FEHLER_KONTO_ANBIETER_GOOGLE: "A Google account already exists for this email. Sign in with Google.",
+    AUTH_FEHLER_KONTO_ANBIETER_GITHUB: "A GitHub account already exists for this email. Sign in with GitHub.",
+    AUTH_FEHLER_KONTO_ANBIETER_EMAIL: "An account with email and password already exists for this email. Sign in with your credentials.",
     AUTH_FEHLER_NICHT_AKTIVIERT: "This sign-in method is currently not enabled.",
     AUTH_FEHLER_DEAKTIVIERT: "This account has been disabled. Please contact support.",
     AUTH_FEHLER_REAUTH_BENOETIGT: "This action requires a recent sign-in. Please sign out and sign in again.",
@@ -1322,7 +1331,10 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_SCHWACHES_PW: "Пароль слишком простой (не менее 8 символов).",
     AUTH_FEHLER_ZU_VIELE: "Слишком много попыток. Повторите позже.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Введите корректный адрес эл. почты.",
-    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Для этой почты уже есть аккаунт с другим способом входа. Используйте его.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Войдите через сервис, с которым вы впервые зарегистрировались (например, Google).",
+    AUTH_FEHLER_KONTO_ANBIETER_GOOGLE: "Для этой почты уже есть аккаунт Google. Войдите через Google.",
+    AUTH_FEHLER_KONTO_ANBIETER_GITHUB: "Для этой почты уже есть аккаунт GitHub. Войдите через GitHub.",
+    AUTH_FEHLER_KONTO_ANBIETER_EMAIL: "Для этой почты создан аккаунт с паролем. Войдите с помощью вашего адреса и пароля.",
     AUTH_FEHLER_NICHT_AKTIVIERT: "Этот способ входа сейчас не активирован.",
     AUTH_FEHLER_DEAKTIVIERT: "Аккаунт заблокирован. Обратитесь в службу поддержки.",
     AUTH_FEHLER_REAUTH_BENOETIGT: "Для этого действия требуется повторная авторизация. Выйдите и войдите снова.",
@@ -1724,7 +1736,10 @@ export const translations: Record<Locale, UiStrings> = {
     AUTH_FEHLER_SCHWACHES_PW: "Le mot de passe est trop faible (au moins 8 caractères).",
     AUTH_FEHLER_ZU_VIELE: "Trop de tentatives. Réessayez plus tard.",
     AUTH_FEHLER_EMAIL_UNGUELTIG: "Veuillez saisir une adresse e-mail valide.",
-    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Un compte avec cet e-mail existe déjà via une autre méthode de connexion. Veuillez l'utiliser.",
+    AUTH_FEHLER_KONTO_ANDERER_ANBIETER: "Connectez-vous avec le fournisseur utilisé lors de votre inscription (p. ex. Google).",
+    AUTH_FEHLER_KONTO_ANBIETER_GOOGLE: "Un compte Google existe déjà pour cet e-mail. Connectez-vous avec Google.",
+    AUTH_FEHLER_KONTO_ANBIETER_GITHUB: "Un compte GitHub existe déjà pour cet e-mail. Connectez-vous avec GitHub.",
+    AUTH_FEHLER_KONTO_ANBIETER_EMAIL: "Un compte avec e-mail et mot de passe existe déjà. Connectez-vous avec vos identifiants.",
     AUTH_FEHLER_NICHT_AKTIVIERT: "Cette méthode de connexion n'est pas activée actuellement.",
     AUTH_FEHLER_DEAKTIVIERT: "Ce compte a été désactivé. Veuillez contacter le support.",
     AUTH_FEHLER_REAUTH_BENOETIGT: "Cette action nécessite une connexion récente. Déconnectez-vous et reconnectez-vous.",

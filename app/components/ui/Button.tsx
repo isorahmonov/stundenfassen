@@ -66,6 +66,38 @@ export function Button({
   )
 }
 
+type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: ReactNode
+  loading?: boolean
+  suggested?: boolean
+}
+
+/** Round 56px icon-only provider button. */
+export function IconButton({
+  icon,
+  loading = false,
+  suggested = false,
+  className = "",
+  disabled,
+  ...rest
+}: IconButtonProps) {
+  return (
+    <button
+      className={`${styles.iconBtn}${suggested ? ` ${styles.suggested}` : ""} ${className}`}
+      disabled={disabled || loading}
+      {...rest}
+    >
+      {loading ? (
+        <span className={styles.spinner} aria-hidden="true" />
+      ) : (
+        <span className={styles.iconBtnIcon} aria-hidden="true">
+          {icon}
+        </span>
+      )}
+    </button>
+  )
+}
+
 type ProviderButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon: ReactNode
   loading?: boolean

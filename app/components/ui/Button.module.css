@@ -109,6 +109,57 @@
   to { transform: translateX(120%); }
 }
 
+/* Round 56px icon-only provider button */
+.iconBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--sf-card);
+  border: 1px solid var(--sf-border-2);
+  color: var(--sf-text);
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.iconBtn:focus-visible {
+  outline: 2px solid var(--sf-accent);
+  outline-offset: 2px;
+}
+
+.iconBtn:hover:not(:disabled) {
+  border-color: var(--sf-text-3);
+  box-shadow: 0 6px 18px -12px var(--sf-text);
+}
+
+.iconBtn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.iconBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.iconBtnIcon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.suggested {
+  animation: providerPulse 1.8s ease-in-out 3;
+}
+
+@keyframes providerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sf-accent) 40%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--sf-accent) 0%, transparent); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn {
     transition: none !important;
@@ -122,5 +173,15 @@
   }
   .spinner {
     animation: spin 1.2s linear infinite;
+  }
+  .iconBtn {
+    transition: none !important;
+    transform: none !important;
+  }
+  .iconBtn:active:not(:disabled) {
+    transform: none !important;
+  }
+  .suggested {
+    animation: none !important;
   }
 }
