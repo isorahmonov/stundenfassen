@@ -5,6 +5,7 @@ import Link from "next/link"
 import { signOut, reauthenticateWithPopup, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
 import { auth } from "@/lib/firebase/client"
 import { providerFor, mapAuthError } from "@/lib/auth/providers"
+import { clearSessionHint } from "@/lib/auth/sessionHint"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import type { TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
 import type { Employer, MinusEintrag, EmailVorlage, Settings, Steuerklasse } from "@/lib/types"
@@ -194,7 +195,7 @@ export default function ProfilSeite() {
   }
 
   async function abmelden() {
-    // Alle App-eigenen localStorage-Einträge löschen (iCal-Cache + Block-Auswahl)
+    // Alle App-eigenen localStorage-Einträge löschen (iCal-Cache + Block-Auswahl + Session-Hint)
     const keysToRemove: string[] = []
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i)
@@ -203,6 +204,7 @@ export default function ProfilSeite() {
       }
     }
     keysToRemove.forEach((k) => localStorage.removeItem(k))
+    clearSessionHint()
     await signOut(auth)
     // AuthGate erkennt den Logout via onAuthStateChanged und zeigt den Login-Screen
   }

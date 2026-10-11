@@ -13,7 +13,7 @@ import VerifyEmailScreen from "./auth/VerifyEmailScreen"
 import LandingPage from "./landing/LandingPage"
 import { useIsDesktop } from "./useIsDesktop"
 import { useT } from "./LangProvider"
-import { hasSessionHint, setSessionHint, clearSessionHint } from "@/lib/auth/sessionHint"
+import { sollteWarten, setSessionHint, clearSessionHint } from "@/lib/auth/sessionHint"
 import { APP_NAME } from "@/lib/brand"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
@@ -71,9 +71,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const istStartseite = pathname === "/"
 
   useEffect(() => {
-    // No hint → user is almost certainly logged out; show content immediately.
-    // queueMicrotask avoids a synchronous setState in effect body (lint rule).
-    if (!hasSessionHint()) queueMicrotask(() => setLaden(false))
+    let cancelled = false
+    // Async: checks hint + localStorage + IndexedDB for a persisted Firebase session.
+    // Falls A (firebase key, no hint) and B (stale hint) are both handled: if any
+    // evidence of a session is found we wait; otherwise content renders immediately.
+    sollteWarten().then(warten => { if (!cancelled && !warten) setLaden(false) })
 
     let settled = false
     const timer = setTimeout(() => {
@@ -91,6 +93,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       setLaden(false)
     })
     return () => {
+      cancelled = true
       settled = true
       clearTimeout(timer)
       unsubscribe()
