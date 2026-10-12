@@ -164,6 +164,8 @@
 
 .iconBtnIcon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 24px;
   height: 24px;
   flex-shrink: 0;
@@ -171,11 +173,16 @@
 
 /* Light-mode: stronger border, deeper shadow, subtle top-to-bottom gradient */
 :global(:root:not([data-theme="dark"])) .iconBtn {
+  color: #1a1a1a;
   border-color: rgba(23, 23, 23, 0.18);
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 244, 243, 0.82) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 4px 16px -6px rgba(0, 0, 0, 0.15);
+}
+
+:global([data-theme="dark"]) .iconBtn {
+  color: #f5f5f5;
 }
 
 .suggested {
