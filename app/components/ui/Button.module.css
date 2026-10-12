@@ -169,6 +169,15 @@
   flex-shrink: 0;
 }
 
+/* Light-mode: stronger border, deeper shadow, subtle top-to-bottom gradient */
+:global(:root:not([data-theme="dark"])) .iconBtn {
+  border-color: rgba(23, 23, 23, 0.18);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 244, 243, 0.82) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 16px -6px rgba(0, 0, 0, 0.15);
+}
+
 .suggested {
   animation: providerPulse 1.8s ease-in-out 3;
 }
