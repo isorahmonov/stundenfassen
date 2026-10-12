@@ -308,8 +308,8 @@ export default function LoginView() {
     return (
       <div className={s.split}>
         <div className={s.topBar}><ThemeToggle /></div>
-        <div className={s.brandPanel}>
-          <AuroraBackground parallax />
+        <AuroraBackground parallax />
+      <div className={s.brandPanel}>
           <div className={s.brandInner}>
             <ShiftslotLogo size={56} mode="mark" />
             <h1 className={s.brandName}>{APP_NAME}</h1>
