@@ -396,6 +396,10 @@
   animation-play-state: paused;
 }
 
+.loginWrap.animPaused {
+  animation-play-state: paused;
+}
+
 /* ── Keyframes ──────────────────────────────────────────────── */
 
 @keyframes cardIn {

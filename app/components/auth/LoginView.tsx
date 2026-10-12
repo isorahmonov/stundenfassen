@@ -161,7 +161,7 @@ export default function LoginView() {
     staerke <= 1 ? t("PW_STAERKE_SCHWACH") : staerke === 2 ? t("PW_STAERKE_MITTEL") : t("PW_STAERKE_STARK")
 
   const card = (
-    <div className={s.loginWrap}>
+    <div className={`${s.loginWrap}${tabHidden ? ` ${s.animPaused}` : ""}`}>
       {/* Mobile-only branded intro (desktop shows the brand panel instead) */}
       {!desktop && (
         <div className={`${s.introWrap}${tabHidden ? ` ${s.animPaused}` : ""}`}>
