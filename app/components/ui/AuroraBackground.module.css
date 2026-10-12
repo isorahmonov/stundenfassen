@@ -4,7 +4,11 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  contain: layout paint;
+  contain: strict;
+}
+
+.rootFixed {
+  position: fixed;
 }
 
 /* Parallax layer — transformed by mouse on desktop, independent of blob drift */

@@ -8,7 +8,13 @@ import styles from "./AuroraBackground.module.css"
  * Static under prefers-reduced-motion (handled in CSS). Optional mouse
  * parallax on fine-pointer (desktop) devices only.
  */
-export default function AuroraBackground({ parallax = false }: { parallax?: boolean }) {
+export default function AuroraBackground({
+  parallax = false,
+  fixed = false,
+}: {
+  parallax?: boolean
+  fixed?: boolean
+}) {
   const layerRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(false)
 
@@ -26,17 +32,34 @@ export default function AuroraBackground({ parallax = false }: { parallax?: bool
     const layer = layerRef.current
     if (!layer) return
 
+    let scrolling = false
+    let scrollTimer: ReturnType<typeof setTimeout>
+
     const onMove = (e: PointerEvent) => {
+      if (scrolling) return
       const x = (e.clientX / window.innerWidth - 0.5) * 2
       const y = (e.clientY / window.innerHeight - 0.5) * 2
       layer.style.transform = `translate(${x * 18}px, ${y * 18}px)`
     }
+    const onScroll = () => {
+      scrolling = true
+      clearTimeout(scrollTimer)
+      scrollTimer = setTimeout(() => { scrolling = false }, 150)
+    }
     window.addEventListener("pointermove", onMove)
-    return () => window.removeEventListener("pointermove", onMove)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("scroll", onScroll)
+      clearTimeout(scrollTimer)
+    }
   }, [parallax])
 
   return (
-    <div className={`${styles.root}${active ? ` ${styles.active}` : ""}`} aria-hidden="true">
+    <div
+      className={`${styles.root}${fixed ? ` ${styles.rootFixed}` : ""}${active ? ` ${styles.active}` : ""}`}
+      aria-hidden="true"
+    >
       <div ref={layerRef} className={styles.layer}>
         <div className={`${styles.blob} ${styles.blob1}`} />
         <div className={`${styles.blob} ${styles.blob2}`} />

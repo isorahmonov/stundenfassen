@@ -12,8 +12,35 @@ import { APP_NAME } from "@/lib/brand"
 import { LOCALES, type Locale, type UiStrings } from "@/lib/i18n"
 import s from "./LandingPage.module.css"
 
+const FEATURES = [
+  { icon: <ClockIcon />, titelKey: "LANDING_F1_TITEL", textKey: "LANDING_F1_TEXT" },
+  { icon: <CalcIcon />, titelKey: "LANDING_F2_TITEL", textKey: "LANDING_F2_TEXT" },
+  { icon: <DocIcon />, titelKey: "LANDING_F3_TITEL", textKey: "LANDING_F3_TEXT" },
+  { icon: <CalendarIcon />, titelKey: "LANDING_F4_TITEL", textKey: "LANDING_F4_TEXT" },
+] as const
+
 export default function LandingPage() {
   const t = useT()
+  const [visibleFeatures, setVisibleFeatures] = useState(() => [false, false, false, false])
+  const featureRefs = useRef<(HTMLElement | null)[]>([null, null, null, null])
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const i = featureRefs.current.indexOf(entry.target as HTMLElement)
+          if (i >= 0) {
+            setVisibleFeatures((v) => { const n = [...v]; n[i] = true; return n })
+            io.unobserve(entry.target)
+          }
+        }
+      },
+      { threshold: 0.2 },
+    )
+    featureRefs.current.forEach((el) => { if (el) io.observe(el) })
+    return () => io.disconnect()
+  }, [])
 
   return (
     <div className={s.root}>
@@ -31,7 +58,7 @@ export default function LandingPage() {
       </nav>
 
       <header className={s.hero}>
-        <AuroraBackground parallax />
+        <AuroraBackground parallax fixed />
         <div className={s.heroInner}>
           <div className={s.heroLogo}>
             <ShiftslotLogo size={88} mode="mark" />
@@ -55,10 +82,16 @@ export default function LandingPage() {
       <section className={s.features}>
         <h2 className={s.featuresTitle}>{t("LANDING_FEATURES_TITEL")}</h2>
         <div className={s.featureGrid}>
-          <Feature icon={<ClockIcon />} titelKey="LANDING_F1_TITEL" textKey="LANDING_F1_TEXT" />
-          <Feature icon={<CalcIcon />} titelKey="LANDING_F2_TITEL" textKey="LANDING_F2_TEXT" />
-          <Feature icon={<DocIcon />} titelKey="LANDING_F3_TITEL" textKey="LANDING_F3_TEXT" />
-          <Feature icon={<CalendarIcon />} titelKey="LANDING_F4_TITEL" textKey="LANDING_F4_TEXT" />
+          {FEATURES.map((f, i) => (
+            <Feature
+              key={i}
+              icon={f.icon}
+              titelKey={f.titelKey}
+              textKey={f.textKey}
+              visible={visibleFeatures[i]}
+              onRef={(el) => { featureRefs.current[i] = el }}
+            />
+          ))}
         </div>
       </section>
 
@@ -78,38 +111,23 @@ export default function LandingPage() {
   )
 }
 
-/** Scroll-reveal feature card; static immediately under reduced motion (CSS). */
+/** Scroll-reveal feature card; visibility driven by parent's shared IntersectionObserver. */
 function Feature({
   icon,
   titelKey,
   textKey,
+  visible,
+  onRef,
 }: {
   icon: ReactNode
   titelKey: keyof UiStrings
   textKey: keyof UiStrings
+  visible: boolean
+  onRef: (el: HTMLElement | null) => void
 }) {
   const t = useT()
-  const ref = useRef<HTMLElement>(null)
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          io.disconnect()
-        }
-      },
-      { threshold: 0.2 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-
   return (
-    <article ref={ref} className={`${s.feature} sf-glass${visible ? ` ${s.featureVisible}` : ""}`}>
+    <article ref={onRef} className={`${s.feature} sf-glass${visible ? ` ${s.featureVisible}` : ""}`}>
       <span className={s.featureIcon} aria-hidden="true">{icon}</span>
       <h3 className={s.featureTitle}>{t(titelKey)}</h3>
       <p className={s.featureText}>{t(textKey)}</p>
