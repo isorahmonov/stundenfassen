@@ -36,6 +36,7 @@ try {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),
     }),
+    ignoreUndefinedProperties: true,
   })
 } catch {
   db = getFirestore(app)

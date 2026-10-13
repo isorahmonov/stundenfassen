@@ -438,14 +438,14 @@ export function EinrichtungsDialog({ employer, onBestaetigt, onSchliessen, onNac
         pufferStandardMin: form.pufferStandardMin,
         pufferOrte:        form.pufferOrte,
         kwSystem:          form.kwSystem,
-        kwAnker:           form.kwSystem === "tkmaxx" ? form.kwAnker : undefined,
-        pdf:               { deinName: form.deinName, fusszeilenText: form.fusszeilenText || undefined },
+        ...(form.kwSystem === "tkmaxx" ? { kwAnker: form.kwAnker } : {}),
+        pdf:               { deinName: form.deinName, ...(form.fusszeilenText ? { fusszeilenText: form.fusszeilenText } : {}) },
         festeSperrzeiten:  form.festeSperrzeiten,
         einrichtungBestaetigt: true,
       }
       await employersRepo.update(employer.id, {
         bundesland:    form.bundesland,
-        personalnummer: form.personalnummer || undefined,
+        personalnummer: form.personalnummer,
         verfuegbarkeit,
       })
       onBestaetigt()

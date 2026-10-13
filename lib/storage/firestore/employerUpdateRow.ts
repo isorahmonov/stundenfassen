@@ -15,7 +15,7 @@ export function buildUpdateRow(changes: EmployerUpdate): Partial<EmployerDoc> {
   if (changes.zuschlagNachtProzent !== undefined) row.zuschlagNachtProzent = changes.zuschlagNachtProzent
   if (changes.archiviert !== undefined) row.archiviert = changes.archiviert ?? false
   if (changes.minusImPDFAnzeigen !== undefined) row.minusImPDFAnzeigen = changes.minusImPDFAnzeigen
-  if (changes.personalnummer !== undefined) row.personalnummer = changes.personalnummer || undefined
+  if (changes.personalnummer !== undefined) row.personalnummer = changes.personalnummer
   if (changes.verfuegbarkeit !== undefined) row.verfuegbarkeit = changes.verfuegbarkeit
   if (changes.kurzfristigPauschal !== undefined) row.kurzfristigPauschal = changes.kurzfristigPauschal
   return row

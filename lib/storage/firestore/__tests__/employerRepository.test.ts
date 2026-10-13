@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { buildUpdateRow } from "@/lib/storage/firestore/employerUpdateRow"
+import { stripUndefined } from "@/lib/storage/firestore/stripUndefined"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
 import type { EmployerUpdate } from "@/lib/storage"
 
@@ -75,8 +76,15 @@ describe("buildUpdateRow — Feldabdeckung", () => {
     expect(row.archiviert).toBeUndefined()
   })
 
-  it("personalnummer: leerer String → undefined (Feld wird gelöscht)", () => {
+  it("personalnummer: leerer String → leerer String (Firestore-sicher, toEmployer behandelt '' wie absent)", () => {
     const row = buildUpdateRow({ personalnummer: "" })
-    expect(row.personalnummer).toBeUndefined()
+    expect(row.personalnummer).toBe("")
+  })
+
+  it("verfuegbarkeit ohne kwAnker: stripUndefined entfernt das Feld aus dem verschachtelten Objekt", () => {
+    const verfuegbarkeit = { ...NEUTRALE_EINSTELLUNGEN, kwAnker: undefined, einrichtungBestaetigt: true }
+    const row = buildUpdateRow({ verfuegbarkeit })
+    const clean = stripUndefined(row as Record<string, unknown>) as { verfuegbarkeit: object }
+    expect("kwAnker" in clean.verfuegbarkeit).toBe(false)
   })
 })

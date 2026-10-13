@@ -3,6 +3,7 @@ import type { Employer } from "@/lib/types"
 import type { IEmployerRepository, EmployerInput, EmployerUpdate } from "../interfaces/IEmployerRepository"
 import { userCol, userDoc, toEmployer, fromEmployer, type EmployerDoc } from "./shared"
 import { buildUpdateRow } from "./employerUpdateRow"
+import { stripUndefined } from "./stripUndefined"
 
 export { buildUpdateRow }
 
@@ -31,7 +32,7 @@ export class EmployerRepository implements IEmployerRepository {
 
   async update(id: string, changes: EmployerUpdate): Promise<Employer | undefined> {
     const row = buildUpdateRow(changes)
-    await updateDoc(userDoc("employers", id), row as Record<string, unknown>)
+    await updateDoc(userDoc("employers", id), stripUndefined(row as Record<string, unknown>))
     return this.findById(id)
   }
 
