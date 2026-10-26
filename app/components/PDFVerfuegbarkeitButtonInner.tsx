@@ -44,9 +44,11 @@ export default function PDFVerfuegbarkeitButtonInner({
   const t = useT()
   const [laden, setLaden] = useState(false)
   const [zeigeWarnung, setZeigeWarnung] = useState(false)
+  const [fehler, setFehler] = useState("")
 
   async function erstellePDF() {
     setLaden(true)
+    setFehler("")
     try {
       const alleMinus = await minusRepo.findAlle()
       const einst = employer?.verfuegbarkeit ?? NEUTRALE_EINSTELLUNGEN
@@ -94,6 +96,8 @@ export default function PDFVerfuegbarkeitButtonInner({
       URL.revokeObjectURL(url)
 
       await onNachExport()
+    } catch (e) {
+      setFehler(e instanceof Error ? e.message : String(e))
     } finally {
       setLaden(false)
     }
@@ -109,13 +113,20 @@ export default function PDFVerfuegbarkeitButtonInner({
 
   return (
     <>
-      <button
-        onClick={handleClick}
-        disabled={laden || ausgewaehlt.length === 0}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/40 active:scale-95 transition-all duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        {laden ? <ShiftslotLoader size="sm" label={t("PDF_LAEDT_BTN")} /> : t("PDF_ERSTELLEN_BTN")}
-      </button>
+      <div className="flex flex-col items-start gap-1">
+        <button
+          onClick={handleClick}
+          disabled={laden || ausgewaehlt.length === 0}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/40 active:scale-95 transition-all duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {laden ? <ShiftslotLoader size="sm" label={t("PDF_LAEDT_BTN")} /> : t("PDF_ERSTELLEN_BTN")}
+        </button>
+        {fehler && (
+          <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-xl px-3 py-2">
+            {fehler}
+          </p>
+        )}
+      </div>
 
       {zeigeWarnung && (
         <BaseDialog maxWidth="max-w-sm" onBackdropClick={() => setZeigeWarnung(false)}>
