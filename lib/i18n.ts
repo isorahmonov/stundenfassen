@@ -451,6 +451,8 @@ export interface UiStrings {
   AG_FAVORIT_ARIA: string
   CHIP_FAVORITEN: string
   CHIP_ALLE: string
+  COACHMARK_FAVORITEN_TEXT: string
+  COACHMARK_VERSTANDEN: string
   // E-Mail Vorlage — Betreff-Platzhalter
   VORLAGE_PH_BETREFF: string
 }
@@ -865,6 +867,8 @@ export const translations: Record<Locale, UiStrings> = {
     AG_FAVORIT_ARIA: "Als Favorit markieren",
     CHIP_FAVORITEN: "Favoriten",
     CHIP_ALLE: "Alle",
+    COACHMARK_FAVORITEN_TEXT: "Neu: Favoriten. Tippe auf den Stern bei deinem Haupt-Arbeitgeber, dann erscheint er beim Start zuerst.",
+    COACHMARK_VERSTANDEN: "Verstanden",
     VORLAGE_PH_BETREFF: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   en: {
@@ -1276,6 +1280,8 @@ export const translations: Record<Locale, UiStrings> = {
     AG_FAVORIT_ARIA: "Mark as favourite",
     CHIP_FAVORITEN: "Favourites",
     CHIP_ALLE: "All",
+    COACHMARK_FAVORITEN_TEXT: "New: Favourites. Tap the star on your main employer to show it first on the home screen.",
+    COACHMARK_VERSTANDEN: "Got it",
     VORLAGE_PH_BETREFF: "Availability {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   ru: {
@@ -1687,6 +1693,8 @@ export const translations: Record<Locale, UiStrings> = {
     AG_FAVORIT_ARIA: "Добавить в избранное",
     CHIP_FAVORITEN: "Избранные",
     CHIP_ALLE: "Все",
+    COACHMARK_FAVORITEN_TEXT: "Новое: Избранное. Нажмите звёздочку у основного работодателя – он будет появляться первым.",
+    COACHMARK_VERSTANDEN: "Понятно",
     VORLAGE_PH_BETREFF: "Доступность {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   fr: {
@@ -2098,6 +2106,8 @@ export const translations: Record<Locale, UiStrings> = {
     AG_FAVORIT_ARIA: "Marquer comme favori",
     CHIP_FAVORITEN: "Favoris",
     CHIP_ALLE: "Tous",
+    COACHMARK_FAVORITEN_TEXT: "Nouveau : Favoris. Appuie sur l'étoile de ton employeur principal pour qu'il apparaisse en premier.",
+    COACHMARK_VERSTANDEN: "Compris",
     VORLAGE_PH_BETREFF: "Disponibilité {{zeitraum_von}} – {{zeitraum_bis}}",
   },
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import type { Bundesland, Employer, EmployerArt } from "@/lib/types"
 import { employers as employersRepo } from "@/lib/storage"
@@ -8,6 +8,10 @@ import { formatEuroCent } from "@/lib/calc/format"
 import { EinrichtungsDialog, sollDialogOeffnen } from "./EinrichtungsDialog"
 import { ShiftslotLoader } from "./ShiftslotLoader"
 import { useT } from "./LangProvider"
+import { getDoc, setDoc, doc } from "firebase/firestore"
+import { db, auth } from "@/lib/firebase/client"
+import { sollCoachmarkZeigen } from "@/lib/coachmarks"
+import { Coachmark } from "./Coachmark"
 
 const BUNDESLAENDER: { value: Bundesland; label: string }[] = [
   { value: "BB", label: "Brandenburg" },
@@ -87,12 +91,37 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
   const [neuFormOffen, setNeuFormOffen] = useState(false)
   const [einrichtungsId, setEinrichtungsId] = useState<string | null>(null)
   const [laedt, setLaedt] = useState(true)
+  const [coachmarkZeigen, setCoachmarkZeigen] = useState(false)
+  const coachmarkGeprueft = useRef(false)
 
   async function laden() {
     const alle = await employersRepo.findAlle()
     alle.sort((a, b) => (a.archiviert ? 1 : 0) - (b.archiviert ? 1 : 0) || a.name.localeCompare(b.name))
     setEmployers(alle)
     setLaedt(false)
+    if (!coachmarkGeprueft.current) {
+      coachmarkGeprueft.current = true
+      const userUid = auth.currentUser?.uid
+      if (userUid && sollCoachmarkZeigen(alle, false)) {
+        const lsKey = `sf_hint_favoriten_${userUid}`
+        if (localStorage.getItem(lsKey) === "1") return
+        void getDoc(doc(db, "users", userUid)).then(snap => {
+          if ((snap.data() as { hinweise?: { favoriten?: boolean } } | undefined)?.hinweise?.favoriten) {
+            localStorage.setItem(lsKey, "1")
+          } else {
+            setCoachmarkZeigen(true)
+          }
+        }).catch(() => setCoachmarkZeigen(true))
+      }
+    }
+  }
+
+  async function coachmarkGesehen() {
+    setCoachmarkZeigen(false)
+    const userUid = auth.currentUser?.uid
+    if (!userUid) return
+    localStorage.setItem(`sf_hint_favoriten_${userUid}`, "1")
+    await setDoc(doc(db, "users", userUid), { hinweise: { favoriten: true } }, { merge: true })
   }
 
   useEffect(() => { laden() }, [])
@@ -174,7 +203,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
               </div>
             )}
 
-            {aktive.map((e) =>
+            {aktive.map((e, idx) =>
               bearbeitenId === e.id ? (
                 <ArbeitgeberForm
                   key={e.id}
@@ -189,7 +218,9 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
                   onBearbeiten={() => { setBearbeitenId(e.id); setNeuFormOffen(false) }}
                   onArchivieren={() => archivieren(e.id, true)}
                   onVerfuegbarkeit={() => { setEinrichtungsId(e.id); setBearbeitenId(null); setNeuFormOffen(false) }}
-                  onFavoritToggle={() => toggleFavorit(e.id, e.favorit ?? false)}
+                  onFavoritToggle={async () => { await toggleFavorit(e.id, e.favorit ?? false); if (coachmarkZeigen) void coachmarkGesehen() }}
+                  coachmarkAktiv={coachmarkZeigen && idx === 0}
+                  onCoachmarkGesehen={idx === 0 ? coachmarkGesehen : undefined}
                 />
               )
             )}
@@ -236,6 +267,8 @@ function ArbeitgeberKarte({
   onArchivieren,
   onVerfuegbarkeit,
   onFavoritToggle,
+  coachmarkAktiv = false,
+  onCoachmarkGesehen,
   archiviert = false,
 }: {
   employer: Employer
@@ -243,6 +276,8 @@ function ArbeitgeberKarte({
   onArchivieren: () => void
   onVerfuegbarkeit?: () => void
   onFavoritToggle?: () => void
+  coachmarkAktiv?: boolean
+  onCoachmarkGesehen?: () => void
   archiviert?: boolean
 }) {
   const t = useT()
@@ -313,13 +348,22 @@ function ArbeitgeberKarte({
           {archiviert ? t("REAKTIVIEREN") : t("ARCHIVIEREN")}
         </button>
         {onFavoritToggle && (
-          <button
-            onClick={onFavoritToggle}
-            aria-label={t("AG_FAVORIT_ARIA")}
-            className={`ml-auto text-base leading-none transition-all duration-100 active:scale-[.99] ${e.favorit ? "text-amber-400" : "text-stone-300 dark:text-neutral-600 hover:text-amber-300"}`}
-          >
-            {e.favorit ? "★" : "☆"}
-          </button>
+          <div className="relative ml-auto">
+            <button
+              onClick={onFavoritToggle}
+              aria-label={t("AG_FAVORIT_ARIA")}
+              className={`text-base leading-none transition-all duration-100 active:scale-[.99] ${coachmarkAktiv ? "animate-pulse motion-reduce:animate-none" : ""} ${e.favorit ? "text-amber-400" : "text-stone-300 dark:text-neutral-600 hover:text-amber-300"}`}
+            >
+              {e.favorit ? "★" : "☆"}
+            </button>
+            {coachmarkAktiv && onCoachmarkGesehen && (
+              <Coachmark
+                text={t("COACHMARK_FAVORITEN_TEXT")}
+                buttonLabel={t("COACHMARK_VERSTANDEN")}
+                onDismiss={onCoachmarkGesehen}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

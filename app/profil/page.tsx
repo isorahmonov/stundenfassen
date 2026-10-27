@@ -64,7 +64,15 @@ type Sektion = "kalender" | "arbeitgeber" | "minus" | "email" | "emailKonto" | "
 export default function ProfilSeite() {
   const { locale, setLocale } = useLang()
   const t = useT()
-  const [offen, setOffen] = useState<Set<Sektion>>(new Set())
+  const [offen, setOffen] = useState<Set<Sektion>>(() => {
+    try {
+      const u = auth.currentUser?.uid
+      if (u && typeof localStorage !== "undefined" && localStorage.getItem(`sf_hint_favoriten_${u}`) !== "1") {
+        return new Set<Sektion>(["arbeitgeber"])
+      }
+    } catch {}
+    return new Set<Sektion>()
+  })
 
   const [kalender, setKalender] = useState<KalenderInfo[]>([])
   const [neuKalenderOffen, setNeuKalenderOffen] = useState(false)
