@@ -31,6 +31,7 @@ export interface Employer {
   verfuegbarkeit?: VerfuegbarkeitsEinstellungenArbeitgeber;
   /** Lohnsteuer 25% pauschal (§40a EStG) statt nach Steuerklasse — nur relevant bei art="kurzfristig" */
   kurzfristigPauschal?: boolean;
+  favorit?: boolean;
 }
 
 export interface Shift {

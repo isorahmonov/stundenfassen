@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import type { Abgleich, Bundesland, Employer, Settings, Shift, Steuerklasse } from "@/lib/types"
 import { employers as employersRepo, shifts as shiftsRepo, settings as settingsRepo, abgleich as abgleichRepo, minusEintraege as minusRepo } from "@/lib/storage"
@@ -20,6 +20,7 @@ import { KeinArbeitgeberKarte } from "./KeinArbeitgeberKarte"
 import { ShiftslotLoader } from "./ShiftslotLoader"
 import { useLang, useT } from "./LangProvider"
 import { withTimeout } from "@/lib/withTimeout"
+import { sortByFavoriten, getInitialChipState, getInitialSingleEmployerId, cleanDeadIds, type ChipState } from "@/lib/favorites"
 
 function monatName(monat: number, locale: string): string {
   const name = new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2000, monat - 1, 1))
@@ -43,6 +44,8 @@ export default function MonatsUebersicht() {
   const [monat, setMonat] = useState(heute.getMonth() + 1)
   const [jahr, setJahr] = useState(heute.getFullYear())
   const [aktivId, setAktivId] = useState<string | null>(null)
+  const [chipState, setChipState] = useState<ChipState>({ mode: "alle" })
+  const initialisiert = useRef(false)
   const [summen, setSummen] = useState<EmployerSumme[]>([])
   const [schichten, setSchichten] = useState<Shift[]>([])
   const [settingsBundesland, setSettingsBundesland] = useState<Bundesland>("HH")
@@ -64,6 +67,18 @@ export default function MonatsUebersicht() {
       })
       .catch(() => setMinusMinutenAktiv(null))
   }, [aktivId, version])
+
+  // Chip-State persistieren
+  useEffect(() => {
+    if (!initialisiert.current) return
+    try { localStorage.setItem(`sf_employer_chips_${uid()}`, JSON.stringify(chipState)) } catch { /* ignore */ }
+  }, [chipState])
+
+  // Zuletzt benutzten Arbeitgeber persistieren
+  useEffect(() => {
+    if (!initialisiert.current || !aktivId) return
+    try { localStorage.setItem(`sf_last_employer_${uid()}`, aktivId) } catch { /* ignore */ }
+  }, [aktivId])
 
   // Archiv-Check: Hinweis wenn Verfügbarkeit in < 3 Wochen ausläuft
   useEffect(() => {
@@ -113,10 +128,9 @@ export default function MonatsUebersicht() {
 
         if (abgebrochen) return
 
-        const aktiveEmps = emps.filter((e) => !e.archiviert)
+        const aktiveEmps = sortByFavoriten(emps.filter((e) => !e.archiviert))
         const geladeneSettings: Pick<Settings, "steuerklasse" | "kirchensteuer" | "kurzfristigPauschal" | "dokSprache"> =
           cfg ?? FALLBACK_SETTINGS
-
 
         const ergebnis: EmployerSumme[] = aktiveEmps.map((employer) => ({
           employer,
@@ -133,9 +147,32 @@ export default function MonatsUebersicht() {
         setJahresSchichten(jahresSch)
         setSettings(geladeneSettings)
         if (cfg?.bundesland) setSettingsBundesland(cfg.bundesland)
-        setAktivId((prev) =>
-          prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
-        )
+
+        if (!initialisiert.current) {
+          initialisiert.current = true
+          let lastUsed: string | null = null
+          let stored: ChipState | null = null
+          try {
+            const userUid = uid()
+            lastUsed = localStorage.getItem(`sf_last_employer_${userUid}`)
+            const raw = localStorage.getItem(`sf_employer_chips_${userUid}`)
+            if (raw) {
+              const parsed = JSON.parse(raw) as ChipState
+              stored = parsed.mode === "ids"
+                ? (cleanDeadIds(parsed.ids, aktiveEmps).length > 0
+                    ? { mode: "ids", ids: cleanDeadIds(parsed.ids, aktiveEmps) }
+                    : null)
+                : parsed
+            }
+          } catch { /* ignore */ }
+          const initialChip = stored ?? getInitialChipState(aktiveEmps, lastUsed)
+          setChipState(initialChip)
+          setAktivId(getInitialSingleEmployerId(aktiveEmps, initialChip.mode === "ids" ? initialChip.ids[0] : lastUsed))
+        } else {
+          setAktivId((prev) =>
+            prev && aktiveEmps.some((e) => e.id === prev) ? prev : (aktiveEmps[0]?.id ?? null),
+          )
+        }
       } catch (e) {
         if (!abgebrochen) setFehler(e instanceof Error ? e.message : String(e))
       } finally {
@@ -236,37 +273,86 @@ export default function MonatsUebersicht() {
           </Link>
         )}
 
-        {/* Arbeitgeber-Tabs */}
-        {summen.length > 0 && (
-          <nav role="tablist" aria-label={t("ARBEITGEBER_LABEL")} className="flex gap-2 mb-6 flex-wrap">
-            {summen.map(({ employer }) => {
-              const istAktiv = employer.id === aktivId
-              return (
+        {/* Arbeitgeber-Chips */}
+        {summen.length > 0 && (() => {
+          const hatFavoriten = summen.some(({ employer }) => employer.favorit)
+          const sichtbar = chipState.mode === "favoriten"
+            ? summen.filter(({ employer }) => employer.favorit)
+            : summen
+          const tabTransition = [
+            "background-color 130ms ease-out",
+            "border-color 130ms ease-out",
+            "color 120ms ease-out",
+            "transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
+          ].join(", ")
+          return (
+            <nav role="tablist" aria-label={t("ARBEITGEBER_LABEL")} className="flex gap-2 mb-6 flex-wrap">
+              {hatFavoriten && (
                 <button
-                  key={employer.id}
                   role="tab"
-                  aria-selected={istAktiv}
-                  onClick={() => setAktivId(employer.id)}
-                  className="px-4 py-1.5 rounded-full text-sm font-medium border outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400"
+                  aria-selected={chipState.mode === "favoriten"}
+                  onClick={() => {
+                    const erster = summen.find(({ employer }) => employer.favorit)?.employer ?? null
+                    setChipState({ mode: "favoriten" })
+                    if (erster) setAktivId(erster.id)
+                  }}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium border outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400"
                   style={{
-                    backgroundColor: istAktiv ? employer.farbe : "transparent",
-                    borderColor: istAktiv ? employer.farbe : "#d6d3d1",
-                    color: istAktiv ? "#fff" : "#78716c",
-                    transform: istAktiv ? "scale(1.04)" : "scale(1)",
-                    transition: [
-                      "background-color 130ms ease-out",
-                      "border-color 130ms ease-out",
-                      "color 120ms ease-out",
-                      "transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
-                    ].join(", "),
+                    backgroundColor: chipState.mode === "favoriten" ? "#78716c" : "transparent",
+                    borderColor: chipState.mode === "favoriten" ? "#78716c" : "#d6d3d1",
+                    color: chipState.mode === "favoriten" ? "#fff" : "#78716c",
+                    transform: chipState.mode === "favoriten" ? "scale(1.04)" : "scale(1)",
+                    transition: tabTransition,
                   }}
                 >
-                  {employer.name}
+                  ★ {t("CHIP_FAVORITEN")}
                 </button>
-              )
-            })}
-          </nav>
-        )}
+              )}
+              <button
+                role="tab"
+                aria-selected={chipState.mode === "alle"}
+                onClick={() => {
+                  setChipState({ mode: "alle" })
+                  setAktivId((prev) => prev && summen.some(({ employer }) => employer.id === prev) ? prev : (summen[0]?.employer.id ?? null))
+                }}
+                className="px-3 py-1.5 rounded-full text-sm font-medium border outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400"
+                style={{
+                  backgroundColor: chipState.mode === "alle" ? "#78716c" : "transparent",
+                  borderColor: chipState.mode === "alle" ? "#78716c" : "#d6d3d1",
+                  color: chipState.mode === "alle" ? "#fff" : "#78716c",
+                  transform: chipState.mode === "alle" ? "scale(1.04)" : "scale(1)",
+                  transition: tabTransition,
+                }}
+              >
+                {t("CHIP_ALLE")}
+              </button>
+              {sichtbar.map(({ employer }) => {
+                const istAktiv = employer.id === aktivId
+                return (
+                  <button
+                    key={employer.id}
+                    role="tab"
+                    aria-selected={istAktiv}
+                    onClick={() => {
+                      setChipState({ mode: "ids", ids: [employer.id] })
+                      setAktivId(employer.id)
+                    }}
+                    className="px-4 py-1.5 rounded-full text-sm font-medium border outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-stone-400"
+                    style={{
+                      backgroundColor: istAktiv ? employer.farbe : "transparent",
+                      borderColor: istAktiv ? employer.farbe : "#d6d3d1",
+                      color: istAktiv ? "#fff" : "#78716c",
+                      transform: istAktiv ? "scale(1.04)" : "scale(1)",
+                      transition: tabTransition,
+                    }}
+                  >
+                    {employer.favorit ? "★ " : ""}{employer.name}
+                  </button>
+                )
+              })}
+            </nav>
+          )
+        })()}
 
         {/* Summen-Kacheln */}
         {aktivSumme ? (

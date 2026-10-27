@@ -114,6 +114,11 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
     laden()
   }
 
+  async function toggleFavorit(id: string, currentFavorit: boolean) {
+    await employersRepo.update(id, { favorit: !currentFavorit })
+    laden()
+  }
+
   const aktive = employers.filter((e) => !e.archiviert)
   const archivierte = employers.filter((e) => e.archiviert)
   const einrichtungsEmployer = einrichtungsId ? employers.find(e => e.id === einrichtungsId) : undefined
@@ -184,6 +189,7 @@ export default function ArbeitgeberVerwaltung({ backHref = "/" }: { backHref?: s
                   onBearbeiten={() => { setBearbeitenId(e.id); setNeuFormOffen(false) }}
                   onArchivieren={() => archivieren(e.id, true)}
                   onVerfuegbarkeit={() => { setEinrichtungsId(e.id); setBearbeitenId(null); setNeuFormOffen(false) }}
+                  onFavoritToggle={() => toggleFavorit(e.id, e.favorit ?? false)}
                 />
               )
             )}
@@ -229,12 +235,14 @@ function ArbeitgeberKarte({
   onBearbeiten,
   onArchivieren,
   onVerfuegbarkeit,
+  onFavoritToggle,
   archiviert = false,
 }: {
   employer: Employer
   onBearbeiten: () => void
   onArchivieren: () => void
   onVerfuegbarkeit?: () => void
+  onFavoritToggle?: () => void
   archiviert?: boolean
 }) {
   const t = useT()
@@ -304,6 +312,15 @@ function ArbeitgeberKarte({
         >
           {archiviert ? t("REAKTIVIEREN") : t("ARCHIVIEREN")}
         </button>
+        {onFavoritToggle && (
+          <button
+            onClick={onFavoritToggle}
+            aria-label={t("AG_FAVORIT_ARIA")}
+            className={`ml-auto text-base leading-none transition-all duration-100 active:scale-[.99] ${e.favorit ? "text-amber-400" : "text-stone-300 dark:text-neutral-600 hover:text-amber-300"}`}
+          >
+            {e.favorit ? "★" : "☆"}
+          </button>
+        )}
       </div>
     </div>
   )

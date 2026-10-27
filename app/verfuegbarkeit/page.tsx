@@ -27,6 +27,7 @@ import {
 } from "@/lib/verfuegbarkeit/eventCache"
 import { resolveStatus } from "@/lib/verfuegbarkeit/status"
 import { employers as employersRepo, geplanteSchichten as geplanteRepo, settings as settingsRepo, shifts as shiftsRepo } from "@/lib/storage"
+import { sortByFavoriten, getInitialSingleEmployerId } from "@/lib/favorites"
 import type { Locale } from "@/lib/i18n"
 import { EinrichtungsDialog, sollDialogOeffnen } from "../components/EinrichtungsDialog"
 import { KeinArbeitgeberKarte } from "../components/KeinArbeitgeberKarte"
@@ -192,10 +193,15 @@ export default function VerfuegbarkeitPage() {
   // Beim Start: Arbeitgeber, Kalender und geplante Schichten laden
   useEffect(() => {
     employersRepo.findAktive().then((emps) => {
-      setAlleAktiveArbeitgeber(emps)
-      if (emps.length > 0) {
-        setSelectedEmployerId(emps[0].id)
-        if (sollDialogOeffnen(emps[0])) setEinrichtungsId(emps[0].id)
+      const sorted = sortByFavoriten(emps)
+      setAlleAktiveArbeitgeber(sorted)
+      if (sorted.length > 0) {
+        let lastUsed: string | null = null
+        try { lastUsed = localStorage.getItem(`sf_last_employer_${uid()}`) } catch { /* ignore */ }
+        const initialId = getInitialSingleEmployerId(sorted, lastUsed) ?? sorted[0].id
+        setSelectedEmployerId(initialId)
+        const emp = sorted.find(e => e.id === initialId) ?? sorted[0]
+        if (sollDialogOeffnen(emp)) setEinrichtungsId(emp.id)
       }
       setArbeitgeberGeladen(true)
     }).catch(() => { setArbeitgeberGeladen(true) })

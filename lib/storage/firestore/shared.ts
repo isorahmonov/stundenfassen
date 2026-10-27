@@ -29,6 +29,7 @@ export type EmployerDoc = {
   personalnummer?: string
   verfuegbarkeit?: unknown
   kurzfristigPauschal?: boolean
+  favorit?: boolean
 }
 
 export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
@@ -43,6 +44,7 @@ export const toEmployer = (id: string, d: EmployerDoc): Employer => ({
   ...(d.personalnummer ? { personalnummer: d.personalnummer } : {}),
   ...(d.verfuegbarkeit ? { verfuegbarkeit: d.verfuegbarkeit as Employer["verfuegbarkeit"] } : {}),
   ...(d.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
+  ...(d.favorit ? { favorit: true } : {}),
 })
 
 export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
@@ -57,6 +59,7 @@ export const fromEmployer = (e: Omit<Employer, "id">): EmployerDoc => ({
   ...(e.personalnummer ? { personalnummer: e.personalnummer } : {}),
   ...(e.verfuegbarkeit ? { verfuegbarkeit: e.verfuegbarkeit } : {}),
   ...(e.kurzfristigPauschal ? { kurzfristigPauschal: true } : {}),
+  ...(e.favorit ? { favorit: true } : {}),
 })
 
 // ── Shift ────────────────────────────────────────────────────────────────────
