@@ -11,6 +11,7 @@ import { tkWoche } from "@/lib/verfuegbarkeit/kwBerechnung"
 import { minusEintraege as minusRepo } from "@/lib/storage"
 import { auth } from "@/lib/firebase/client"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
+import { sichtbareMinusEintraege } from "@/lib/pdf/minus"
 import { BaseDialog } from "./BaseDialog"
 import { useT } from "@/app/components/LangProvider"
 
@@ -68,7 +69,7 @@ export default function PDFVerfuegbarkeitButtonInner({
           kwSystem={kwSystem}
           kwAnker={kwAnker}
           wochenStart={wochenStart}
-          minusEintraege={alleMinus}
+          minusEintraege={sichtbareMinusEintraege(employer, alleMinus)}
           mitarbeiterName={mitarbeiterName}
           personalnummer={personalnummer}
           fusszeilenText={fusszeilenText}

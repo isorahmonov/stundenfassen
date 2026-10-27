@@ -12,6 +12,7 @@ import { minusEintraege as minusRepo, emailVorlagen as emailVorlageRepo } from "
 import { auth } from "@/lib/firebase/client"
 import { wochenDaten } from "@/lib/verfuegbarkeit/wochenDaten"
 import { NEUTRALE_EINSTELLUNGEN } from "@/lib/verfuegbarkeit/verfuegbarkeit"
+import { sichtbareMinusEintraege } from "@/lib/pdf/minus"
 import { BaseDialog } from "./BaseDialog"
 import { useT } from "@/app/components/LangProvider"
 
@@ -209,7 +210,7 @@ export default function EmailVerfuegbarkeitButtonInner({
           kwSystem={einst.kwSystem}
           kwAnker={einst.kwAnker}
           wochenStart={einst.wochenStart}
-          minusEintraege={alleMinus}
+          minusEintraege={sichtbareMinusEintraege(employer, alleMinus)}
           mitarbeiterName={mitarbeiterName}
           personalnummer={personalnummer || undefined}
           fusszeilenText={einst.pdf?.fusszeilenText}
