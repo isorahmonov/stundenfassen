@@ -62,6 +62,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [authFehler, setAuthFehler] = useState(false)
+  const [loaderWeg, setLoaderWeg] = useState(false)
   const pathname = usePathname()
   const desktop = useIsDesktop()
   // Bumped by VerifyEmailScreen once the (mutated) user becomes verified, so
@@ -100,29 +101,29 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Remove overlay after fade completes. Fallback timeout handles prefers-reduced-motion
+  // (transition-none means onTransitionEnd never fires) and hidden-tab edge cases.
+  useEffect(() => {
+    if (!laden && !loaderWeg && !istOeffentlich) {
+      const id = setTimeout(() => setLoaderWeg(true), 450)
+      return () => clearTimeout(id)
+    }
+  }, [laden, loaderWeg, istOeffentlich])
+
   const seo = istStartseite ? <LandingSeo /> : null
 
-  if (laden && !istOeffentlich) {
-    return (
-      <>
-        {seo}
-        {/* relative so the absolute-positioned text anchors below work */}
-        <div className="relative min-h-screen sf-page flex items-center justify-center">
-          {/* Visible text LCP anchors in SSR HTML; replaced by real content after auth resolves */}
-          {istStartseite
-            ? <LandingHero />
-            : <p className="absolute top-1/3 w-full text-center text-2xl font-bold tracking-tight" aria-hidden="true">{APP_NAME}</p>
-          }
-          <ShiftslotLoader size="lg" />
-        </div>
-      </>
-    )
+  // Public pages: no overlay, render immediately
+  if (istOeffentlich) {
+    if (!user) return <div className="min-h-screen sf-page">{children}</div>
+    if (braucheVerifizierung(user)) return <VerifyEmailScreen user={user} onVerified={erneutPruefen} />
+    return <>{seo}<div className="pb-20">{children}</div><TabBar /></>
   }
 
-  if (authFehler && !istOeffentlich) {
-    return (
-      <>
-        {seo}
+  // Auth-resolved content, rendered beneath the overlay while it fades out
+  let content: React.ReactNode = null
+  if (!laden) {
+    if (authFehler) {
+      content = (
         <div className="min-h-screen sf-page flex items-center justify-center px-4">
           <div className="mx-auto max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
             <p className="text-sm text-red-600 dark:text-red-400 mb-5 leading-snug">
@@ -136,36 +137,50 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-      </>
-    )
-  }
-
-  if (!user && !istOeffentlich) {
-    if (istStartseite && desktop) {
-      return <LandingPage />
+      )
+    } else if (!user) {
+      content = istStartseite && desktop
+        ? <LandingPage />
+        : <LoginView />
+    } else if (braucheVerifizierung(user)) {
+      content = <VerifyEmailScreen user={user} onVerified={erneutPruefen} />
+    } else {
+      content = (
+        <>
+          <div className="pb-20">{children}</div>
+          <TabBar />
+        </>
+      )
     }
-    return (
-      <>
-        {seo}
-        <LoginView />
-      </>
-    )
-  }
-
-  if (!user && istOeffentlich) {
-    return <div className="min-h-screen sf-page">{children}</div>
-  }
-
-  if (user && braucheVerifizierung(user)) {
-    return <VerifyEmailScreen user={user} onVerified={erneutPruefen} />
   }
 
   return (
     <>
       {seo}
-      {/* Abstand für die fixe Tab-Leiste unten */}
-      <div className="pb-20">{children}</div>
-      <TabBar />
+      {/* Viewport-covering overlay: present in SSR HTML, fades out when auth resolves.
+          Fixed position ensures correct centering on all viewports and routes. */}
+      {!loaderWeg && (
+        <div
+          className="fixed inset-0 z-50 sf-page flex items-center justify-center transition-opacity motion-reduce:transition-none"
+          style={{
+            opacity: laden ? 1 : 0,
+            transitionDuration: "400ms",
+            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+            pointerEvents: laden ? undefined : "none",
+          }}
+          onTransitionEnd={() => { if (!laden) setLoaderWeg(true) }}
+          aria-hidden={!laden ? "true" : undefined}
+        >
+          <ShiftslotLoader size="lg" />
+        </div>
+      )}
+      {/* LCP text anchor: present in SSR HTML, visually covered by overlay */}
+      {laden && (
+        istStartseite
+          ? <LandingHero />
+          : <p className="fixed top-1/3 w-full text-center text-2xl font-bold tracking-tight" aria-hidden="true">{APP_NAME}</p>
+      )}
+      {content}
     </>
   )
 }
