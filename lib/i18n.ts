@@ -443,6 +443,14 @@ export interface UiStrings {
   SENDEN_BTN: string
   // Profil — Dokumentensprache
   DOK_SPRACHE_LABEL: string
+  // Profil — Gruppenüberschriften
+  GRUPPE_ARBEIT: string
+  GRUPPE_DOKUMENTE_EMAIL: string
+  GRUPPE_APP: string
+  // Favoriten
+  AG_FAVORIT_ARIA: string
+  CHIP_FAVORITEN: string
+  CHIP_ALLE: string
   // E-Mail Vorlage — Betreff-Platzhalter
   VORLAGE_PH_BETREFF: string
 }
@@ -851,6 +859,12 @@ export const translations: Record<Locale, UiStrings> = {
     SENDET_LABEL: "Sendet…",
     SENDEN_BTN: "✉ Senden",
     DOK_SPRACHE_LABEL: "Dokumentensprache",
+    GRUPPE_ARBEIT: "Arbeit",
+    GRUPPE_DOKUMENTE_EMAIL: "Dokumente & E-Mail",
+    GRUPPE_APP: "App",
+    AG_FAVORIT_ARIA: "Als Favorit markieren",
+    CHIP_FAVORITEN: "Favoriten",
+    CHIP_ALLE: "Alle",
     VORLAGE_PH_BETREFF: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   en: {
@@ -1256,6 +1270,12 @@ export const translations: Record<Locale, UiStrings> = {
     SENDET_LABEL: "Sending…",
     SENDEN_BTN: "✉ Send",
     DOK_SPRACHE_LABEL: "Document language",
+    GRUPPE_ARBEIT: "Work",
+    GRUPPE_DOKUMENTE_EMAIL: "Documents & Email",
+    GRUPPE_APP: "App",
+    AG_FAVORIT_ARIA: "Mark as favourite",
+    CHIP_FAVORITEN: "Favourites",
+    CHIP_ALLE: "All",
     VORLAGE_PH_BETREFF: "Availability {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   ru: {
@@ -1661,6 +1681,12 @@ export const translations: Record<Locale, UiStrings> = {
     SENDET_LABEL: "Отправка…",
     SENDEN_BTN: "✉ Отправить",
     DOK_SPRACHE_LABEL: "Язык документов",
+    GRUPPE_ARBEIT: "Работа",
+    GRUPPE_DOKUMENTE_EMAIL: "Документы и E-Mail",
+    GRUPPE_APP: "Приложение",
+    AG_FAVORIT_ARIA: "Добавить в избранное",
+    CHIP_FAVORITEN: "Избранные",
+    CHIP_ALLE: "Все",
     VORLAGE_PH_BETREFF: "Доступность {{zeitraum_von}} – {{zeitraum_bis}}",
   },
   fr: {
@@ -2066,6 +2092,12 @@ export const translations: Record<Locale, UiStrings> = {
     SENDET_LABEL: "Envoi…",
     SENDEN_BTN: "✉ Envoyer",
     DOK_SPRACHE_LABEL: "Langue des documents",
+    GRUPPE_ARBEIT: "Travail",
+    GRUPPE_DOKUMENTE_EMAIL: "Documents et e-mail",
+    GRUPPE_APP: "Application",
+    AG_FAVORIT_ARIA: "Marquer comme favori",
+    CHIP_FAVORITEN: "Favoris",
+    CHIP_ALLE: "Tous",
     VORLAGE_PH_BETREFF: "Disponibilité {{zeitraum_von}} – {{zeitraum_bis}}",
   },
 }

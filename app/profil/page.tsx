@@ -328,10 +328,38 @@ export default function ProfilSeite() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-6">
+
+          {/* ── Gruppe: Arbeit ─────────────────────────────────────────── */}
+          <section role="region" aria-labelledby="gruppe-arbeit">
+            <h2 id="gruppe-arbeit" className="text-xs font-semibold sf-text-3 uppercase tracking-wide mb-2 px-1">
+              {t("GRUPPE_ARBEIT")}
+            </h2>
+            <div className="sf-card rounded-2xl shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
+
+          {/* ── Arbeitgeber ─────────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            inGroup
+            titel={t("SEKTION_ARBEITGEBER")}
+            symbol={<ArbeitgeberIcon />}
+            badge={arbeitgeberAnzahl > 0 ? String(arbeitgeberAnzahl) : undefined}
+            offen={offen.has("arbeitgeber")}
+            onToggle={() => toggle("arbeitgeber")}
+          >
+            <div className="pt-3">
+              <Link
+                href="/profil/arbeitgeber"
+                className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-4 py-3.5 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors active:scale-[.99]"
+              >
+                <span className="text-sm font-medium sf-text">{t("AG_VERWALTEN")}</span>
+                <span className="text-stone-400 dark:text-neutral-500 text-lg leading-none">›</span>
+              </Link>
+            </div>
+          </AkkordeonAbschnitt>
 
           {/* ── Kalender ───────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_KALENDER")}
             symbol={<KalenderIcon />}
             badge={kalender.length > 0 ? String(kalender.length) : undefined}
@@ -380,27 +408,9 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
-          {/* ── Arbeitgeber ─────────────────────────────────────────────── */}
-          <AkkordeonAbschnitt
-            titel={t("SEKTION_ARBEITGEBER")}
-            symbol={<ArbeitgeberIcon />}
-            badge={arbeitgeberAnzahl > 0 ? String(arbeitgeberAnzahl) : undefined}
-            offen={offen.has("arbeitgeber")}
-            onToggle={() => toggle("arbeitgeber")}
-          >
-            <div className="pt-3">
-              <Link
-                href="/profil/arbeitgeber"
-                className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-4 py-3.5 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors active:scale-[.99]"
-              >
-                <span className="text-sm font-medium sf-text">{t("AG_VERWALTEN")}</span>
-                <span className="text-stone-400 dark:text-neutral-500 text-lg leading-none">›</span>
-              </Link>
-            </div>
-          </AkkordeonAbschnitt>
-
           {/* ── Minusstunden ────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_MINUSSTUNDEN")}
             symbol={<MinusIcon />}
             badge={minus.length > 0 ? String(minus.length) : undefined}
@@ -510,8 +520,87 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+          {/* ── Steuer-Einstellungen ────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            inGroup
+            titel={t("SEKTION_STEUER")}
+            symbol={<SteuerIcon />}
+            offen={offen.has("steuer")}
+            onToggle={() => toggle("steuer")}
+          >
+            <div className="pt-3 space-y-4">
+              <div>
+                <p className="text-xs sf-text-2 mb-2">{t("STEUER_KLASSE")}</p>
+                <div className="flex gap-2">
+                  {([1, 2, 3, 4, 5, 6] as Steuerklasse[]).map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => setSteuerDaten((d) => ({ ...d, steuerklasse: k }))}
+                      className={`w-9 h-9 rounded-xl text-sm font-semibold transition-colors ${
+                        steuerDaten.steuerklasse === k
+                          ? "bg-blue-600 text-white"
+                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      {k}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-sm sf-text">{t("STEUER_KIRCHENSTEUER")}</p>
+                <Toggle
+                  checked={steuerDaten.kirchensteuer}
+                  onChange={(v) => setSteuerDaten((d) => ({ ...d, kirchensteuer: v }))}
+                  label={t("STEUER_KIRCHENSTEUER")}
+                />
+              </div>
+
+              {arbeitgeber.filter((e) => e.art === "kurzfristig").length > 0 && (
+                <div>
+                  <p className="text-xs sf-text-2 mb-2">{t("STEUER_PAUSCHAL")}</p>
+                  <div className="space-y-2">
+                    {arbeitgeber.filter((e) => e.art === "kurzfristig").map((emp) => (
+                      <div key={emp.id} className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.farbe }} />
+                          <span className="text-sm sf-text">{emp.name}</span>
+                        </div>
+                        <Toggle
+                          checked={emp.kurzfristigPauschal ?? false}
+                          onChange={() => toggleKurzfristigPauschal(emp)}
+                          label={t("STEUER_PAUSCHAL") + " – " + emp.name}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={speichernSteuer}
+                disabled={steuerLaden}
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.99] transition-all disabled:opacity-40"
+              >
+                {steuerLaden ? <ShiftslotLoader size="sm" label={t("SPEICHERT")} /> : t("SPEICHERN")}
+              </button>
+            </div>
+          </AkkordeonAbschnitt>
+
+            </div>
+          </section>
+
+          {/* ── Gruppe: Dokumente & E-Mail ──────────────────────────────── */}
+          <section role="region" aria-labelledby="gruppe-dokumente">
+            <h2 id="gruppe-dokumente" className="text-xs font-semibold sf-text-3 uppercase tracking-wide mb-2 px-1">
+              {t("GRUPPE_DOKUMENTE_EMAIL")}
+            </h2>
+            <div className="sf-card rounded-2xl shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
+
           {/* ── E-Mail-Vorlagen ──────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_EMAIL_VORLAGEN")}
             symbol={<MailIcon />}
             badge={vorlagen.length > 0 ? String(vorlagen.length) : undefined}
@@ -602,6 +691,7 @@ export default function ProfilSeite() {
 
           {/* ── E-Mail-Versand (Konto) ──────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_EMAIL_VERSAND")}
             symbol={<EmailKontoIcon />}
             badge={emailKonfiguriert ? "✓" : undefined}
@@ -657,106 +747,9 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
-          {/* ── Steuer-Einstellungen ────────────────────────────────────── */}
-          <AkkordeonAbschnitt
-            titel={t("SEKTION_STEUER")}
-            symbol={<SteuerIcon />}
-            offen={offen.has("steuer")}
-            onToggle={() => toggle("steuer")}
-          >
-            <div className="pt-3 space-y-4">
-              <div>
-                <p className="text-xs sf-text-2 mb-2">{t("STEUER_KLASSE")}</p>
-                <div className="flex gap-2">
-                  {([1, 2, 3, 4, 5, 6] as Steuerklasse[]).map((k) => (
-                    <button
-                      key={k}
-                      onClick={() => setSteuerDaten((d) => ({ ...d, steuerklasse: k }))}
-                      className={`w-9 h-9 rounded-xl text-sm font-semibold transition-colors ${
-                        steuerDaten.steuerklasse === k
-                          ? "bg-blue-600 text-white"
-                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
-                      }`}
-                    >
-                      {k}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <p className="text-sm sf-text">{t("STEUER_KIRCHENSTEUER")}</p>
-                <Toggle
-                  checked={steuerDaten.kirchensteuer}
-                  onChange={(v) => setSteuerDaten((d) => ({ ...d, kirchensteuer: v }))}
-                  label={t("STEUER_KIRCHENSTEUER")}
-                />
-              </div>
-
-              {arbeitgeber.filter((e) => e.art === "kurzfristig").length > 0 && (
-                <div>
-                  <p className="text-xs sf-text-2 mb-2">{t("STEUER_PAUSCHAL")}</p>
-                  <div className="space-y-2">
-                    {arbeitgeber.filter((e) => e.art === "kurzfristig").map((emp) => (
-                      <div key={emp.id} className="flex items-center justify-between rounded-xl bg-stone-50 dark:bg-neutral-800/50 px-3 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: emp.farbe }} />
-                          <span className="text-sm sf-text">{emp.name}</span>
-                        </div>
-                        <Toggle
-                          checked={emp.kurzfristigPauschal ?? false}
-                          onChange={() => toggleKurzfristigPauschal(emp)}
-                          label={t("STEUER_PAUSCHAL") + " – " + emp.name}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={speichernSteuer}
-                disabled={steuerLaden}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.99] transition-all disabled:opacity-40"
-              >
-                {steuerLaden ? <ShiftslotLoader size="sm" label={t("SPEICHERT")} /> : t("SPEICHERN")}
-              </button>
-            </div>
-          </AkkordeonAbschnitt>
-
-          {/* ── Sprache ──────────────────────────────────────────────────── */}
-          <AkkordeonAbschnitt
-            titel={t("SEKTION_SPRACHE")}
-            symbol={<SpracheIcon />}
-            badge={locale.toUpperCase()}
-            offen={offen.has("sprache")}
-            onToggle={() => toggle("sprache")}
-          >
-            <div className="pt-3 pb-1">
-              <div className="flex gap-2 flex-wrap">
-                {(LOCALES as readonly string[]).map((l) => {
-                  const label = l === "de" ? "Deutsch" : l === "en" ? "English" : l === "ru" ? "Русский" : "Français"
-                  return (
-                    <button
-                      key={l}
-                      onClick={() => setLocale(l as typeof LOCALES[number])}
-                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                        locale === l
-                          ? "bg-blue-600 text-white"
-                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
-                      }`}
-                    >
-                      <span className="font-semibold">{l.toUpperCase()}</span>
-                      <span className={`text-xs ${locale === l ? "text-blue-100" : "sf-text-3"}`}>{label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </AkkordeonAbschnitt>
-
           {/* ── Dokumentensprache ────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("DOK_SPRACHE_LABEL")}
             symbol={<SpracheIcon />}
             badge={dokSprache.toUpperCase()}
@@ -787,8 +780,51 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
+            </div>
+          </section>
+
+          {/* ── Gruppe: App ─────────────────────────────────────────────── */}
+          <section role="region" aria-labelledby="gruppe-app">
+            <h2 id="gruppe-app" className="text-xs font-semibold sf-text-3 uppercase tracking-wide mb-2 px-1">
+              {t("GRUPPE_APP")}
+            </h2>
+            <div className="sf-card rounded-2xl shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-white/5">
+
+          {/* ── Sprache ──────────────────────────────────────────────────── */}
+          <AkkordeonAbschnitt
+            inGroup
+            titel={t("SEKTION_SPRACHE")}
+            symbol={<SpracheIcon />}
+            badge={locale.toUpperCase()}
+            offen={offen.has("sprache")}
+            onToggle={() => toggle("sprache")}
+          >
+            <div className="pt-3 pb-1">
+              <div className="flex gap-2 flex-wrap">
+                {(LOCALES as readonly string[]).map((l) => {
+                  const label = l === "de" ? "Deutsch" : l === "en" ? "English" : l === "ru" ? "Русский" : "Français"
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => setLocale(l as typeof LOCALES[number])}
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                        locale === l
+                          ? "bg-blue-600 text-white"
+                          : "bg-stone-100 dark:bg-neutral-800 sf-text hover:bg-stone-200 dark:hover:bg-neutral-700"
+                      }`}
+                    >
+                      <span className="font-semibold">{l.toUpperCase()}</span>
+                      <span className={`text-xs ${locale === l ? "text-blue-100" : "sf-text-3"}`}>{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </AkkordeonAbschnitt>
+
           {/* ── Erscheinungsbild ──────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_ERSCHEINUNGSBILD")}
             symbol={<ErscheinungsbildIcon />}
             offen={offen.has("erscheinungsbild")}
@@ -802,6 +838,7 @@ export default function ProfilSeite() {
 
           {/* ── Neuigkeiten ──────────────────────────────────────────────── */}
           <AkkordeonAbschnitt
+            inGroup
             titel={t("SEKTION_NEUIGKEITEN")}
             symbol={<NeuigkeitenIcon />}
             offen={offen.has("neuigkeiten")}
@@ -830,7 +867,14 @@ export default function ProfilSeite() {
             </div>
           </AkkordeonAbschnitt>
 
-          {/* ── Konto ────────────────────────────────────────────────────── */}
+            </div>
+          </section>
+
+          {/* ── Gruppe: Konto ───────────────────────────────────────────── */}
+          <section role="region" aria-labelledby="gruppe-konto">
+            <h2 id="gruppe-konto" className="text-xs font-semibold sf-text-3 uppercase tracking-wide mb-2 px-1">
+              {t("SEKTION_KONTO")}
+            </h2>
           <div className="sf-card rounded-2xl shadow-sm px-4 py-4 space-y-3">
             <div className="flex items-center gap-3">
               <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-stone-100 dark:bg-neutral-800 text-stone-500 dark:text-neutral-400 flex-shrink-0">
@@ -856,24 +900,25 @@ export default function ProfilSeite() {
               >
                 {t("DATEN_EXPORTIEREN")}
               </button>
-              <button
-                onClick={() => setLoeschenOffen(true)}
-                className="w-full rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-[.99] transition-all"
-              >
-                {t("KONTO_LOESCHEN_BTN")}
-              </button>
-              <div className="flex justify-center gap-4 pt-1">
-                <Link href="/datenschutz" className="text-xs sf-text-3 hover:underline">
-                  {t("DATENSCHUTZ")}
-                </Link>
-                <span className="text-xs sf-text-3">·</span>
-                <Link href="/impressum" className="text-xs sf-text-3 hover:underline">
-                  {t("IMPRESSUM")}
-                </Link>
-              </div>
-              <p className="text-center text-xs sf-text-3 opacity-50">{APP_VERSION}</p>
             </div>
+            <button
+              onClick={() => setLoeschenOffen(true)}
+              className="mt-4 w-full rounded-xl border border-red-200 dark:border-red-900/40 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-[.99] transition-all"
+            >
+              {t("KONTO_LOESCHEN_BTN")}
+            </button>
+            <div className="flex justify-center gap-4 pt-1">
+              <Link href="/datenschutz" className="text-xs sf-text-3 hover:underline">
+                {t("DATENSCHUTZ")}
+              </Link>
+              <span className="text-xs sf-text-3">·</span>
+              <Link href="/impressum" className="text-xs sf-text-3 hover:underline">
+                {t("IMPRESSUM")}
+              </Link>
+            </div>
+            <p className="text-center text-xs sf-text-3 opacity-50">{APP_VERSION}</p>
           </div>
+          </section>
 
         </div>
       </div>
@@ -914,6 +959,7 @@ function AkkordeonAbschnitt({
   offen,
   onToggle,
   children,
+  inGroup,
 }: {
   titel: string
   symbol: React.ReactNode
@@ -921,9 +967,10 @@ function AkkordeonAbschnitt({
   offen: boolean
   onToggle: () => void
   children: React.ReactNode
+  inGroup?: boolean
 }) {
   return (
-    <div className="sf-card rounded-2xl shadow-sm overflow-hidden">
+    <div className={inGroup ? "" : "sf-card rounded-2xl shadow-sm overflow-hidden"}>
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-stone-50 dark:hover:bg-white/5 transition-colors active:bg-stone-100 dark:active:bg-white/10"
