@@ -378,6 +378,9 @@ export interface UiStrings {
   UPD_2_1_0_ITEM6: string
   UPD_2_1_0_ITEM7: string
   UPD_2_1_0_ITEM9: string
+  UPD_2_2_0_ITEM1: string
+  UPD_2_2_0_ITEM2: string
+  UPD_2_2_0_ITEM3: string
   UPD_2_0_ITEM1: string
   UPD_2_0_ITEM2: string
   UPD_2_0_ITEM3: string
@@ -803,6 +806,9 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_1_0_ITEM6: "Bessere Kalenderbehandlung: klarere Fehler pro Kalender, ein defekter blockiert nicht die anderen, „Stand: …“-Banner, verbesserte iCal-Link-Hilfe",
     UPD_2_1_0_ITEM7: "Deine Daten, deine Kontrolle: Datenschutzerklärung und Impressum in der App, Daten als Datei exportieren, Konto löschen im Profil",
     UPD_2_1_0_ITEM9: "Neue Webadresse: {url} – Auf dem Startbildschirm installierte Apps unter der alten Adresse funktionieren weiter; für das neue Symbol und die neue Adresse die neue URL öffnen und zur Startseite hinzufügen",
+    UPD_2_2_0_ITEM1: "Favoriten: Stern bei deinem Haupt-Arbeitgeber tippen – er erscheint dann beim Start immer zuerst",
+    UPD_2_2_0_ITEM2: "Profil-Übersicht gruppiert jetzt Arbeitgeber, Verfügbarkeit und Stundenzettel übersichtlicher",
+    UPD_2_2_0_ITEM3: "Korrektur: Minusstunden-Block im Verfügbarkeits-PDF erschien nicht korrekt",
     UPD_2_0_ITEM1: "Verfügbarkeit pro Arbeitgeber einrichten: Wochentage, früheste und späteste Zeit, Mindestdauer, Wegezeiten",
     UPD_2_0_ITEM2: "Feste Zeiten sperren, z. B. Gebetszeit, Uni oder Lerngruppe",
     UPD_2_0_ITEM3: "Dein Name im PDF: du legst selbst fest, was im Kopf steht",
@@ -1216,6 +1222,9 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_1_0_ITEM6: "Better calendar handling: clearer errors per calendar, one broken calendar doesn't block others, \"As of: …\" banner, improved iCal link help",
     UPD_2_1_0_ITEM7: "Your data, your control: privacy policy and legal notice inside the app, export data as a file, delete account from Profile",
     UPD_2_1_0_ITEM9: "New web address: {url} – Apps installed on the home screen from the old address keep working; for the new icon and address, open the new URL and add it to your home screen again",
+    UPD_2_2_0_ITEM1: "Favourites: tap the star on your main employer – it will always appear first on the home screen",
+    UPD_2_2_0_ITEM2: "Profile overview now groups employers, availability and timesheets more clearly",
+    UPD_2_2_0_ITEM3: "Fix: minus-hours block in the availability PDF was not rendered correctly",
     UPD_2_0_ITEM1: "Set up availability per employer: weekdays, earliest and latest time, minimum duration, travel times",
     UPD_2_0_ITEM2: "Block fixed times, e.g. prayer time, university or study group",
     UPD_2_0_ITEM3: "Your name in the PDF: you decide what appears in the header",
@@ -1629,6 +1638,9 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_1_0_ITEM6: "Улучшенная работа с календарями: чёткие ошибки по каждому календарю, один сломанный не блокирует другие, баннер «Данные на: …», улучшенная справка по iCal-ссылке",
     UPD_2_1_0_ITEM7: "Ваши данные, ваш контроль: политика конфиденциальности и правовая информация в приложении, экспорт данных в файл, удаление аккаунта из раздела Профиль",
     UPD_2_1_0_ITEM9: "Новый веб-адрес: {url} – Приложения, добавленные на главный экран со старого адреса, продолжают работать; для нового значка и адреса откройте новый URL и добавьте приложение снова",
+    UPD_2_2_0_ITEM1: "Избранное: нажмите звёздочку у основного работодателя – он будет появляться первым при запуске",
+    UPD_2_2_0_ITEM2: "Профиль теперь группирует работодателей, доступность и табели нагляднее",
+    UPD_2_2_0_ITEM3: "Исправление: блок минусовых часов в PDF доступности не отображался корректно",
     UPD_2_0_ITEM1: "Настройка доступности для каждого работодателя: дни недели, ранний и поздний предел, минимальная длительность, время в пути",
     UPD_2_0_ITEM2: "Блокировка фиксированных периодов, например времени молитвы, занятий или учёбы",
     UPD_2_0_ITEM3: "Ваше имя в PDF: вы сами решаете, что отображается в заголовке",
@@ -2042,6 +2054,9 @@ export const translations: Record<Locale, UiStrings> = {
     UPD_2_1_0_ITEM6: "Meilleure gestion des calendriers : erreurs claires par calendrier, un calendrier cassé ne bloque pas les autres, bannière « À jour : … », aide iCal améliorée",
     UPD_2_1_0_ITEM7: "Vos données, votre contrôle : politique de confidentialité et mentions légales dans l'app, export des données en fichier, suppression du compte depuis Profil",
     UPD_2_1_0_ITEM9: "Nouvelle adresse web : {url} – Les apps installées sur l'écran d'accueil depuis l'ancienne adresse continuent de fonctionner ; pour la nouvelle icône et adresse, ouvrez la nouvelle URL et ajoutez-la à l'écran d'accueil",
+    UPD_2_2_0_ITEM1: "Favoris : appuie sur l'étoile de ton employeur principal – il apparaîtra toujours en premier sur l'écran d'accueil",
+    UPD_2_2_0_ITEM2: "Le profil regroupe maintenant employeurs, disponibilité et feuilles de temps de façon plus claire",
+    UPD_2_2_0_ITEM3: "Correction : le bloc des heures négatives dans le PDF de disponibilité ne s'affichait pas correctement",
     UPD_2_0_ITEM1: "Configurer la disponibilité par employeur : jours de la semaine, horaire le plus tôt et le plus tard, durée minimale, temps de trajet",
     UPD_2_0_ITEM2: "Bloquer des créneaux fixes, par ex. prière, cours ou groupe d'étude",
     UPD_2_0_ITEM3: "Votre nom dans le PDF : vous choisissez ce qui apparaît dans l'en-tête",
