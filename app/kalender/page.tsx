@@ -205,6 +205,9 @@ export default function KalenderPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
   const dragStartY = useRef(0)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
   // Data loading: Schichten
   const ladenZeitgitter = useCallback(async (von: string, bis: string) => {
@@ -327,6 +330,20 @@ export default function KalenderPage() {
     })
   }
 
+  // ─── Bottom Sheet open/close ──────────────────────────────────────────────
+
+  function openSheet(day: string) {
+    if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null }
+    setSelectedDay(day)
+    // Double RAF: sheet must mount at translateY(100%) before transition fires
+    requestAnimationFrame(() => requestAnimationFrame(() => setSheetOpen(true)))
+  }
+
+  function closeSheet() {
+    setSheetOpen(false)
+    closeTimerRef.current = setTimeout(() => setSelectedDay(null), 300)
+  }
+
   // ─── Bottom Sheet Drag ────────────────────────────────────────────────────
 
   function onSheetTouchStart(e: React.TouchEvent) {
@@ -339,7 +356,7 @@ export default function KalenderPage() {
   function onSheetTouchEnd(e: React.TouchEvent) {
     const delta = e.changedTouches[0].clientY - dragStartY.current
     if (sheetRef.current) sheetRef.current.style.transform = ""
-    if (delta > 80) setSelectedDay(null)
+    if (delta > 80) closeSheet()
   }
 
   // ─── Monats-Ansicht ───────────────────────────────────────────────────────
@@ -388,7 +405,8 @@ export default function KalenderPage() {
                 key={idx}
                 onClick={() => {
                   if (!inMonth) setBase(cellStr)
-                  setSelectedDay(cellStr)
+                  // eslint-disable-next-line react-hooks/refs
+                  openSheet(cellStr)
                 }}
                 className={`flex flex-col items-center py-1.5 rounded-xl transition-colors active:bg-stone-100 dark:active:bg-neutral-800 ${
                   selectedDay === cellStr ? "bg-stone-100 dark:bg-neutral-800" : ""
@@ -840,14 +858,23 @@ export default function KalenderPage() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/25"
-            onClick={() => setSelectedDay(null)}
+            className="fixed inset-0 z-40"
+            style={{
+              backgroundColor: "rgba(0,0,0,0.4)",
+              opacity: sheetOpen ? 1 : 0,
+              transition: reducedMotion ? undefined : "opacity 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+            onClick={closeSheet}
           />
           {/* Sheet */}
           <div
             ref={sheetRef}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col transition-none"
-            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col"
+            style={{
+              transform: sheetOpen ? "translateY(0)" : "translateY(100%)",
+              transition: reducedMotion ? undefined : "transform 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+              paddingBottom: "max(env(safe-area-inset-bottom), 1rem)",
+            }}
             onTouchStart={onSheetTouchStart}
             onTouchMove={onSheetTouchMove}
             onTouchEnd={onSheetTouchEnd}
