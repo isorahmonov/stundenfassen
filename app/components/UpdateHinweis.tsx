@@ -58,6 +58,10 @@ export function UpdateHinweis() {
           ? Date.now() - new Date(creationTime).getTime() < 10 * 60 * 1000
           : false
 
+        const spaeterCount = typeof localStorage !== "undefined"
+          ? parseInt(localStorage.getItem(SPAETER_KEY) ?? "0", 10) : 0
+        if (spaeterCount >= 1) return
+
         const entscheidung = entscheideAnzeige(gespeichert, empSnap, istNeu)
 
         if (entscheidung.aktion === "speichern") {
@@ -83,7 +87,7 @@ export function UpdateHinweis() {
         localStorage.setItem(SLOTS_NEU_SEIT_KEY, String(jetzt))
         try {
           const userId = uid()
-          setDoc(doc(db, "users", userId), { hinweise: { slotsNeu: jetzt } }, { merge: true })
+          setDoc(doc(db, "users", userId), { hinweise: { slotsNeuSeit: jetzt } }, { merge: true })
             .catch(() => { /* best effort */ })
         } catch { /* best effort */ }
       }
@@ -171,7 +175,7 @@ export function UpdateHinweis() {
             onClick={schliessen}
             className="w-full rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-[.98] motion-safe:transition-all"
           >
-            {t("UPD_LOSGEH")}
+            {ist300 ? t("UPD_3_0_0_LOS") : t("UPD_LOSGEH")}
           </button>
           {ist300 ? (
             <button

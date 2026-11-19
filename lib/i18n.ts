@@ -474,9 +474,11 @@ export interface UiStrings {
   UPD_3_0_0_ITEM1: string
   UPD_3_0_0_ITEM2: string
   UPD_3_0_0_ITEM3: string
+  UPD_3_0_0_ITEM4: string
   UPD_3_0_0_TITEL: string
   UPD_3_0_0_SLOTS_TEXT: string
   UPD_3_0_0_SPAETER: string
+  UPD_3_0_0_LOS: string
 }
 
 export const translations: Record<Locale, UiStrings> = {
@@ -906,11 +908,13 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_WOCHENSTUNDEN_LABEL: "Wochenstunden",
     KAL_SLOTS_NEU_ARIA: "Neu: Slots-Tab",
     UPD_3_0_0_ITEM1: "Stundenfassen heißt jetzt Shiftslot",
-    UPD_3_0_0_ITEM2: "Neuer Kalender-Tab mit Tag-, Wochen-, Monats- und Listenansicht",
-    UPD_3_0_0_ITEM3: "Dein bisheriger Kalender heißt jetzt Slots",
+    UPD_3_0_0_ITEM2: "Neuer Kalender-Tab: Tag, 3 Tage, Woche, Monat, Liste",
+    UPD_3_0_0_ITEM3: "Termine aus deinen Kalendern sichtbar",
+    UPD_3_0_0_ITEM4: "Favoriten-Filter",
     UPD_3_0_0_TITEL: "Neu in 3.0.0",
     UPD_3_0_0_SLOTS_TEXT: "Dein bisheriger Kalender heißt jetzt Slots",
     UPD_3_0_0_SPAETER: "Später",
+    UPD_3_0_0_LOS: "Los geht's",
   },
   en: {
     LAEDT: "Loading…",
@@ -1338,11 +1342,13 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_WOCHENSTUNDEN_LABEL: "Weekly hours",
     KAL_SLOTS_NEU_ARIA: "New: Slots tab",
     UPD_3_0_0_ITEM1: "Stundenfassen is now called Shiftslot",
-    UPD_3_0_0_ITEM2: "New Calendar tab with day, week, month, and list views",
-    UPD_3_0_0_ITEM3: "Your previous Calendar is now called Slots",
+    UPD_3_0_0_ITEM2: "New Calendar tab: day, 3 days, week, month, list",
+    UPD_3_0_0_ITEM3: "Events from your calendars visible",
+    UPD_3_0_0_ITEM4: "Favourites filter",
     UPD_3_0_0_TITEL: "New in 3.0.0",
     UPD_3_0_0_SLOTS_TEXT: "Your previous Calendar is now called Slots",
     UPD_3_0_0_SPAETER: "Later",
+    UPD_3_0_0_LOS: "Let's go",
   },
   ru: {
     LAEDT: "Загрузка…",
@@ -1770,11 +1776,13 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_WOCHENSTUNDEN_LABEL: "Часы в неделю",
     KAL_SLOTS_NEU_ARIA: "Новое: вкладка Слоты",
     UPD_3_0_0_ITEM1: "Stundenfassen теперь называется Shiftslot",
-    UPD_3_0_0_ITEM2: "Новая вкладка Календарь: день, неделя, месяц и список",
-    UPD_3_0_0_ITEM3: "Ваш предыдущий Календарь теперь называется Слоты",
+    UPD_3_0_0_ITEM2: "Новая вкладка Календарь: день, 3 дня, неделя, месяц, список",
+    UPD_3_0_0_ITEM3: "События из ваших календарей видны в приложении",
+    UPD_3_0_0_ITEM4: "Фильтр по избранному",
     UPD_3_0_0_TITEL: "Что нового в 3.0.0",
     UPD_3_0_0_SLOTS_TEXT: "Ваш предыдущий Календарь теперь называется Слоты",
     UPD_3_0_0_SPAETER: "Позже",
+    UPD_3_0_0_LOS: "Начать",
   },
   fr: {
     LAEDT: "Chargement…",
@@ -2202,11 +2210,13 @@ export const translations: Record<Locale, UiStrings> = {
     KAL_WOCHENSTUNDEN_LABEL: "Heures hebdo",
     KAL_SLOTS_NEU_ARIA: "Nouveau : onglet Créneaux",
     UPD_3_0_0_ITEM1: "Stundenfassen s'appelle maintenant Shiftslot",
-    UPD_3_0_0_ITEM2: "Nouvel onglet Calendrier : jour, semaine, mois et liste",
-    UPD_3_0_0_ITEM3: "Votre ancien Calendrier s'appelle maintenant Créneaux",
+    UPD_3_0_0_ITEM2: "Nouvel onglet Calendrier : jour, 3 jours, semaine, mois, liste",
+    UPD_3_0_0_ITEM3: "Les événements de vos calendriers sont visibles",
+    UPD_3_0_0_ITEM4: "Filtre favoris",
     UPD_3_0_0_TITEL: "Nouveautés en 3.0.0",
     UPD_3_0_0_SLOTS_TEXT: "Votre ancien Calendrier s'appelle maintenant Créneaux",
     UPD_3_0_0_SPAETER: "Plus tard",
+    UPD_3_0_0_LOS: "C'est parti",
   },
 }
 

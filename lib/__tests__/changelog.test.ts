@@ -70,9 +70,9 @@ describe("getEintraegeZeigen", () => {
 })
 
 describe("CHANGELOG structure", () => {
-  it("has 3.0.0 entry with 3 item keys", () => {
+  it("has 3.0.0 entry with 4 item keys", () => {
     expect(EINTRAG_3_0_0).toBeDefined()
-    expect(EINTRAG_3_0_0.itemKeys).toHaveLength(3)
+    expect(EINTRAG_3_0_0.itemKeys).toHaveLength(4)
   })
 
   it("has 2.2.0 entry with 3 item keys", () => {

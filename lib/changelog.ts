@@ -15,6 +15,7 @@ export const CHANGELOG: ChangelogEintrag[] = [
       "UPD_3_0_0_ITEM1",
       "UPD_3_0_0_ITEM2",
       "UPD_3_0_0_ITEM3",
+      "UPD_3_0_0_ITEM4",
     ],
   },
   {
