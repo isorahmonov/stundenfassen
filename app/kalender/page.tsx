@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { addDays, format, parseISO, startOfISOWeek } from "date-fns"
+import { addDays, addMonths, endOfMonth, format, getDay, isSameMonth, parseISO, startOfISOWeek, startOfMonth } from "date-fns"
 import { de } from "date-fns/locale"
 import { employers as employersRepo, shifts as shiftsRepo } from "@/lib/storage"
 import { minutesSinceMidnight } from "@/lib/calc/time"
@@ -20,6 +20,7 @@ const HOURS = Array.from({ length: 16 }, (_, i) => i + 6) // 6..21
 const GRID_H = 16 * ROW_H
 const BERLIN = "Europe/Berlin"
 const WOCHENSTUNDEN_GELB = 18
+const WOCHENTAGE_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
 type Ansicht = "tag" | "3t" | "woche" | "monat" | "liste"
 
@@ -60,12 +61,6 @@ function tageVonAnsicht(base: string, ansicht: Ansicht): string[] {
     return Array.from({ length: 7 }, (_, i) => format(addDays(mo, i), "yyyy-MM-dd"))
   }
   return []
-}
-
-function navSchritt(ansicht: Ansicht): number {
-  if (ansicht === "tag") return 1
-  if (ansicht === "3t") return 3
-  return 7
 }
 
 // ─── Schicht-Block ────────────────────────────────────────────────────────────
@@ -128,8 +123,11 @@ export default function KalenderPage() {
   const [filteredEmpIds, setFilteredEmpIds] = useState<string[] | null>(null)
   const [nowMin, setNowMin] = useState(berlinNowMin)
   const [laedt, setLaedt] = useState(true)
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const dragStartY = useRef(0)
 
   // Data loading
   const ladenZeitgitter = useCallback(async (von: string, bis: string) => {
@@ -152,7 +150,12 @@ export default function KalenderPage() {
       ladenZeitgitter(heute, bis)
       return
     }
-    if (ansicht === "monat") return
+    if (ansicht === "monat") {
+      const first = startOfMonth(parseISO(base))
+      const last = endOfMonth(parseISO(base))
+      ladenZeitgitter(format(first, "yyyy-MM-dd"), format(last, "yyyy-MM-dd"))
+      return
+    }
     const tage = tageVonAnsicht(base, ansicht)
     if (tage.length > 0) ladenZeitgitter(tage[0], tage[tage.length - 1])
   }, [base, ansicht]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -203,7 +206,11 @@ export default function KalenderPage() {
   const nowTimeStr = `${String(Math.floor(nowMin / 60)).padStart(2, "0")}:${String(nowMin % 60).padStart(2, "0")}`
 
   function navigate(delta: number) {
-    const step = navSchritt(ansicht) * delta
+    if (ansicht === "monat") {
+      setBase(format(addMonths(parseISO(base), delta), "yyyy-MM-dd"))
+      return
+    }
+    const step = (ansicht === "tag" ? 1 : ansicht === "3t" ? 3 : 7) * delta
     setBase(format(addDays(parseISO(ansicht === "woche" ? wocheMontagStr(base) : base), step), "yyyy-MM-dd"))
   }
 
@@ -213,6 +220,92 @@ export default function KalenderPage() {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
       return next.length === 0 ? null : next
     })
+  }
+
+  // ─── Bottom Sheet Drag ────────────────────────────────────────────────────
+
+  function onSheetTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY
+  }
+  function onSheetTouchMove(e: React.TouchEvent) {
+    const delta = Math.max(0, e.touches[0].clientY - dragStartY.current)
+    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${delta}px)`
+  }
+  function onSheetTouchEnd(e: React.TouchEvent) {
+    const delta = e.changedTouches[0].clientY - dragStartY.current
+    if (sheetRef.current) sheetRef.current.style.transform = ""
+    if (delta > 80) setSelectedDay(null)
+  }
+
+  // ─── Monats-Ansicht ───────────────────────────────────────────────────────
+
+  function renderMonat() {
+    const monthDate = parseISO(base)
+    const monthStart = startOfMonth(monthDate)
+    const isoOffset = (getDay(monthStart) + 6) % 7  // Mon=0, Sun=6
+    const gridStart = addDays(monthStart, -isoOffset)
+    const cells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i))
+
+    return (
+      <div className="flex-1 overflow-y-auto px-3 pb-2">
+        {/* Weekday header */}
+        <div className="grid grid-cols-7 mb-1">
+          {WOCHENTAGE_DE.map(d => (
+            <div key={d} className="text-center text-[10px] font-medium text-stone-400 dark:text-neutral-500 py-1">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Day cells — 6 rows × 7 */}
+        <div className="grid grid-cols-7">
+          {cells.map((cell, idx) => {
+            const cellStr = format(cell, "yyyy-MM-dd")
+            const inMonth = isSameMonth(cell, monthDate)
+            const isHeute = cellStr === heute
+            const tagSchichten = sichtbareSchichten.filter(s => s.datum === cellStr)
+
+            // Unique employer colors for dots (up to 3)
+            const empIds = [...new Set(tagSchichten.map(s => s.employerId))].slice(0, 3)
+            const dots = empIds.map(id => employers.find(e => e.id === id)?.farbe ?? "#6b7280")
+
+            return (
+              <button
+                key={idx}
+                onClick={() => {
+                  if (!inMonth) setBase(cellStr)
+                  setSelectedDay(cellStr)
+                }}
+                className={`flex flex-col items-center py-1.5 rounded-xl transition-colors active:bg-stone-100 dark:active:bg-neutral-800 ${
+                  selectedDay === cellStr ? "bg-stone-100 dark:bg-neutral-800" : ""
+                }`}
+              >
+                <span
+                  className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${
+                    isHeute
+                      ? "bg-blue-600 text-white"
+                      : inMonth
+                        ? "text-stone-800 dark:text-neutral-100"
+                        : "text-stone-300 dark:text-neutral-600"
+                  }`}
+                >
+                  {format(cell, "d")}
+                </span>
+                <div className="flex gap-0.5 mt-1 h-1.5">
+                  {dots.map((farbe, i) => (
+                    <span
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: inMonth ? farbe : "transparent" }}
+                    />
+                  ))}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 
   // ─── Zeit-Gitter ──────────────────────────────────────────────────────────
@@ -374,17 +467,23 @@ export default function KalenderPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
-  const tage = tageVonAnsicht(base, ansicht)
-  const rangeLabel = ansicht === "woche"
-    ? (() => {
-        const mo = parseISO(wocheMontagStr(base))
-        return `${format(mo, "d.M.")} – ${format(addDays(mo, 6), "d.M.yyyy")}`
-      })()
-    : ansicht === "3t"
-      ? `${format(parseISO(base), "d.M.")} – ${format(addDays(parseISO(base), 2), "d.M.yyyy")}`
-      : ansicht === "tag"
-        ? format(parseISO(base), "EEEE, d. MMMM", { locale: de })
-        : ""
+  const rangeLabel = ansicht === "monat"
+    ? format(parseISO(base), "MMMM yyyy", { locale: de })
+    : ansicht === "woche"
+      ? (() => {
+          const mo = parseISO(wocheMontagStr(base))
+          return `${format(mo, "d.M.")} – ${format(addDays(mo, 6), "d.M.yyyy")}`
+        })()
+      : ansicht === "3t"
+        ? `${format(parseISO(base), "d.M.")} – ${format(addDays(parseISO(base), 2), "d.M.yyyy")}`
+        : format(parseISO(base), "EEEE, d. MMMM", { locale: de })
+
+  // Shifts for the detail bottom sheet
+  const selectedDaySchichten = selectedDay
+    ? sichtbareSchichten
+        .filter(s => s.datum === selectedDay)
+        .sort((a, b) => a.start.localeCompare(b.start))
+    : []
 
   return (
     <div className="flex flex-col h-dvh" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 56px)" }}>
@@ -421,8 +520,8 @@ export default function KalenderPage() {
           ))}
         </div>
 
-        {/* Navigation row (grid views only) */}
-        {ansicht !== "liste" && ansicht !== "monat" && (
+        {/* Navigation row */}
+        {ansicht !== "liste" && (
           <div className="flex items-center justify-between mb-2">
             <button
               onClick={() => navigate(-1)}
@@ -496,13 +595,76 @@ export default function KalenderPage() {
           <div className="w-5 h-5 rounded-full border-2 border-stone-200 dark:border-neutral-700 border-t-blue-600 animate-spin" />
         </div>
       ) : ansicht === "monat" ? (
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-stone-400 dark:text-neutral-500 text-sm">Monatsansicht – kommt bald</p>
-        </div>
+        renderMonat()
       ) : ansicht === "liste" ? (
         renderListe()
       ) : (
         renderZeitgitter()
+      )}
+
+      {/* Detail bottom sheet */}
+      {selectedDay !== null && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/25"
+            onClick={() => setSelectedDay(null)}
+          />
+          {/* Sheet */}
+          <div
+            ref={sheetRef}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col transition-none"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}
+            onTouchStart={onSheetTouchStart}
+            onTouchMove={onSheetTouchMove}
+            onTouchEnd={onSheetTouchEnd}
+          >
+            {/* Griffleiste */}
+            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+              <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-neutral-600" />
+            </div>
+
+            {/* Header */}
+            <div className="px-5 pt-1 pb-3 flex-shrink-0 border-b border-stone-100 dark:border-neutral-800">
+              <h3 className="text-base font-semibold sf-text capitalize">
+                {format(parseISO(selectedDay), "EEEE, d. MMMM yyyy", { locale: de })}
+              </h3>
+            </div>
+
+            {/* Shifts */}
+            <div className="flex-1 overflow-y-auto px-4 pt-3 space-y-2">
+              {selectedDaySchichten.length === 0 ? (
+                <p className="text-sm text-stone-400 dark:text-neutral-500 text-center py-6">–</p>
+              ) : (
+                selectedDaySchichten.map(s => {
+                  const emp = employers.find(e => e.id === s.employerId)
+                  const farbe = emp?.farbe ?? "#6b7280"
+                  return (
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                      style={{ backgroundColor: farbe + "18", borderLeft: `3px solid ${farbe}` }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold truncate" style={{ color: farbe }}>
+                          {emp?.name ?? "–"}
+                        </div>
+                        <div className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
+                          {s.start}–{s.ende}
+                          {s.pauseVon && s.pauseBis && (
+                            <span className="ml-2 text-stone-400 dark:text-neutral-500">
+                              Pause {s.pauseVon}–{s.pauseBis}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
