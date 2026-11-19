@@ -9,6 +9,15 @@ export interface ChangelogEintrag {
 
 export const CHANGELOG: ChangelogEintrag[] = [
   {
+    version: "3.0.0",
+    date: "2026-11-19",
+    itemKeys: [
+      "UPD_3_0_0_ITEM1",
+      "UPD_3_0_0_ITEM2",
+      "UPD_3_0_0_ITEM3",
+    ],
+  },
+  {
     version: "2.2.0",
     date: "2026-10-27",
     itemKeys: [

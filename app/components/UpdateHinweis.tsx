@@ -13,6 +13,8 @@ import { useT } from "@/app/components/LangProvider"
 import type { UiStrings } from "@/lib/i18n"
 
 const LS_KEY = "sf_seen_version"
+const SPAETER_KEY = "sf_upd_spaeter_count"
+const SLOTS_NEU_SEIT_KEY = "sf_slots_neu_seit"
 
 async function speichereVersion(userId: string) {
   try {
@@ -68,9 +70,23 @@ export function UpdateHinweis() {
     pruefen()
   }, [])
 
+  const ist300 = eintraege[0]?.version === "3.0.0"
+
   useEffect(() => {
-    if (eintraege.length > 0) {
-      ersterFokusRef.current?.focus()
+    if (eintraege.length === 0) return
+    ersterFokusRef.current?.focus()
+
+    // Set slots-neu-seit when 3.0.0 dialog first opens
+    if (eintraege[0]?.version === "3.0.0") {
+      const jetzt = Date.now()
+      if (!localStorage.getItem(SLOTS_NEU_SEIT_KEY)) {
+        localStorage.setItem(SLOTS_NEU_SEIT_KEY, String(jetzt))
+        try {
+          const userId = uid()
+          setDoc(doc(db, "users", userId), { hinweise: { slotsNeu: jetzt } }, { merge: true })
+            .catch(() => { /* best effort */ })
+        } catch { /* best effort */ }
+      }
     }
   }, [eintraege])
 
@@ -79,6 +95,16 @@ export function UpdateHinweis() {
     try {
       await speichereVersion(uid())
     } catch { /* best effort */ }
+  }
+
+  async function spaeter() {
+    const count = parseInt(localStorage.getItem(SPAETER_KEY) ?? "0", 10)
+    if (count >= 1) {
+      await schliessen()
+    } else {
+      localStorage.setItem(SPAETER_KEY, "1")
+      setEintraege([])
+    }
   }
 
   if (eintraege.length === 0) return null
@@ -95,7 +121,7 @@ export function UpdateHinweis() {
         <div className="flex-shrink-0 flex items-center gap-3 px-6 pt-6 pb-4">
           <ShiftslotLogo size={28} mode="mark" />
           <h2 id={titelId} className="text-base font-bold sf-text leading-snug">
-            {t("UPD_DIALOG_TITEL")}
+            {ist300 ? t("UPD_3_0_0_TITEL") : t("UPD_DIALOG_TITEL")}
           </h2>
         </div>
 
@@ -147,13 +173,22 @@ export function UpdateHinweis() {
           >
             {t("UPD_LOSGEH")}
           </button>
-          <Link
-            href="/profil"
-            onClick={schliessen}
-            className="py-1 text-sm text-center text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {t("UPD_ZUM_PROFIL")}
-          </Link>
+          {ist300 ? (
+            <button
+              onClick={spaeter}
+              className="py-1 text-sm text-center text-stone-400 dark:text-neutral-500 hover:underline"
+            >
+              {t("UPD_3_0_0_SPAETER")}
+            </button>
+          ) : (
+            <Link
+              href="/profil"
+              onClick={schliessen}
+              className="py-1 text-sm text-center text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {t("UPD_ZUM_PROFIL")}
+            </Link>
+          )}
         </div>
       </div>
     </BaseDialog>
