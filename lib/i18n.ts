@@ -458,6 +458,25 @@ export interface UiStrings {
   COACHMARK_VERSTANDEN: string
   // E-Mail Vorlage — Betreff-Platzhalter
   VORLAGE_PH_BETREFF: string
+  // Tab bar additions
+  TAB_SLOTS: string
+  // Kalender view (new tab)
+  KAL_HEUTE: string
+  KAL_TAG: string
+  KAL_DREI_TAGE: string
+  KAL_WOCHE: string
+  KAL_MONAT: string
+  KAL_LISTE: string
+  KAL_JETZT: string
+  KAL_WOCHENSTUNDEN_LABEL: string
+  KAL_SLOTS_NEU_ARIA: string
+  // 3.0.0 release dialog
+  UPD_3_0_0_ITEM1: string
+  UPD_3_0_0_ITEM2: string
+  UPD_3_0_0_ITEM3: string
+  UPD_3_0_0_TITEL: string
+  UPD_3_0_0_SLOTS_TEXT: string
+  UPD_3_0_0_SPAETER: string
 }
 
 export const translations: Record<Locale, UiStrings> = {
@@ -876,6 +895,22 @@ export const translations: Record<Locale, UiStrings> = {
     COACHMARK_FAVORITEN_TEXT: "Neu: Favoriten. Tippe auf den Stern bei deinem Haupt-Arbeitgeber, dann erscheint er beim Start zuerst.",
     COACHMARK_VERSTANDEN: "Verstanden",
     VORLAGE_PH_BETREFF: "Verfügbarkeit {{zeitraum_von}} – {{zeitraum_bis}}",
+    TAB_SLOTS: "Slots",
+    KAL_HEUTE: "Heute",
+    KAL_TAG: "Tag",
+    KAL_DREI_TAGE: "3T",
+    KAL_WOCHE: "Woche",
+    KAL_MONAT: "Monat",
+    KAL_LISTE: "Liste",
+    KAL_JETZT: "Jetzt",
+    KAL_WOCHENSTUNDEN_LABEL: "Wochenstunden",
+    KAL_SLOTS_NEU_ARIA: "Neu: Slots-Tab",
+    UPD_3_0_0_ITEM1: "Stundenfassen heißt jetzt Shiftslot",
+    UPD_3_0_0_ITEM2: "Neuer Kalender-Tab mit Tag-, Wochen-, Monats- und Listenansicht",
+    UPD_3_0_0_ITEM3: "Dein bisheriger Kalender heißt jetzt Slots",
+    UPD_3_0_0_TITEL: "Neu in 3.0.0",
+    UPD_3_0_0_SLOTS_TEXT: "Dein bisheriger Kalender heißt jetzt Slots",
+    UPD_3_0_0_SPAETER: "Später",
   },
   en: {
     LAEDT: "Loading…",
@@ -1292,6 +1327,22 @@ export const translations: Record<Locale, UiStrings> = {
     COACHMARK_FAVORITEN_TEXT: "New: Favourites. Tap the star on your main employer to show it first on the home screen.",
     COACHMARK_VERSTANDEN: "Got it",
     VORLAGE_PH_BETREFF: "Availability {{zeitraum_von}} – {{zeitraum_bis}}",
+    TAB_SLOTS: "Slots",
+    KAL_HEUTE: "Today",
+    KAL_TAG: "Day",
+    KAL_DREI_TAGE: "3D",
+    KAL_WOCHE: "Week",
+    KAL_MONAT: "Month",
+    KAL_LISTE: "List",
+    KAL_JETZT: "Now",
+    KAL_WOCHENSTUNDEN_LABEL: "Weekly hours",
+    KAL_SLOTS_NEU_ARIA: "New: Slots tab",
+    UPD_3_0_0_ITEM1: "Stundenfassen is now called Shiftslot",
+    UPD_3_0_0_ITEM2: "New Calendar tab with day, week, month, and list views",
+    UPD_3_0_0_ITEM3: "Your previous Calendar is now called Slots",
+    UPD_3_0_0_TITEL: "New in 3.0.0",
+    UPD_3_0_0_SLOTS_TEXT: "Your previous Calendar is now called Slots",
+    UPD_3_0_0_SPAETER: "Later",
   },
   ru: {
     LAEDT: "Загрузка…",
@@ -1708,6 +1759,22 @@ export const translations: Record<Locale, UiStrings> = {
     COACHMARK_FAVORITEN_TEXT: "Новое: Избранное. Нажмите звёздочку у основного работодателя – он будет появляться первым.",
     COACHMARK_VERSTANDEN: "Понятно",
     VORLAGE_PH_BETREFF: "Доступность {{zeitraum_von}} – {{zeitraum_bis}}",
+    TAB_SLOTS: "Слоты",
+    KAL_HEUTE: "Сегодня",
+    KAL_TAG: "День",
+    KAL_DREI_TAGE: "3Д",
+    KAL_WOCHE: "Нед.",
+    KAL_MONAT: "Месяц",
+    KAL_LISTE: "Список",
+    KAL_JETZT: "Сейчас",
+    KAL_WOCHENSTUNDEN_LABEL: "Часы в неделю",
+    KAL_SLOTS_NEU_ARIA: "Новое: вкладка Слоты",
+    UPD_3_0_0_ITEM1: "Stundenfassen теперь называется Shiftslot",
+    UPD_3_0_0_ITEM2: "Новая вкладка Календарь: день, неделя, месяц и список",
+    UPD_3_0_0_ITEM3: "Ваш предыдущий Календарь теперь называется Слоты",
+    UPD_3_0_0_TITEL: "Что нового в 3.0.0",
+    UPD_3_0_0_SLOTS_TEXT: "Ваш предыдущий Календарь теперь называется Слоты",
+    UPD_3_0_0_SPAETER: "Позже",
   },
   fr: {
     LAEDT: "Chargement…",
@@ -2124,6 +2191,22 @@ export const translations: Record<Locale, UiStrings> = {
     COACHMARK_FAVORITEN_TEXT: "Nouveau : Favoris. Appuie sur l'étoile de ton employeur principal pour qu'il apparaisse en premier.",
     COACHMARK_VERSTANDEN: "Compris",
     VORLAGE_PH_BETREFF: "Disponibilité {{zeitraum_von}} – {{zeitraum_bis}}",
+    TAB_SLOTS: "Créneaux",
+    KAL_HEUTE: "Aujourd'hui",
+    KAL_TAG: "Jour",
+    KAL_DREI_TAGE: "3J",
+    KAL_WOCHE: "Sem.",
+    KAL_MONAT: "Mois",
+    KAL_LISTE: "Liste",
+    KAL_JETZT: "Maintenant",
+    KAL_WOCHENSTUNDEN_LABEL: "Heures hebdo",
+    KAL_SLOTS_NEU_ARIA: "Nouveau : onglet Créneaux",
+    UPD_3_0_0_ITEM1: "Stundenfassen s'appelle maintenant Shiftslot",
+    UPD_3_0_0_ITEM2: "Nouvel onglet Calendrier : jour, semaine, mois et liste",
+    UPD_3_0_0_ITEM3: "Votre ancien Calendrier s'appelle maintenant Créneaux",
+    UPD_3_0_0_TITEL: "Nouveautés en 3.0.0",
+    UPD_3_0_0_SLOTS_TEXT: "Votre ancien Calendrier s'appelle maintenant Créneaux",
+    UPD_3_0_0_SPAETER: "Plus tard",
   },
 }
 
