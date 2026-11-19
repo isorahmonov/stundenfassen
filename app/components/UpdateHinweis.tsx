@@ -14,7 +14,7 @@ import { useT } from "@/app/components/LangProvider"
 import type { UiStrings } from "@/lib/i18n"
 
 const LS_KEY = "sf_seen_version"
-const SPAETER_KEY = "sf_upd_spaeter_count"
+const SPAETER_KEY = "sf_upd_spaeter_3_0_0"
 const SLOTS_NEU_SEIT_KEY = "sf_slots_neu_seit"
 
 async function speichereVersion(userId: string) {
