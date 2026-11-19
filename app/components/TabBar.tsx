@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useT } from "./LangProvider"
 import { sollSlotsNeuZeigen, SLOTS_NEU_LS_KEY, SLOTS_NEU_SEIT_LS_KEY } from "@/lib/hinweise"
+import { isDemoMode } from "@/lib/demo"
 import type { UiStrings } from "@/lib/i18n"
 
 const TABS: { href: string; labelKey: keyof UiStrings; icon: React.ReactNode }[] = [
@@ -66,6 +67,7 @@ const TABS: { href: string; labelKey: keyof UiStrings; icon: React.ReactNode }[]
 export function TabBar() {
   const path = usePathname()
   const t = useT()
+  const demo = isDemoMode()
   const [neuDotVisible, setNeuDotVisible] = useState(false)
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export function TabBar() {
           return (
             <Link
               key={tab.href}
-              href={tab.href}
+              href={demo ? `${tab.href}?demo=1` : tab.href}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] transition-colors duration-100 ${
                 aktiv
                   ? "text-blue-600 dark:text-blue-400"
