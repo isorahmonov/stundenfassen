@@ -133,6 +133,18 @@ export function UpdateHinweis() {
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-6 pb-2">
+          {ist300 && (
+            <video
+              className="w-full rounded-xl mb-4 motion-reduce:hidden"
+              src="/update/3-0-0-walkthrough.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              aria-hidden="true"
+            />
+          )}
           {eintraege.map((eintrag, ei) => (
             <div key={eintrag.version} className={ei > 0 ? "mt-5" : ""}>
               <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-2.5">
