@@ -125,7 +125,7 @@ function SchichtBlock({
         left: `${(spalte / spaltenanzahl) * 100}%`,
         width: `${100 / spaltenanzahl}%`,
         backgroundColor: farbe + "33",
-        borderLeft: `3px solid ${farbe}`,
+        borderLeft: `1px solid ${farbe}40`,
       }}
       title={`${employer?.name ?? ""} ${shift.start}–${shift.ende}`}
     >
@@ -168,7 +168,7 @@ function IcalBlock({
         left: `${(spalte / spaltenanzahl) * 100}%`,
         width: `${100 / spaltenanzahl}%`,
         backgroundColor: farbe + "26",
-        borderLeft: `4px solid ${farbe}`,
+        borderLeft: `1px solid ${farbe}40`,
       }}
       title={`${termin.titel} (${termin.quelleName})`}
     >
@@ -666,8 +666,8 @@ export default function KalenderPage() {
                 )}
                 <div
                   className="flex items-center gap-3 rounded-xl bg-stone-50 dark:bg-neutral-800 px-3 py-2.5"
-                  style={{ borderLeft: `4px solid ${farbe}` }}
                 >
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: farbe }} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-stone-800 dark:text-neutral-100 truncate">
                       {emp?.name ?? "–"}
@@ -692,8 +692,8 @@ export default function KalenderPage() {
               )}
               <div
                 className="flex items-center gap-3 rounded-xl bg-stone-50 dark:bg-neutral-800 px-3 py-2.5"
-                style={{ borderLeft: `4px solid ${te.quelleFarbe}` }}
               >
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: te.quelleFarbe }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate" style={{ color: te.quelleFarbe }}>
                     {te.titel}
@@ -904,8 +904,9 @@ export default function KalenderPage() {
                       <div
                         key={s.id}
                         className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                        style={{ backgroundColor: farbe + "18", borderLeft: `3px solid ${farbe}` }}
+                        style={{ backgroundColor: farbe + "18" }}
                       >
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: farbe }} />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-semibold truncate" style={{ color: farbe }}>
                             {emp?.name ?? "–"}
@@ -926,8 +927,9 @@ export default function KalenderPage() {
                     <div
                       key={te.uid}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                      style={{ backgroundColor: te.quelleFarbe + "18", borderLeft: `3px solid ${te.quelleFarbe}` }}
+                      style={{ backgroundColor: te.quelleFarbe + "18" }}
                     >
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: te.quelleFarbe }} />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate" style={{ color: te.quelleFarbe }}>
                           {te.titel}
