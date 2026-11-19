@@ -58,3 +58,7 @@ scripts/restore-from-backup.ts
 employer-bac*.json
 tsconfig.scripts.json
 scripts/screenshot-login.mjs
+scripts/import-shifts.ts
+schichten-import.csv
+scripts/out/
+test-results/
