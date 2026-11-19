@@ -13,6 +13,7 @@ import { auth } from "@/lib/firebase/client"
 import { getCachedTermine, getStaleTermine, setCachedTermine, type TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
 import { rohZuAnzeigeTermine, type IcalAnzeigeTermin, type KalenderQuelle } from "@/lib/calendar/icalLaden"
 import type { Employer, Shift } from "@/lib/types"
+import { isDemoMode, DEMO_EMPLOYERS, demoShiftsForRange, demoIcalTermineForRange } from "@/lib/demo"
 
 // ─── API helper (same contract as verfuegbarkeit/page.tsx) ───────────────────
 
@@ -212,6 +213,13 @@ export default function KalenderPage() {
   // Data loading: Schichten
   const ladenZeitgitter = useCallback(async (von: string, bis: string) => {
     setLaedt(true)
+    if (isDemoMode()) {
+      setEmployers(DEMO_EMPLOYERS)
+      setSchichten(demoShiftsForRange(von, bis))
+      setIcalTermine(demoIcalTermineForRange(von, bis))
+      setLaedt(false)
+      return
+    }
     try {
       const [emps, shiftList] = await Promise.all([
         employersRepo.findAlle(),
@@ -263,6 +271,7 @@ export default function KalenderPage() {
 
   // On mount: load iCal sources
   useEffect(() => {
+    if (isDemoMode()) return // iCal termine injected in ladenZeitgitter
     apiGet("/api/ical")
       .then(d => setKalenderQuellen((d as { kalender: KalenderQuelle[] }).kalender))
       .catch(() => {}) // silent: no calendars → Schichten still show

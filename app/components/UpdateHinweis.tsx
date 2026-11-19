@@ -6,6 +6,7 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase/client"
 import { uid } from "@/lib/storage/firestore/shared"
 import { entscheideAnzeige, type ChangelogEintrag } from "@/lib/changelog"
+import { isDemoMode } from "@/lib/demo"
 import { APP_VERSION, APP_DOMAINS } from "@/lib/brand"
 import { BaseDialog } from "./BaseDialog"
 import { ShiftslotLogo } from "./ShiftslotLogo"
@@ -37,6 +38,7 @@ export function UpdateHinweis() {
 
   useEffect(() => {
     async function pruefen() {
+      if (isDemoMode()) return
       try {
         const userId = uid()
 

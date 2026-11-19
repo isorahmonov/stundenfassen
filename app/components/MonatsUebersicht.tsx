@@ -21,6 +21,7 @@ import { ShiftslotLoader } from "./ShiftslotLoader"
 import { useLang, useT } from "./LangProvider"
 import { withTimeout } from "@/lib/withTimeout"
 import { sortByFavoriten, getInitialChipState, getInitialSingleEmployerId, cleanDeadIds, type ChipState } from "@/lib/favorites"
+import { isDemoMode, DEMO_EMPLOYERS, demoShiftsForMonth, DEMO_SHIFTS } from "@/lib/demo"
 
 function monatName(monat: number, locale: string): string {
   const name = new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2000, monat - 1, 1))
@@ -60,6 +61,7 @@ export default function MonatsUebersicht() {
 
   // Minus-Konto: Summe für den aktiven Arbeitgeber, neu laden wenn dieser wechselt
   useEffect(() => {
+    if (isDemoMode()) return
     if (!aktivId) { setMinusMinutenAktiv(null); return }
     minusRepo.findByEmployer(aktivId)
       .then((eintraege) => {
@@ -83,6 +85,7 @@ export default function MonatsUebersicht() {
   // Archiv-Check: Hinweis wenn Verfügbarkeit in < 3 Wochen ausläuft
   useEffect(() => {
     async function pruefeArchiv() {
+      if (isDemoMode()) return
       try {
         const snap = await getDocs(
           query(
@@ -114,6 +117,26 @@ export default function MonatsUebersicht() {
     async function laden() {
       setLaedt(true)
       setFehler(null)
+      if (isDemoMode()) {
+        const demoSchichten = demoShiftsForMonth(monat, jahr)
+        const demoJahresSchichten = DEMO_SHIFTS.filter(s => s.datum.startsWith(String(jahr)))
+        const ergebnis = DEMO_EMPLOYERS.map(employer => ({
+          employer,
+          summe: berechneMonatsSumme(demoSchichten.filter(s => s.employerId === employer.id), employer, FALLBACK_SETTINGS),
+        }))
+        setSummen(ergebnis)
+        setSchichten(demoSchichten)
+        setAbgleichMap(new Map())
+        setJahresSchichten(demoJahresSchichten)
+        setSettings(FALLBACK_SETTINGS)
+        if (!initialisiert.current) {
+          initialisiert.current = true
+          setChipState({ mode: "alle" })
+          setAktivId(DEMO_EMPLOYERS[0]?.id ?? null)
+        }
+        setLaedt(false)
+        return
+      }
       try {
         const [emps, cfg, schichten, abgleichListe, alleSchichten] = await withTimeout(
           Promise.all([

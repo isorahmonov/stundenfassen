@@ -15,6 +15,7 @@ import { useIsDesktop } from "./useIsDesktop"
 import { useT } from "./LangProvider"
 import { sollteWarten, setSessionHint, clearSessionHint } from "@/lib/auth/sessionHint"
 import { APP_NAME } from "@/lib/brand"
+import { isDemoMode } from "@/lib/demo"
 
 const OEFFENTLICHE_PFADE = ["/datenschutz", "/impressum"]
 
@@ -59,6 +60,7 @@ function LandingHero() {
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const t = useT()
+  const [demoMode, setDemoMode] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [laden, setLaden] = useState(true)
   const [authFehler, setAuthFehler] = useState(false)
@@ -70,6 +72,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [, erneutPruefen] = useReducer((x: number) => x + 1, 0)
   const istOeffentlich = OEFFENTLICHE_PFADE.includes(pathname)
   const istStartseite = pathname === "/"
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (isDemoMode()) setDemoMode(true) }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -109,6 +114,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return () => clearTimeout(id)
     }
   }, [laden, loaderWeg, istOeffentlich])
+
+  if (demoMode) {
+    return <><div className="pb-20">{children}</div><TabBar /></>
+  }
 
   const seo = istStartseite ? <LandingSeo /> : null
 

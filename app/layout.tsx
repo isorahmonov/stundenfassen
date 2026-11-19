@@ -9,7 +9,7 @@ import { APP_NAME, APP_TAGLINE } from "@/lib/brand"
 
 // Reads sf_theme from localStorage before React hydrates to avoid FOUC.
 // "system" (null/unknown) resolves to OS preference via matchMedia.
-const FOUC_SCRIPT = `(function(){try{var t=localStorage.getItem('sf_theme'),d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',t==='dark'||(t!=='light'&&d)?'dark':'light')}catch(e){}})()`
+const FOUC_SCRIPT = `(function(){try{var t=localStorage.getItem('sf_theme'),d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',t==='dark'||(t!=='light'&&d)?'dark':'light')}catch(e){}if(location.search.includes('demo=1'))try{localStorage.setItem('sf_lang','en')}catch(e){}})()`
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
