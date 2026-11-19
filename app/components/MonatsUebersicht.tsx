@@ -306,7 +306,7 @@ export default function MonatsUebersicht() {
             "background-color 130ms ease-out",
             "border-color 130ms ease-out",
             "color 120ms ease-out",
-            "transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
+            "transform 220ms cubic-bezier(0.22,1,0.36,1)",
           ].join(", ")
           return (
             <nav role="tablist" aria-label={t("ARBEITGEBER_LABEL")} className="flex gap-2 mb-6 flex-wrap">
