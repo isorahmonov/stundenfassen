@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { Fragment, useCallback, useEffect, useRef, useState } from "react"
 import { addDays, addMonths, endOfMonth, format, getDay, isSameMonth, parseISO, startOfISOWeek, startOfMonth } from "date-fns"
 import { de } from "date-fns/locale"
 import { employers as employersRepo, shifts as shiftsRepo } from "@/lib/storage"
@@ -9,7 +9,23 @@ import { ueberlappungsSpalten, wochenstundenMinuten } from "@/lib/calendar/layou
 import { WERKSTUDENT_WOCHENSTUNDEN_ROT } from "@/lib/calc/warnings"
 import { sortByFavoriten } from "@/lib/favorites"
 import { useT } from "@/app/components/LangProvider"
+import { auth } from "@/lib/firebase/client"
+import { getCachedTermine, getStaleTermine, setCachedTermine, type TerminRoh } from "@/lib/verfuegbarkeit/eventCache"
+import { rohZuAnzeigeTermine, type IcalAnzeigeTermin, type KalenderQuelle } from "@/lib/calendar/icalLaden"
 import type { Employer, Shift } from "@/lib/types"
+
+// ─── API helper (same contract as verfuegbarkeit/page.tsx) ───────────────────
+
+async function apiGet(path: string): Promise<unknown> {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error("Nicht angemeldet")
+  const res = await fetch(path, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) {
+    const b = await res.json().catch(() => ({}))
+    throw new Error(`${res.status}: ${(b as Record<string, string>).fehler ?? res.statusText}`)
+  }
+  return res.json()
+}
 
 // ─── Konstanten ───────────────────────────────────────────────────────────────
 
@@ -63,6 +79,22 @@ function tageVonAnsicht(base: string, ansicht: Ansicht): string[] {
   return []
 }
 
+/** Berechnet von/bis für den aktuellen View. Gemeinsame Quelle für Schicht- und iCal-Laden. */
+function viewRange(base_: string, ansicht_: Ansicht, heute_: string): { von: string; bis: string } {
+  if (ansicht_ === "liste") return { von: heute_, bis: format(addDays(parseISO(heute_), 90), "yyyy-MM-dd") }
+  if (ansicht_ === "monat") return {
+    von: format(startOfMonth(parseISO(base_)), "yyyy-MM-dd"),
+    bis: format(endOfMonth(parseISO(base_)), "yyyy-MM-dd"),
+  }
+  const tage = tageVonAnsicht(base_, ansicht_)
+  return { von: tage[0], bis: tage[tage.length - 1] }
+}
+
+function formatMin(min: number): string {
+  const m = min % 1440
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`
+}
+
 // ─── Schicht-Block ────────────────────────────────────────────────────────────
 
 function SchichtBlock({
@@ -111,6 +143,49 @@ function SchichtBlock({
   )
 }
 
+// ─── iCal-Block ───────────────────────────────────────────────────────────────
+
+function IcalBlock({
+  termin,
+  spalte,
+  spaltenanzahl,
+}: {
+  termin: IcalAnzeigeTermin
+  spalte: number
+  spaltenanzahl: number
+}) {
+  const topY = minToY(Math.max(termin.startMin, VIEW_START))
+  const bottomY = minToY(Math.min(termin.endMin, VIEW_END))
+  const h = Math.max(bottomY - topY, 20)
+  const farbe = termin.quelleFarbe
+
+  return (
+    <div
+      className="absolute overflow-hidden rounded px-1 py-0.5"
+      style={{
+        top: topY,
+        height: h,
+        left: `${(spalte / spaltenanzahl) * 100}%`,
+        width: `${100 / spaltenanzahl}%`,
+        backgroundColor: farbe + "26",
+        borderLeft: `4px solid ${farbe}`,
+      }}
+      title={`${termin.titel} (${termin.quelleName})`}
+    >
+      {h >= 28 && (
+        <span className="text-[10px] font-medium leading-tight block truncate" style={{ color: farbe }}>
+          {termin.titel}
+        </span>
+      )}
+      {h >= 44 && (
+        <span className="text-[10px] leading-tight block truncate" style={{ color: farbe + "aa" }}>
+          {formatMin(termin.startMin)}–{formatMin(termin.endMin)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 // ─── Hauptseite ───────────────────────────────────────────────────────────────
 
 export default function KalenderPage() {
@@ -120,6 +195,8 @@ export default function KalenderPage() {
   const [base, setBase] = useState(heute)
   const [employers, setEmployers] = useState<Employer[]>([])
   const [schichten, setSchichten] = useState<Shift[]>([])
+  const [kalenderQuellen, setKalenderQuellen] = useState<KalenderQuelle[]>([])
+  const [icalTermine, setIcalTermine] = useState<IcalAnzeigeTermin[]>([])
   const [filteredEmpIds, setFilteredEmpIds] = useState<string[] | null>(null)
   const [nowMin, setNowMin] = useState(berlinNowMin)
   const [laedt, setLaedt] = useState(true)
@@ -129,7 +206,7 @@ export default function KalenderPage() {
   const sheetRef = useRef<HTMLDivElement>(null)
   const dragStartY = useRef(0)
 
-  // Data loading
+  // Data loading: Schichten
   const ladenZeitgitter = useCallback(async (von: string, bis: string) => {
     setLaedt(true)
     try {
@@ -144,21 +221,49 @@ export default function KalenderPage() {
     }
   }, [])
 
+  // Data loading: iCal (stale-while-revalidate, non-blocking)
+  const ladeIcal = useCallback(async (quellen: KalenderQuelle[], von: string, bis: string) => {
+    // Render stale data immediately
+    const stale: IcalAnzeigeTermin[] = []
+    for (const q of quellen) {
+      const s = getStaleTermine(`${q.id}_${von}_${bis}`)
+      if (s) stale.push(...rohZuAnzeigeTermine(s, q))
+    }
+    if (stale.length > 0) setIcalTermine(stale)
+
+    // Skip if all caches are fresh
+    if (quellen.every(q => getCachedTermine(`${q.id}_${von}_${bis}`) !== null)) return
+
+    const results = await Promise.allSettled(
+      quellen.map(async q => {
+        const key = `${q.id}_${von}_${bis}`
+        if (getCachedTermine(key) !== null) return rohZuAnzeigeTermine(getCachedTermine(key)!, q)
+        const data = await apiGet(`/api/ical?id=${q.id}&von=${von}&bis=${bis}`) as { termine: TerminRoh[] }
+        setCachedTermine(key, data.termine)
+        return rohZuAnzeigeTermine(data.termine, q)
+      })
+    )
+    setIcalTermine(
+      results
+        .filter(r => r.status === "fulfilled")
+        .flatMap(r => (r as PromiseFulfilledResult<IcalAnzeigeTermin[]>).value)
+    )
+  }, [])
+
+  // Combined data loading effect
   useEffect(() => {
-    if (ansicht === "liste") {
-      const bis = format(addDays(parseISO(heute), 90), "yyyy-MM-dd")
-      ladenZeitgitter(heute, bis)
-      return
-    }
-    if (ansicht === "monat") {
-      const first = startOfMonth(parseISO(base))
-      const last = endOfMonth(parseISO(base))
-      ladenZeitgitter(format(first, "yyyy-MM-dd"), format(last, "yyyy-MM-dd"))
-      return
-    }
-    const tage = tageVonAnsicht(base, ansicht)
-    if (tage.length > 0) ladenZeitgitter(tage[0], tage[tage.length - 1])
-  }, [base, ansicht]) // eslint-disable-line react-hooks/exhaustive-deps
+    const { von, bis } = viewRange(base, ansicht, heute)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    ladenZeitgitter(von, bis)
+    if (kalenderQuellen.length > 0) ladeIcal(kalenderQuellen, von, bis).catch(() => {})
+  }, [base, ansicht, kalenderQuellen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On mount: load iCal sources
+  useEffect(() => {
+    apiGet("/api/ical")
+      .then(d => setKalenderQuellen((d as { kalender: KalenderQuelle[] }).kalender))
+      .catch(() => {}) // silent: no calendars → Schichten still show
+  }, [])
 
   // Now-line management
   useEffect(() => {
@@ -186,7 +291,7 @@ export default function KalenderPage() {
     scrollRef.current?.scrollTo({ top: Math.max(0, minToY(nowMin - 60)), behavior: "instant" })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Filtered shifts
+  // Filtered shifts (chips filter only Schichten; iCal always visible)
   const sichtbareSchichten = filteredEmpIds
     ? schichten.filter(s => filteredEmpIds.includes(s.employerId))
     : schichten
@@ -264,10 +369,19 @@ export default function KalenderPage() {
             const inMonth = isSameMonth(cell, monthDate)
             const isHeute = cellStr === heute
             const tagSchichten = sichtbareSchichten.filter(s => s.datum === cellStr)
+            const tagIcal = icalTermine.filter(te => te.datum <= cellStr && te.datumBis >= cellStr)
 
-            // Unique employer colors for dots (up to 3)
-            const empIds = [...new Set(tagSchichten.map(s => s.employerId))].slice(0, 3)
-            const dots = empIds.map(id => employers.find(e => e.id === id)?.farbe ?? "#6b7280")
+            // Collect distinct colors: Schichten first, then iCal (max 3 total)
+            const farben: string[] = []
+            tagSchichten.forEach(s => {
+              const f = employers.find(e => e.id === s.employerId)?.farbe ?? "#6b7280"
+              if (!farben.includes(f)) farben.push(f)
+            })
+            tagIcal.forEach(te => {
+              if (!farben.includes(te.quelleFarbe)) farben.push(te.quelleFarbe)
+            })
+            const sichtbareDots = farben.slice(0, 3)
+            const extra = Math.max(0, farben.length - 3)
 
             return (
               <button
@@ -291,14 +405,17 @@ export default function KalenderPage() {
                 >
                   {format(cell, "d")}
                 </span>
-                <div className="flex gap-0.5 mt-1 h-1.5">
-                  {dots.map((farbe, i) => (
+                <div className="flex gap-0.5 mt-1 h-1.5 items-center">
+                  {sichtbareDots.map((f, i) => (
                     <span
                       key={i}
                       className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: inMonth ? farbe : "transparent" }}
+                      style={{ backgroundColor: inMonth ? f : "transparent" }}
                     />
                   ))}
+                  {extra > 0 && inMonth && (
+                    <span className="text-[8px] text-stone-400 leading-none ml-0.5">+{extra}</span>
+                  )}
                 </div>
               </button>
             )
@@ -312,43 +429,86 @@ export default function KalenderPage() {
 
   function renderZeitgitter() {
     const tage = tageVonAnsicht(base, ansicht)
+
+    type Ev =
+      | { typ: "schicht"; s: Shift; sm: number; em: number }
+      | { typ: "ical"; te: IcalAnzeigeTermin; sm: number; em: number }
+
     const tagDaten = tage.map(day => {
-      const tagSchichten = sichtbareSchichten
-        .filter(s => s.datum === day)
-        .sort((a, b) => minutesSinceMidnight(a.start) - minutesSinceMidnight(b.start))
-      const events = tagSchichten.map(s => {
-        const startMin = minutesSinceMidnight(s.start)
-        let endMin = minutesSinceMidnight(s.ende)
-        if (endMin <= startMin) endMin += 24 * 60
-        return { startMin, endMin }
-      })
-      const lanes = ueberlappungsSpalten(events)
-      return { day, tagSchichten, lanes }
+      const tagSchichten = sichtbareSchichten.filter(s => s.datum === day)
+      const tagIcal = icalTermine.filter(te => !te.ganztaegig && te.datum === day)
+
+      const alleEv: Ev[] = [
+        ...tagSchichten.map(s => {
+          const sm = minutesSinceMidnight(s.start)
+          let em = minutesSinceMidnight(s.ende)
+          if (em <= sm) em += 24 * 60
+          return { typ: "schicht" as const, s, sm, em }
+        }),
+        ...tagIcal.map(te => ({ typ: "ical" as const, te, sm: te.startMin, em: te.endMin })),
+      ].sort((a, b) => a.sm - b.sm)
+
+      const lanes = ueberlappungsSpalten(alleEv.map(e => ({ startMin: e.sm, endMin: e.em })))
+      return { day, alleEv, lanes }
     })
+
+    // Show ganztägig row only when there are any ganztägig events across visible days
+    const hatGanztaegig = tage.some(day =>
+      icalTermine.some(te => te.ganztaegig && te.datum <= day && te.datumBis >= day)
+    )
 
     return (
       <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
-        {/* Day headers */}
-        <div className="sticky top-0 z-20 flex bg-white dark:bg-neutral-900 border-b border-stone-100 dark:border-neutral-800">
-          <div className="w-11 flex-shrink-0" />
-          {tage.map(day => {
-            const isHeute = day === heute
-            const d = parseISO(day)
-            return (
-              <div key={day} className="flex-1 flex flex-col items-center py-1 text-xs">
-                <span className="text-stone-400 dark:text-neutral-500 uppercase text-[10px]">
-                  {format(d, "EEE", { locale: de }).slice(0, 2)}
-                </span>
-                <span className={`w-6 h-6 flex items-center justify-center rounded-full font-semibold mt-0.5 ${
-                  isHeute
-                    ? "bg-blue-600 text-white"
-                    : "text-stone-700 dark:text-neutral-200"
-                }`}>
-                  {format(d, "d")}
-                </span>
+        {/* Sticky header: day labels + optional ganztägig row */}
+        <div className="sticky top-0 z-20 bg-white dark:bg-neutral-900">
+          <div className="flex border-b border-stone-100 dark:border-neutral-800">
+            <div className="w-11 flex-shrink-0" />
+            {tage.map(day => {
+              const isHeute = day === heute
+              const d = parseISO(day)
+              return (
+                <div key={day} className="flex-1 flex flex-col items-center py-1 text-xs">
+                  <span className="text-stone-400 dark:text-neutral-500 uppercase text-[10px]">
+                    {format(d, "EEE", { locale: de }).slice(0, 2)}
+                  </span>
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-full font-semibold mt-0.5 ${
+                    isHeute
+                      ? "bg-blue-600 text-white"
+                      : "text-stone-700 dark:text-neutral-200"
+                  }`}>
+                    {format(d, "d")}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {hatGanztaegig && (
+            <div className="flex border-b border-stone-100 dark:border-neutral-800">
+              <div className="w-11 flex-shrink-0 py-1 flex items-center justify-end pr-2">
+                <span className="text-[9px] text-stone-400 dark:text-neutral-500 leading-none">ganztägig</span>
               </div>
-            )
-          })}
+              {tage.map(day => {
+                const events = icalTermine.filter(te => te.ganztaegig && te.datum <= day && te.datumBis >= day)
+                return (
+                  <div key={day} className="flex-1 py-1 px-0.5 space-y-0.5 border-l border-stone-100 dark:border-neutral-800">
+                    {events.slice(0, 2).map(te => (
+                      <div
+                        key={te.uid}
+                        className="text-[9px] rounded px-1 py-0.5 truncate font-medium"
+                        style={{ backgroundColor: te.quelleFarbe + "22", color: te.quelleFarbe }}
+                      >
+                        {te.titel}
+                      </div>
+                    ))}
+                    {events.length > 2 && (
+                      <span className="text-[9px] text-stone-400 dark:text-neutral-500 px-1">+{events.length - 2}</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Grid */}
@@ -380,7 +540,7 @@ export default function KalenderPage() {
             </div>
 
             {/* Per-day content */}
-            {tagDaten.map(({ day, tagSchichten: ts, lanes }) => {
+            {tagDaten.map(({ day, alleEv, lanes }) => {
               const isHeute = day === heute
               return (
                 <div
@@ -389,15 +549,28 @@ export default function KalenderPage() {
                     isHeute ? "bg-blue-50/30 dark:bg-blue-900/10" : ""
                   }`}
                 >
-                  {ts.map((shift, i) => (
-                    <SchichtBlock
-                      key={shift.id}
-                      shift={shift}
-                      employer={employers.find(e => e.id === shift.employerId)}
-                      spalte={lanes[i].spalte}
-                      spaltenanzahl={lanes[i].spaltenanzahl}
-                    />
-                  ))}
+                  {alleEv.map((ev, i) => {
+                    const { spalte, spaltenanzahl } = lanes[i]
+                    if (ev.typ === "schicht") {
+                      return (
+                        <SchichtBlock
+                          key={ev.s.id}
+                          shift={ev.s}
+                          employer={employers.find(e => e.id === ev.s.employerId)}
+                          spalte={spalte}
+                          spaltenanzahl={spaltenanzahl}
+                        />
+                      )
+                    }
+                    return (
+                      <IcalBlock
+                        key={ev.te.uid}
+                        termin={ev.te}
+                        spalte={spalte}
+                        spaltenanzahl={spaltenanzahl}
+                      />
+                    )
+                  })}
 
                   {/* Now-line on today column */}
                   {isHeute && nowY !== null && (
@@ -427,11 +600,26 @@ export default function KalenderPage() {
 
   function renderListe() {
     const heute_ = berlinHeuteISO()
-    const sortiert = sichtbareSchichten
-      .filter(s => s.datum >= heute_)
-      .sort((a, b) => a.datum.localeCompare(b.datum) || a.start.localeCompare(b.start))
+    const jetzt = berlinNowMin()
+    const nowHHMM = formatMin(jetzt)
 
-    if (sortiert.length === 0) {
+    type ListEntry = { typ: "schicht"; s: Shift } | { typ: "ical"; te: IcalAnzeigeTermin }
+
+    function listeKey(e: ListEntry): string {
+      if (e.typ === "schicht") return `${e.s.datum}T${e.s.start}`
+      return `${e.te.datum}T${e.te.ganztaegig ? "00:00" : formatMin(e.te.startMin)}`
+    }
+
+    const alleEintraege: ListEntry[] = [
+      ...sichtbareSchichten
+        .filter(s => s.datum >= heute_)
+        .map(s => ({ typ: "schicht" as const, s })),
+      ...icalTermine
+        .filter(te => te.datum >= heute_)
+        .map(te => ({ typ: "ical" as const, te })),
+    ].sort((a, b) => listeKey(a).localeCompare(listeKey(b)))
+
+    if (alleEintraege.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center">
           <p className="text-stone-400 dark:text-neutral-500 text-sm">–</p>
@@ -439,26 +627,65 @@ export default function KalenderPage() {
       )
     }
 
+    const jetztKey = `${heute_}T${nowHHMM}`
+    const jetztIdx = alleEintraege.findIndex(e => listeKey(e) >= jetztKey)
+
     return (
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-        {sortiert.map(s => {
-          const emp = employers.find(e => e.id === s.employerId)
-          const farbe = emp?.farbe ?? "#6b7280"
-          return (
-            <div
-              key={s.id}
-              className="flex items-center gap-3 rounded-xl bg-stone-50 dark:bg-neutral-800 px-3 py-2.5"
-              style={{ borderLeft: `4px solid ${farbe}` }}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-stone-800 dark:text-neutral-100 truncate">
-                  {emp?.name ?? "–"}
+        {alleEintraege.map((entry, idx) => {
+          const isJetzt = jetztIdx === idx
+          if (entry.typ === "schicht") {
+            const emp = employers.find(e => e.id === entry.s.employerId)
+            const farbe = emp?.farbe ?? "#6b7280"
+            return (
+              <Fragment key={entry.s.id}>
+                {isJetzt && (
+                  <div className="flex items-center gap-2 my-1">
+                    <div className="flex-1 h-px bg-red-400" />
+                    <span className="text-[10px] text-red-500 font-medium">{t("KAL_JETZT")}</span>
+                    <div className="flex-1 h-px bg-red-400" />
+                  </div>
+                )}
+                <div
+                  className="flex items-center gap-3 rounded-xl bg-stone-50 dark:bg-neutral-800 px-3 py-2.5"
+                  style={{ borderLeft: `4px solid ${farbe}` }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-stone-800 dark:text-neutral-100 truncate">
+                      {emp?.name ?? "–"}
+                    </div>
+                    <div className="text-xs text-stone-400 dark:text-neutral-500 mt-0.5">
+                      {format(parseISO(entry.s.datum), "EEE dd.MM.yyyy", { locale: de })} · {entry.s.start}–{entry.s.ende}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-stone-400 dark:text-neutral-500 mt-0.5">
-                  {format(parseISO(s.datum), "EEE dd.MM.yyyy", { locale: de })} · {s.start}–{s.ende}
+              </Fragment>
+            )
+          }
+          const te = entry.te
+          return (
+            <Fragment key={te.uid}>
+              {isJetzt && (
+                <div className="flex items-center gap-2 my-1">
+                  <div className="flex-1 h-px bg-red-400" />
+                  <span className="text-[10px] text-red-500 font-medium">{t("KAL_JETZT")}</span>
+                  <div className="flex-1 h-px bg-red-400" />
+                </div>
+              )}
+              <div
+                className="flex items-center gap-3 rounded-xl bg-stone-50 dark:bg-neutral-800 px-3 py-2.5"
+                style={{ borderLeft: `4px solid ${te.quelleFarbe}` }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate" style={{ color: te.quelleFarbe }}>
+                    {te.titel}
+                  </div>
+                  <div className="text-xs text-stone-400 dark:text-neutral-500 mt-0.5">
+                    {format(parseISO(te.datum), "EEE dd.MM.yyyy", { locale: de })} · {te.ganztaegig ? "ganztägig" : `${formatMin(te.startMin)}–${formatMin(te.endMin)}`} · {te.quelleName}
+                  </div>
                 </div>
               </div>
-            </div>
+            </Fragment>
           )
         })}
       </div>
@@ -478,11 +705,17 @@ export default function KalenderPage() {
         ? `${format(parseISO(base), "d.M.")} – ${format(addDays(parseISO(base), 2), "d.M.yyyy")}`
         : format(parseISO(base), "EEEE, d. MMMM", { locale: de })
 
-  // Shifts for the detail bottom sheet
+  // Items for detail bottom sheet
   const selectedDaySchichten = selectedDay
     ? sichtbareSchichten
         .filter(s => s.datum === selectedDay)
         .sort((a, b) => a.start.localeCompare(b.start))
+    : []
+
+  const selectedDayIcal = selectedDay
+    ? icalTermine
+        .filter(te => te.datum <= selectedDay && te.datumBis >= selectedDay)
+        .sort((a, b) => a.startMin - b.startMin)
     : []
 
   return (
@@ -545,7 +778,7 @@ export default function KalenderPage() {
           </div>
         )}
 
-        {/* Employer chips */}
+        {/* Employer chips (filter only Schichten; iCal always visible) */}
         {employers.length > 0 && (
           <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar mb-1">
             <button
@@ -631,36 +864,55 @@ export default function KalenderPage() {
               </h3>
             </div>
 
-            {/* Shifts */}
+            {/* Schichten + iCal termine */}
             <div className="flex-1 overflow-y-auto px-4 pt-3 space-y-2">
-              {selectedDaySchichten.length === 0 ? (
+              {selectedDaySchichten.length === 0 && selectedDayIcal.length === 0 ? (
                 <p className="text-sm text-stone-400 dark:text-neutral-500 text-center py-6">–</p>
               ) : (
-                selectedDaySchichten.map(s => {
-                  const emp = employers.find(e => e.id === s.employerId)
-                  const farbe = emp?.farbe ?? "#6b7280"
-                  return (
+                <>
+                  {selectedDaySchichten.map(s => {
+                    const emp = employers.find(e => e.id === s.employerId)
+                    const farbe = emp?.farbe ?? "#6b7280"
+                    return (
+                      <div
+                        key={s.id}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                        style={{ backgroundColor: farbe + "18", borderLeft: `3px solid ${farbe}` }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold truncate" style={{ color: farbe }}>
+                            {emp?.name ?? "–"}
+                          </div>
+                          <div className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
+                            {s.start}–{s.ende}
+                            {s.pauseVon && s.pauseBis && (
+                              <span className="ml-2 text-stone-400 dark:text-neutral-500">
+                                Pause {s.pauseVon}–{s.pauseBis}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {selectedDayIcal.map(te => (
                     <div
-                      key={s.id}
+                      key={te.uid}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                      style={{ backgroundColor: farbe + "18", borderLeft: `3px solid ${farbe}` }}
+                      style={{ backgroundColor: te.quelleFarbe + "18", borderLeft: `3px solid ${te.quelleFarbe}` }}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold truncate" style={{ color: farbe }}>
-                          {emp?.name ?? "–"}
+                        <div className="text-sm font-semibold truncate" style={{ color: te.quelleFarbe }}>
+                          {te.titel}
                         </div>
                         <div className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
-                          {s.start}–{s.ende}
-                          {s.pauseVon && s.pauseBis && (
-                            <span className="ml-2 text-stone-400 dark:text-neutral-500">
-                              Pause {s.pauseVon}–{s.pauseBis}
-                            </span>
-                          )}
+                          {te.ganztaegig ? "ganztägig" : `${formatMin(te.startMin)}–${formatMin(te.endMin)}`}
+                          {" · "}{te.quelleName}
                         </div>
                       </div>
                     </div>
-                  )
-                })
+                  ))}
+                </>
               )}
             </div>
           </div>
